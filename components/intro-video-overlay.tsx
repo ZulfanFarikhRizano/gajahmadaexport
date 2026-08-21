@@ -17,12 +17,9 @@ export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // Muncul sekali per sesi tab browser. Ganti sessionStorage -> localStorage
-    // di 2 baris di bawah kalau maunya cuma sekali seumur hidup per perangkat.
-    if (sessionStorage.getItem(SESSION_KEY)) return;
+    // HAPUS / COMMENT BARIS INI JIKA LAGI TESTING AGAR VIDEO MUNCUL TRUS TIAP REFRESH:
+    // if (sessionStorage.getItem(SESSION_KEY)) return;
 
-    // Lewati otomatis kalau koneksi lambat / mode hemat data aktif —
-    // jangan paksa unduh video di jaringan yang sudah pas-pasan.
     const conn = (navigator as any).connection;
     const isSlow =
       conn && (conn.saveData || ["slow-2g", "2g", "3g"].includes(conn.effectiveType));
@@ -30,6 +27,18 @@ export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
     sessionStorage.setItem(SESSION_KEY, "1");
     if (!isSlow) setVisible(true);
   }, []);
+
+  // Memaksa browser melakukan trigger .play()
+  useEffect(() => {
+    if (visible && videoRef.current) {
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.warn("Autoplay terhalang oleh kebijakan browser:", error);
+        });
+      }
+    }
+  }, [visible]);
 
   const close = () => setVisible(false);
 
@@ -50,7 +59,10 @@ export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
             muted={muted}
             playsInline
             onEnded={close}
-            onError={close}
+            onError={(e) => {
+              console.error("Video error / file tidak ditemukan di path:", src, e);
+              close();
+            }}
             className="h-full w-full object-cover"
           />
 
