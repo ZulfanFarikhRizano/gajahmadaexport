@@ -1,0 +1,71 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-cream-50 text-clay-950 font-body antialiased;
+}
+
+/* Batik-inspired corner ornament, echoing the parang motif from the brand mark.
+   Kept low-opacity so it reads as texture, not decoration competing with content. */
+.ornament-corner {
+  background-image: radial-gradient(circle at 1px 1px, theme("colors.brass.400") 1px, transparent 0);
+  background-size: 22px 22px;
+  opacity: 0.15;
+  mask-image: radial-gradient(circle at 0% 0%, black, transparent 70%);
+}
+
+.ornament-corner--br {
+  mask-image: radial-gradient(circle at 100% 100%, black, transparent 70%);
+}
+
+/* Respect reduced motion preference across the app */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* Google Translate widget — sembunyikan banner & branding bawaan,
+   sisakan dropdown pilihan bahasa saja supaya nyatu dengan desain */
+/* --- Google Translate Custom Styling --- */
+/* --- Fix Google Translate Selector --- */
+.goog-te-banner-frame,
+.goog-te-balloon-frame,
+#goog-gt-tt,
+.goog-te-spinner-pos {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+/* Sembunyikan Logo & Teks bawaan Google, KECUALI tag select */
+/* Sembunyikan Top Bar Bawaan Google Translate */
+.goog-te-banner-frame, 
+.skiptranslate,
+#goog-gt-tt {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
