@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSiteContent, updateSiteContent } from "@/lib/data-store";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const siteContent = await getSiteContent();
   return NextResponse.json({ siteContent });
