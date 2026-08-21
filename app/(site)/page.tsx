@@ -1,11 +1,13 @@
-
+import { IntroVideoOverlay } from "@/components/intro-video-overlay";
 import { getProducts, getSiteContent } from "@/lib/data-store";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 import { HomeGallerySpill } from "@/components/home-gallery-spill";
 import Features from "@/components/features";
 import { CTA } from "@/components/cta";
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
 export default async function HomePage() {
   const [products, siteContent] = await Promise.all([getProducts(), getSiteContent()]);
 
@@ -16,6 +18,10 @@ export default async function HomePage() {
 
   return (
     <main>
+      <IntroVideoOverlay 
+        src="/videos/intro.mp4" 
+        poster="/images/intro-poster.jpg" 
+      />
       <HomeGallerySpill
         slides={slides}
         headline={siteContent.heroHeadline}

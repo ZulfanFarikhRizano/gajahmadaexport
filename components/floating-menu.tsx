@@ -59,18 +59,14 @@ function MenuButton({
       onClick={onClick}
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
-      className="text-[#FAF6EE] text-[20px] uppercase leading-none overflow-hidden"
+      className="text-[#FAF6EE] text-[18px] sm:text-[20px] uppercase leading-none overflow-hidden"
       style={{
         fontFamily: "'Trobika', 'Bebas Neue', sans-serif",
         letterSpacing: "-0.03em",
         height: "1em",
       }}
       animate={{ opacity: isOpen ? 1 : 0 }}
-      transition={{
-        duration: 0.4,
-        delay: isOpen ? 0.35 + 0.08 * index : 0,
-        ease,
-      }}
+      transition={{ duration: 0.4, delay: isOpen ? 0.35 + 0.08 * index : 0, ease }}
     >
       <div className="flex justify-center">
         {chars.map((char, i) => (
@@ -97,6 +93,7 @@ function MenuButton({
 
 export default function FloatingMenu({ items }: FloatingMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [compact, setCompact] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -106,6 +103,20 @@ export default function FloatingMenu({ items }: FloatingMenuProps) {
     { label: "Gallery", href: "/gallery" },
     { label: "Contact Us", href: "/contact" },
   ];
+
+  // HP sempit (< 380px, mis. layar kecil lama) dapat ukuran pill lebih kecil
+  // supaya tidak mepet tepi layar saat dibuka.
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 380px)");
+    const update = () => setCompact(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  const closedW = compact ? 112 : 150;
+  const openW = compact ? 230 : 280;
+  const openH = compact ? 230 : 260;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -119,28 +130,23 @@ export default function FloatingMenu({ items }: FloatingMenuProps) {
   }, [isOpen]);
 
   return (
-    // Footprint tetap 150x48 (ukuran pill saat tertutup) supaya header tidak
-    // "lompat" — panel yang membesar ada di dalam, posisinya absolute.
-    <div ref={containerRef} className="relative z-[100]" style={{ width: 150, height: 48 }}>
+    <div ref={containerRef} className="relative z-[100]" style={{ width: closedW, height: 48 }}>
       <motion.div
         className="absolute right-0 top-0 overflow-hidden flex flex-col"
-        onClick={() => {
-          if (!isOpen) setIsOpen(true);
-        }}
+        onClick={() => { if (!isOpen) setIsOpen(true); }}
         style={{
           fontFamily: "'Aeonik TRIAL', 'Inter', sans-serif",
           letterSpacing: "-0.02em",
           cursor: isOpen ? "default" : "pointer",
         }}
         animate={{
-          width: isOpen ? 280 : 150,
-          height: isOpen ? 260 : 48,
+          width: isOpen ? openW : closedW,
+          height: isOpen ? openH : 48,
           borderRadius: isOpen ? 32 : 72,
         }}
         whileHover={isOpen ? undefined : { scale: 1.05 }}
         transition={{
-          duration: 0.8,
-          ease,
+          duration: 0.8, ease,
           height: { duration: isOpen ? 0.8 : 0.15 },
           scale: { duration: 0.25, ease },
         }}
@@ -152,7 +158,6 @@ export default function FloatingMenu({ items }: FloatingMenuProps) {
           style={{ borderWidth: 1, borderStyle: "solid", borderRadius: "inherit" }}
         />
 
-        {/* Lingkaran gelap sekarang mekar dari ATAS, karena panel buka ke bawah */}
         <motion.div
           className="absolute left-1/2 bg-clay-950"
           style={{ width: "200%", height: "200%", borderRadius: "50%", x: "-50%" }}
@@ -160,44 +165,42 @@ export default function FloatingMenu({ items }: FloatingMenuProps) {
           transition={{ duration: 0.8, ease, delay: isOpen ? 0.1 : 0 }}
         />
 
-        {/* Bar "Menu" + hamburger — dirender PERTAMA supaya selalu di atas */}
         <motion.div
           className="relative z-10 flex items-center justify-between w-full shrink-0 cursor-pointer"
           onClick={() => setIsOpen(!isOpen)}
           animate={{
-            paddingLeft: isOpen ? 24 : 20,
-            paddingRight: isOpen ? 24 : 20,
-            paddingTop: isOpen ? 24 : 0,
+            paddingLeft: isOpen ? 20 : 18,
+            paddingRight: isOpen ? 20 : 18,
+            paddingTop: isOpen ? 20 : 0,
             height: 48,
           }}
           transition={{ duration: 0.8, ease }}
           style={{ alignItems: "center" }}
         >
           <motion.span
-            className="text-[14px] leading-none"
+            className="text-[13px] sm:text-[14px] leading-none"
             animate={{ color: isOpen ? "#FAF6EE" : "#2E2018" }}
             transition={{ duration: 0.3, ease }}
           >
             Menu
           </motion.span>
 
-          <div className="relative w-[24px] h-[24px] flex items-center justify-center">
+          <div className="relative w-[22px] h-[22px] flex items-center justify-center">
             <motion.span
-              className="absolute block w-[18px] h-[2px] rounded-full"
+              className="absolute block w-[16px] h-[2px] rounded-full"
               animate={{ rotate: isOpen ? 45 : 0, y: isOpen ? 0 : -3, backgroundColor: isOpen ? "#FAF6EE" : "#2E2018" }}
               transition={{ duration: 0.4, ease }}
             />
             <motion.span
-              className="absolute block w-[18px] h-[2px] rounded-full"
+              className="absolute block w-[16px] h-[2px] rounded-full"
               animate={{ rotate: isOpen ? -45 : 0, y: isOpen ? 0 : 3, backgroundColor: isOpen ? "#FAF6EE" : "#2E2018" }}
               transition={{ duration: 0.4, ease }}
             />
           </div>
         </motion.div>
 
-        {/* Item menu — dirender SETELAH bar, jadi tampil di bawahnya */}
         <div
-          className="relative z-10 flex flex-col gap-5 items-center justify-center"
+          className="relative z-10 flex flex-col gap-4 sm:gap-5 items-center justify-center"
           style={{
             pointerEvents: isOpen ? "auto" : "none",
             opacity: isOpen ? 1 : 0,
@@ -209,10 +212,7 @@ export default function FloatingMenu({ items }: FloatingMenuProps) {
             <MenuButton
               key={item.label}
               label={item.label}
-              onClick={() => {
-                router.push(item.href);
-                setIsOpen(false);
-              }}
+              onClick={() => { router.push(item.href); setIsOpen(false); }}
               isOpen={isOpen}
               index={idx}
             />
