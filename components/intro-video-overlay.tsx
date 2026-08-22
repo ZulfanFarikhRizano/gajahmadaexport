@@ -13,8 +13,8 @@ interface IntroVideoOverlayProps {
 
 export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
   const [visible, setVisible] = useState(false);
-  // Default langsung di-unmute (suara aktif)
-  const [muted, setMuted] = useState(false);
+  // Default Wajib True agar Autoplay tidak diblokir Chrome/Safari
+  const [muted, setMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -34,15 +34,31 @@ export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
     }
   }, []);
 
-  const handleVideoReady = () => {
+  // Begitu video siap, jalankan play secara mulus
+  const handleCanPlay = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    try {
+      // 1. Jalankan video secara muted terlebih dahulu (Pasti Berhasil)
+      await video.play();
+
+      // 2. Coba Unmute otomatis jika MEI (Media Engagement Index) browser mengizinkan
+      video.muted = false;
+      setMuted(false);
+    } catch (err) {
+      // 3. Jika browser menolak audio tanpa gesture user, kembalikan ke Muted
+      video.muted = true;
+      setMuted(true);
+      video.play().catch((e) => console.error("Gagal pemutaran fallback:", e));
+    }
+  };
+
+  const toggleMute = () => {
     if (videoRef.current) {
-      // Mencoba play video dengan suara
-      videoRef.current.play().catch((err) => {
-        console.warn("Autoplay bersuara terhalang browser, beralih ke mode bisu:", err);
-        // Fallback: Jika browser menolak suara tanpa interaksi, otomatis mute agar video tetap jalan
-        setMuted(true);
-        videoRef.current?.play().catch((e) => console.error("Gagal pemutaran fallback:", e));
-      });
+      const nextMuteState = !muted;
+      videoRef.current.muted = nextMuteState;
+      setMuted(nextMuteState);
     }
   };
 
@@ -65,7 +81,7 @@ export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
             muted={muted}
             playsInline
             preload="auto"
-            onLoadedMetadata={handleVideoReady}
+            onCanPlay={handleCanPlay}
             onEnded={close}
             onError={(e) => {
               console.error("Gagal memuat video:", src, e);
@@ -83,12 +99,7 @@ export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
           </button>
 
           <button
-            onClick={() => {
-              if (videoRef.current) {
-                videoRef.current.muted = !muted;
-              }
-              setMuted((m) => !m);
-            }}
+            onClick={toggleMute}
             type="button"
             aria-label={muted ? "Aktifkan suara" : "Matikan suara"}
             className="absolute bottom-5 right-5 rounded-full bg-white/10 p-3 text-white backdrop-blur hover:bg-white/20 z-[10000]"
