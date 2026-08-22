@@ -21,41 +21,65 @@ export function LanguageSwitcher() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // Muat script Google Translate di background
+    // 1. Baca bahasa aktif dari cookie
+    const cookies = document.cookie.split("; ");
+    const googtransCookie = cookies.find((row) => row.startsWith("googtrans="));
+    if (googtransCookie) {
+      const val = googtransCookie.split("=")[1];
+      const lang = val?.split("/").pop();
+      if (lang) setCurrentLang(lang);
+    }
+
+    // 2. Pasang callback window SEBELUM skrip di-inject
+    (window as any).googleTranslateElementInit = () => {
+      new (window as any).google.translate.TranslateElement(
+        { pageLanguage: "id", autoDisplay: false },
+        "google_translate_element_hidden"
+      );
+    };
+
+    // 3. Inject Script Google Translate jika belum ada
     if (!document.getElementById("google-translate-script")) {
       const script = document.createElement("script");
       script.id = "google-translate-script";
-      script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+      script.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
       script.async = true;
       document.body.appendChild(script);
-
-      (window as any).googleTranslateElementInit = () => {
-        new (window as any).google.translate.TranslateElement(
-          { pageLanguage: "id", autoDisplay: false },
-          "google_translate_element_hidden"
-        );
-      };
     }
   }, []);
 
   const changeLanguage = (langCode: string) => {
+    if (langCode === currentLang) {
+      setIsOpen(false);
+      return;
+    }
+
+    // Domain Hostname
+    const domain = window.location.hostname;
+
+    // Bersihkan cookie googtrans lama secara menyeluruh untuk cegah infinite loading
+    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.${domain}; path=/;`;
+    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=${domain}; path=/;`;
+
+    if (langCode !== "id") {
+      // Set cookie baru
+      document.cookie = `googtrans=/id/${langCode}; path=/;`;
+      document.cookie = `googtrans=/id/${langCode}; domain=.${domain}; path=/;`;
+    }
+
     setCurrentLang(langCode);
     setIsOpen(false);
 
-    // Set cookie terjemahan Google
-    document.cookie = `googtrans=/id/${langCode}; path=/;`;
-    document.cookie = `googtrans=/id/${langCode}; domain=.${window.location.hostname}; path=/;`;
-    
-    // Refresh halaman agar terjemahan langsung diterapkan secara konsisten
+    // Refresh halaman agar bahasa baru terdistribusi bersih
     window.location.reload();
   };
 
   return (
     <div className="relative inline-block text-left z-50">
-      {/* Hidden Div untuk memicu engine Google */}
+      {/* Container tersembunyi untuk Google Translate Engine */}
       <div id="google_translate_element_hidden" className="hidden" />
 
-      {/* Tombol Pemicu Custom */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -65,7 +89,6 @@ export function LanguageSwitcher() {
         <span>{LANGUAGES.find((l) => l.code === currentLang)?.label || "Language"}</span>
       </button>
 
-      {/* Popover Menu Dropdown */}
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
