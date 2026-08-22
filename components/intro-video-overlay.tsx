@@ -13,7 +13,6 @@ interface IntroVideoOverlayProps {
 
 export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
   const [visible, setVisible] = useState(false);
-  // Default Wajib True agar Autoplay tidak diblokir Chrome/Safari
   const [muted, setMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -34,29 +33,26 @@ export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
     }
   }, []);
 
-  // Begitu video siap, jalankan play secara mulus
-  const handleCanPlay = async () => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    try {
-      // 1. Jalankan video secara muted terlebih dahulu (Pasti Berhasil)
-      await video.play();
-
-      // 2. Coba Unmute otomatis jika MEI (Media Engagement Index) browser mengizinkan
-      video.muted = false;
-      setMuted(false);
-    } catch (err) {
-      // 3. Jika browser menolak audio tanpa gesture user, kembalikan ke Muted
-      video.muted = true;
-      setMuted(true);
-      video.play().catch((e) => console.error("Gagal pemutaran fallback:", e));
+  // Memastikan video langsung play begitu komponen dirender di DOM
+  useEffect(() => {
+    if (visible && videoRef.current) {
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.warn("Autoplay terhalang, mencoba play dalam mode muted:", error);
+          if (videoRef.current) {
+            videoRef.current.muted = true;
+            setMuted(true);
+            videoRef.current.play().catch((e) => console.error("Gagal pemutaran:", e));
+          }
+        });
+      }
     }
-  };
+  }, [visible]);
 
   const toggleMute = () => {
     if (videoRef.current) {
-      const nextMuteState = !muted;
+      const nextMuteState = !videoRef.current.muted;
       videoRef.current.muted = nextMuteState;
       setMuted(nextMuteState);
     }
@@ -81,7 +77,6 @@ export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
             muted={muted}
             playsInline
             preload="auto"
-            onCanPlay={handleCanPlay}
             onEnded={close}
             onError={(e) => {
               console.error("Gagal memuat video:", src, e);
