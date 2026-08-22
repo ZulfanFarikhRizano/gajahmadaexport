@@ -16,6 +16,8 @@ export default async function HomePage() {
     alt: p.name,
   }));
 
+  const hrefs = products.slice(0, 5).map((p) => `/product/${p.category}/${p.id}`);
+
   return (
     <main>
       <IntroVideoOverlay 
@@ -24,6 +26,7 @@ export default async function HomePage() {
       />
       <HomeGallerySpill
         slides={slides}
+        hrefs={hrefs}
         headline={siteContent.heroHeadline}
         subheadline={siteContent.heroSubheadline}
       />

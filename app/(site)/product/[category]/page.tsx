@@ -1,10 +1,13 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProductsByCategory, getSiteContent } from "@/lib/data-store";
 import { CATEGORIES } from "@/lib/types";
 import { ProductWhatsAppButton } from "@/components/whatsapp-button";
 import { SafeImage } from "@/components/safe-image";
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
 export function generateStaticParams() {
   return CATEGORIES.map((c) => ({ category: c.slug }));
 }
@@ -38,9 +41,10 @@ export default async function CategoryPage({
       ) : (
         <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
-            <div
+            <Link
               key={product.id}
-              className="overflow-hidden rounded-2xl border border-clay-950/10 bg-white shadow-sm"
+              href={`/product/${product.category}/${product.id}`}
+              className="block overflow-hidden rounded-2xl border border-clay-950/10 bg-white shadow-sm transition-shadow hover:shadow-md"
             >
               <div className="aspect-square overflow-hidden bg-cream-100">
                 <SafeImage
@@ -64,7 +68,7 @@ export default async function CategoryPage({
                   />
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

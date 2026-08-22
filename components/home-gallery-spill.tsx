@@ -1,16 +1,20 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { CoverflowCarousel, type CoverflowSlide } from "./coverflow-carousel";
 
 interface HomeGallerySpillProps {
   slides: CoverflowSlide[];
+  /** Link tujuan per kartu, urutan sejajar dengan `slides`. */
+  hrefs: string[];
   headline: string;
   subheadline: string;
 }
 
-export function HomeGallerySpill({ slides, headline, subheadline }: HomeGallerySpillProps) {
+export function HomeGallerySpill({ slides, hrefs, headline, subheadline }: HomeGallerySpillProps) {
+  const router = useRouter();
   if (slides.length === 0) return null;
 
   return (
@@ -28,11 +32,15 @@ export function HomeGallerySpill({ slides, headline, subheadline }: HomeGalleryS
       <CoverflowCarousel
         slides={slides}
         cardWidth="clamp(160px, 26vw, 300px)"
-        cardClassName="aspect-[3/4] rounded-2xl"
         cardAspect={3 / 4}
+        cardClassName="aspect-[3/4] rounded-2xl"
         rotate={44}
         depth={0.6}
         label="Cuplikan galeri produk"
+        onSlideActivate={(index) => {
+          const href = hrefs[index];
+          if (href) router.push(href);
+        }}
       />
 
       <div className="relative mx-auto max-w-2xl px-6 text-center mt-6">

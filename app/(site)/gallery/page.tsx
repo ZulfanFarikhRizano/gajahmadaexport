@@ -29,7 +29,7 @@ export default async function GalleryPage() {
             return (
               <Link
                 key={product.id}
-                href={`/product/${product.category}`}
+                href={`/product/${product.category}/${product.id}`}
                 className="group block"
               >
                 <div className="aspect-square overflow-hidden rounded-xl bg-cream-100">

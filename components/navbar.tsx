@@ -44,34 +44,39 @@ export function Navbar({ siteName, logoUrl }: NavbarProps) {
         }}
       />
 
-      {/* Grid 3 kolom: masing-masing elemen punya jatah ruang sendiri,
-          jadi tidak mungkin saling menimpa di layar sempit. */}
       <div className="relative mx-auto grid grid-cols-3 items-center max-w-7xl h-16 sm:h-20 px-3 sm:px-4 lg:px-8">
         <div className="justify-self-start min-w-0 overflow-hidden">
           <LanguageSwitcher />
         </div>
 
-        <button
-          onClick={handleLogoTap}
-          className="justify-self-center select-none"
-          aria-label={siteName}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={logoUrl}
-            alt={siteName}
-            className="h-9 w-9 sm:h-14 sm:w-14 object-contain"
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = PLACEHOLDER_IMAGE;
-            }}
-          />
-        </button>
+        {/* Kolom tengah dibiarkan kosong — logo di bawah ini posisinya
+            absolute supaya bebas "menonjol" keluar dari tinggi header. */}
+        <div />
 
         <div className="justify-self-end">
           <FloatingMenu />
         </div>
       </div>
+
+      {/* Logo besar, dipusatkan, sengaja overflow ke bawah garis header —
+          z-index di atas konten di bawahnya, seperti lambang/crest. */}
+      <button
+        onClick={handleLogoTap}
+        className="absolute left-1/2 top-1/2 z-20 select-none"
+        style={{ transform: "translate(-50%, -28%)" }}
+        aria-label={siteName}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={logoUrl}
+          alt={siteName}
+          className="h-16 w-16 sm:h-24 sm:w-24 md:h-28 md:w-28 object-contain drop-shadow-lg"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = PLACEHOLDER_IMAGE;
+          }}
+        />
+      </button>
     </header>
   );
 }

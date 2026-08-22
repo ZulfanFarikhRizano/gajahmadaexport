@@ -23,6 +23,20 @@ export async function getProductsByCategory(category: string): Promise<Product[]
   return (data ?? []) as Product[];
 }
 
+export async function getProductById(id: string): Promise<Product | null> {
+  const { data, error } = await supabaseAdmin()
+    .from("products")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") return null;
+    throw new Error(error.message);
+  }
+  return (data as Product) ?? null;
+}
+
 export async function createProduct(
   input: Omit<Product, "id" | "createdAt">,
 ): Promise<Product> {
@@ -54,10 +68,13 @@ export async function updateProduct(
     .update(patch)
     .eq("id", id)
     .select()
-    .maybeSingle();
+    .single();
 
-  if (error) throw new Error(error.message);
-  return (data as Product | null) ?? null;
+  if (error) {
+    if (error.code === "PGRST116") return null;
+    throw new Error(error.message);
+  }
+  return (data as Product) ?? null;
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {
@@ -79,14 +96,16 @@ export async function getSiteContent(): Promise<SiteContent> {
 
   if (error) throw new Error(error.message);
 
+  const content = data as Record<string, any>;
+
   return {
-    siteName: data.site_name,
-    logoUrl: data.logo_url,
-    heroHeadline: data.hero_headline,
-    heroSubheadline: data.hero_subheadline,
-    whatsappNumber: data.whatsapp_number,
-    aboutText: data.about_text,
-    contactAddress: data.contact_address,
+    siteName: content.site_name ?? "",
+    logoUrl: content.logo_url ?? "",
+    heroHeadline: content.hero_headline ?? "",
+    heroSubheadline: content.hero_subheadline ?? "",
+    whatsappNumber: content.whatsapp_number ?? "",
+    aboutText: content.about_text ?? "",
+    contactAddress: content.contact_address ?? "",
   };
 }
 

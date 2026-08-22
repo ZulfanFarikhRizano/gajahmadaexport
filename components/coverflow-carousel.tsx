@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 const useIsoLayoutEffect =
   typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect;
 
-// Movement under this many pixels counts as a click/tap rather than a drag.
 const CLICK_THRESHOLD_PX = 6;
 
 export interface CoverflowSlide {
@@ -21,34 +20,25 @@ export interface CoverflowSlide {
 
 export interface CoverflowCarouselProps {
   slides: CoverflowSlide[];
-  /** Degrees the first neighbour tilts. */
   rotate?: number;
-  /** How far the first neighbour recedes, as a fraction of card width. */
   depth?: number;
-  /** Viewer distance as a multiple of card width — smaller is a wider lens. */
   perspective?: number;
-  /** Exponent on distance. Below 1 the rake eases off as cards travel out. */
   falloff?: number;
-  /** Opacity lost per step from the centre. */
   fade?: number;
-  /** Any CSS length. Everything else is derived from it, so the rake scales. */
   cardWidth?: string;
+  /** Rasio lebar:tinggi kartu. 1 = kotak (default). 0.75 = potret 3:4. */
   cardAspect?: number;
-  /** Space between cards, as a fraction of card width. */
   gap?: number;
   loop?: boolean;
   showCaption?: boolean;
   showPagination?: boolean;
   showNavigation?: boolean;
-  /** Which slide sits centre-stage on mount. */
   initialIndex?: number;
   /**
-   * Fired when a card that is already centred is clicked/tapped (not
-   * dragged). A side card is brought to centre first instead of firing this,
-   * so the first tap always means "look closer", never "leave the page".
+   * Dipanggil saat kartu yang SUDAH di tengah diklik/tap (bukan drag).
+   * Kartu di samping yang diklik akan digeser ke tengah dulu.
    */
   onSlideActivate?: (index: number, slide: CoverflowSlide) => void;
-  /** Names the carousel for assistive tech. */
   label?: string;
   className?: string;
   cardClassName?: string;
@@ -79,10 +69,7 @@ export function CoverflowCarousel({
 
   const frameRef = React.useRef<HTMLDivElement>(null);
   const cardRefs = React.useRef<(HTMLDivElement | null)[]>([]);
-  /** Fractional card index at the centre. The single source of truth. */
   const posRef = React.useRef(startIndex);
-  /** Where the current settle is headed. Stepping off `pos` instead would
-      swallow a keypress that lands mid-flight, before the round-off moves. */
   const targetRef = React.useRef(startIndex);
   const widthRef = React.useRef(0);
   const rafRef = React.useRef<number | null>(null);
@@ -92,21 +79,17 @@ export function CoverflowCarousel({
     pos: number;
     v: number;
     t: number;
-    /** Card index under the pointer at press time, for click resolution. */
     pressedIndex: number | null;
     moved: boolean;
   } | null>(null);
 
   const [selected, setSelected] = React.useState(startIndex);
 
-  /** Nearest whole card, folded back into 0..count-1. */
   const indexAt = React.useCallback(
     (pos: number) => ((Math.round(pos) % count) + count) % count,
     [count],
   );
 
-  // Paint straight to the DOM. Sixty state updates a second would re-render
-  // every card for numbers React never needs to see.
   const paint = React.useCallback(() => {
     const width = widthRef.current;
     if (!width) return;
@@ -116,8 +99,6 @@ export function CoverflowCarousel({
     cardRefs.current.forEach((card, index) => {
       if (!card) return;
 
-      // Fold the distance into the shorter way round the ring. This is the
-      // whole looping mechanism — no cloned nodes, no shuffling the DOM.
       let offset = index - pos;
       if (loop) {
         offset = ((offset % count) + count) % count;
@@ -125,19 +106,13 @@ export function CoverflowCarousel({
       }
 
       const distance = Math.abs(offset);
-      // Both the tilt and the recession ease off as cards travel out —
-      // doubling the distance adds only about half again as much of each.
-      // A linear ramp folds the second card shut; this keeps it readable.
       const ramp = Math.pow(distance, falloff);
-      // Capped short of edge-on so a far card never turns its back.
       const tilt = Math.min(rotate * ramp, 82) * Math.sign(offset);
 
       card.style.transform =
         `translateX(calc(-50% + ${offset * pitch}px)) ` +
         `translateZ(${-depth * width * ramp}px) rotateY(${-tilt}deg)`;
 
-      // A card is teleported across the ring at exactly half a turn out, so it
-      // has to be gone by then or the jump is visible.
       const edge = loop ? Math.min(1, Math.max(0, count / 2 - distance)) : 1;
       card.style.opacity = String(Math.max(0, 1 - fade * distance) * edge);
       card.style.zIndex = String(100 - Math.round(distance));
@@ -158,8 +133,6 @@ export function CoverflowCarousel({
           rafRef.current = null;
           return;
         }
-        // ponytail: exponential ease-out, not a spring. Swap in a spring only
-        // if the settle needs overshoot.
         posRef.current += remaining * 0.16;
         paint();
         rafRef.current = requestAnimationFrame(step);
@@ -176,7 +149,6 @@ export function CoverflowCarousel({
 
   const goTo = React.useCallback(
     (index: number) => {
-      // Take the shorter way round rather than unwinding the whole ring.
       const target = loop
         ? index + Math.round((targetRef.current - index) / count) * count
         : index;
@@ -198,12 +170,8 @@ export function CoverflowCarousel({
     event.currentTarget.setPointerCapture(event.pointerId);
     targetRef.current = posRef.current;
 
-    const pressedEl = (event.target as HTMLElement).closest<HTMLElement>(
-      "[data-cf-index]",
-    );
-    const pressedIndex = pressedEl
-      ? Number(pressedEl.dataset.cfIndex)
-      : null;
+    const pressedEl = (event.target as HTMLElement).closest<HTMLElement>("[data-cf-index]");
+    const pressedIndex = pressedEl ? Number(pressedEl.dataset.cfIndex) : null;
 
     dragRef.current = {
       id: event.pointerId,
@@ -230,7 +198,6 @@ export function CoverflowCarousel({
     const now = performance.now();
     const previous = posRef.current;
     posRef.current = clamp(drag.pos - (event.clientX - drag.x) / pitch);
-    // Cards per second, for the throw.
     drag.v = ((posRef.current - previous) / Math.max(now - drag.t, 1)) * 1000;
     drag.t = now;
 
@@ -244,8 +211,6 @@ export function CoverflowCarousel({
     if (!drag || drag.id !== event.pointerId) return;
     dragRef.current = null;
 
-    // A tap: no meaningful drag happened, resolve it against whichever card
-    // was under the pointer at press time.
     if (!drag.moved && drag.pressedIndex !== null) {
       const tapped = drag.pressedIndex;
       if (tapped === indexAt(targetRef.current)) {
@@ -256,13 +221,10 @@ export function CoverflowCarousel({
       return;
     }
 
-    // Let a flick carry, but never more than two cards.
     const carried = Math.max(-2, Math.min(2, drag.v * 0.18));
     settle(clamp(Math.round(posRef.current + carried)));
   };
 
-  // Card width drives pitch, depth and perspective, so it is the only thing
-  // worth measuring — and only when the box actually changes.
   useIsoLayoutEffect(() => {
     const frame = frameRef.current;
     if (!frame) return;
@@ -317,15 +279,13 @@ export function CoverflowCarousel({
               onSlideActivate?.(selected, slides[selected]);
             }
           }}
-          // Vertical padding keeps the drop shadows clear of the overflow clip.
           className="cursor-grab overflow-hidden py-10 outline-none ring-ring focus-visible:ring-2 active:cursor-grabbing"
           style={{
             perspective: `calc(var(--cf-card) * ${perspective})`,
-            // Horizontal drag is ours; the page keeps vertical scrolling.
             touchAction: "pan-y",
           }}
         >
-                   <div
+          <div
             className="relative select-none"
             style={{
               height: cardAspect === 1 ? "var(--cf-card)" : `calc(var(--cf-card) / ${cardAspect})`,
@@ -384,18 +344,9 @@ export function CoverflowCarousel({
       </div>
 
       {showCaption && active?.title && (
-        <div
-          key={selected}
-          className="mt-2 flex flex-col items-center px-6 duration-300 animate-in fade-in"
-        >
-          <p className="text-[15px] font-semibold tracking-tight text-foreground">
-            {active.title}
-          </p>
-          {active.subtitle && (
-            <p className="mt-1 text-[13px] text-muted-foreground">
-              {active.subtitle}
-            </p>
-          )}
+        <div key={selected} className="mt-2 flex flex-col items-center px-6 duration-300 animate-in fade-in">
+          <p className="text-[15px] font-semibold tracking-tight text-foreground">{active.title}</p>
+          {active.subtitle && <p className="mt-1 text-[13px] text-muted-foreground">{active.subtitle}</p>}
           {active.meta && active.meta.length > 0 && (
             <dl className="mt-10 w-full max-w-[230px] text-[12px]">
               {active.meta.map((row) => (
