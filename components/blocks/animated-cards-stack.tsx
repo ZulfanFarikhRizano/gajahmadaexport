@@ -12,12 +12,12 @@ import {
 } from "motion/react"
 import { cn } from "@/lib/utils"
 
-const cardVariants = cva("absolute will-change-transform", {
+const cardVariants = cva("absolute top-0 left-0 w-full h-full will-change-transform", {
   variants: {
     variant: {
-      dark: "flex size-full flex-col items-center justify-center gap-6 rounded-2xl border border-stone-700/50 bg-accent-foreground/80 p-6 backdrop-blur-md",
+      dark: "flex flex-col items-center justify-center gap-6 rounded-2xl border border-stone-700/50 bg-accent-foreground/80 p-6 backdrop-blur-md",
       light:
-        "flex size-full flex-col items-center justify-center gap-6 rounded-2xl border bg-background/80 p-6 backdrop-blur-md ",
+        "flex flex-col items-center justify-center gap-6 rounded-2xl border bg-background/80 p-6 backdrop-blur-md",
     },
   },
   defaultVariants: {
@@ -58,7 +58,7 @@ function useContainerScrollContext() {
   return context
 }
 
-export const ContainerScroll: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
+export const ContainerScroll: React.FC<React.HTMLAttributes<HTMLDivElement>> = React.memo(({
   children,
   style,
   className,
@@ -74,157 +74,162 @@ export const ContainerScroll: React.FC<React.HTMLAttributes<HTMLDivElement>> = (
     <ContainerScrollContext.Provider value={{ scrollYProgress }}>
       <div
         ref={scrollRef}
-        className={cn("relative min-h-[250vh] w-full", className)}
-        style={{ perspective: "1000px", ...style }}
+        className={cn("relative min-h-[220vh] w-full", className)}
+        style={{ perspective: "1000px", transformStyle: "preserve-3d", ...style }}
         {...props}
       >
         {children}
       </div>
     </ContainerScrollContext.Provider>
   )
-}
+})
 ContainerScroll.displayName = "ContainerScroll"
 
-export const CardsContainer: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
+export const CardsContainer: React.FC<React.HTMLAttributes<HTMLDivElement>> = React.memo(({
   children,
   className,
   ...props
 }) => {
-  const containerRef = React.useRef<HTMLDivElement>(null)
-
   return (
     <div
-      ref={containerRef}
       className={cn("relative", className)}
-      style={{ perspective: "1000px", ...props.style }}
+      style={{ perspective: "1000px", transformStyle: "preserve-3d", ...props.style }}
       {...props}
     >
       {children}
     </div>
   )
-}
+})
 CardsContainer.displayName = "CardsContainer"
 
-export const CardTransformed = React.forwardRef<
-  HTMLDivElement,
-  CardStickyProps
->(
-  (
-    {
-      arrayLength,
-      index,
-      incrementY = 8,
-      incrementZ = 10,
-      incrementRotation,
-      className,
-      variant,
-      style,
-      ...props
-    },
-    ref
-  ) => {
-    const { scrollYProgress } = useContainerScrollContext()
+export const CardTransformed = React.memo(
+  React.forwardRef<HTMLDivElement, CardStickyProps>(
+    (
+      {
+        arrayLength,
+        index,
+        incrementY = 8,
+        incrementZ = 10,
+        incrementRotation,
+        className,
+        variant,
+        style,
+        ...props
+      },
+      ref
+    ) => {
+      const { scrollYProgress } = useContainerScrollContext()
 
-    // Tingkat kemiringan default saat diam (dibuat agak miring berurutan)
-    // Kartu paling atas sedikit miring kekiri/kekanan, kartu bawahnya menyebar
-    const rotations = [-6, 4, -4, 6]
-    const initialRotation = incrementRotation ?? (rotations[index % rotations.length] || (index - 1) * 5)
+      // Preset rotasi awal untuk fanned stack effect
+      const initialRotation = React.useMemo(() => {
+        if (incrementRotation !== undefined) return incrementRotation
+        const rotations = [-6, 5, -4, 6]
+        return rotations[index % rotations.length] || (index - 1) * 5
+      }, [incrementRotation, index])
 
-    // Kartu teratas (index = 0) jalan pertama di scroll progress paling awal
-    const start = index / arrayLength
-    const end = (index + 1) / arrayLength
-    const range = React.useMemo(() => [start, end], [start, end])
+      // Timing range untuk naik (Y) dan merotasi (Rotate)
+      const start = index / arrayLength
+      const end = (index + 1) / arrayLength
+      const rangeY = React.useMemo(() => [start, end], [start, end])
 
-    // Animasi bergerak ke atas & meluruskan rotasi ke 0deg
-    const y = useTransform(scrollYProgress, range, ["0%", "-160%"])
-    const rotate = useTransform(scrollYProgress, range, [initialRotation, 0])
+      const prevStart = index === 0 ? 0 : (index - 1) / arrayLength
+      const rangeRotate = React.useMemo(() => [prevStart, start], [prevStart, start])
 
-    const transform = useMotionTemplate`translateZ(${
-      (arrayLength - index) * incrementZ
-    }px) translateY(${y}) rotate(${rotate}deg)`
+      // Perhitungan posisi Y & Rotate yang langsung dihantam ke GPU Composite Layer
+      const y = useTransform(scrollYProgress, rangeY, ["0%", "-160%"])
+      const rotate = useTransform(
+        scrollYProgress,
+        index === 0 ? [0, start] : rangeRotate,
+        [initialRotation, 0]
+      )
 
-    const cardStyle = {
-      top: index * incrementY,
-      transform,
-      backfaceVisibility: "hidden" as const,
-      // PENTING: Kartu index 0 memiliki zIndex paling tinggi agar berada paling depan
-      zIndex: arrayLength - index,
-      ...style,
+      // Memasukkan translateY statis offset ke GPU transform langsung (bukan lewat top CSS)
+      const baseOffsetY = index * incrementY
+      const baseOffsetZ = (arrayLength - index) * incrementZ
+
+      const transform = useMotionTemplate`translate3d(0, calc(${baseOffsetY}px + ${y}), ${baseOffsetZ}px) rotate(${rotate}deg)`
+
+      return (
+        <motion.div
+          ref={ref}
+          style={{
+            transform,
+            zIndex: arrayLength - index,
+            WebkitBackfaceVisibility: "hidden",
+            backfaceVisibility: "hidden",
+            ...style,
+          }}
+          className={cn(cardVariants({ variant, className }))}
+          {...props}
+        />
+      )
     }
-
-    return (
-      <motion.div
-        layout="position"
-        ref={ref}
-        style={cardStyle}
-        className={cn(cardVariants({ variant, className }))}
-        {...props}
-      />
-    )
-  }
+  )
 )
 CardTransformed.displayName = "CardTransformed"
 
-export const ReviewStars = React.forwardRef<HTMLDivElement, ReviewProps>(
-  ({ rating, maxRating = 5, className, ...props }, ref) => {
-    const filledStars = Math.floor(rating)
-    const fractionalPart = rating - filledStars
-    const emptyStars = maxRating - filledStars - (fractionalPart > 0 ? 1 : 0)
+export const ReviewStars = React.memo(
+  React.forwardRef<HTMLDivElement, ReviewProps>(
+    ({ rating, maxRating = 5, className, ...props }, ref) => {
+      const filledStars = Math.floor(rating)
+      const fractionalPart = rating - filledStars
+      const emptyStars = maxRating - filledStars - (fractionalPart > 0 ? 1 : 0)
 
-    return (
-      <div
-        className={cn("flex items-center gap-1", className)}
-        ref={ref}
-        {...props}
-      >
-        <div className="flex items-center">
-          {[...Array(filledStars)].map((_, index) => (
-            <svg
-              key={`filled-${index}`}
-              className="size-4 text-amber-600"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.05 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z" />
-            </svg>
-          ))}
-          {fractionalPart > 0 && (
-            <svg
-              className="size-4 text-amber-600"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <defs>
-                <linearGradient id="half">
-                  <stop
-                    offset={`${fractionalPart * 100}%`}
-                    stopColor="currentColor"
-                  />
-                  <stop
-                    offset={`${fractionalPart * 100}%`}
-                    stopColor="rgb(209 213 219)"
-                  />
-                </linearGradient>
-              </defs>
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.05 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z"
-                fill="url(#half)"
-              />
-            </svg>
-          )}
-          {[...Array(emptyStars)].map((_, index) => (
-            <svg
-              key={`empty-${index}`}
-              className="size-4 text-gray-300"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.05 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z" />
-            </svg>
-          ))}
+      return (
+        <div
+          className={cn("flex items-center gap-1", className)}
+          ref={ref}
+          {...props}
+        >
+          <div className="flex items-center">
+            {[...Array(filledStars)].map((_, i) => (
+              <svg
+                key={`f-${i}`}
+                className="size-4 text-amber-600"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.05 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z" />
+              </svg>
+            ))}
+            {fractionalPart > 0 && (
+              <svg
+                className="size-4 text-amber-600"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <defs>
+                  <linearGradient id="half">
+                    <stop
+                      offset={`${fractionalPart * 100}%`}
+                      stopColor="currentColor"
+                    />
+                    <stop
+                      offset={`${fractionalPart * 100}%`}
+                      stopColor="rgb(209 213 219)"
+                    />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.05 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z"
+                  fill="url(#half)"
+                />
+              </svg>
+            )}
+            {[...Array(emptyStars)].map((_, i) => (
+              <svg
+                key={`e-${i}`}
+                className="size-4 text-gray-300"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.175 0l-3.37 2.448c-.784.57-1.838-.197-1.54-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.05 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z" />
+              </svg>
+            ))}
+          </div>
         </div>
-      </div>
-    )
-  }
+      )
+    }
+  )
 )
 ReviewStars.displayName = "ReviewStars"
