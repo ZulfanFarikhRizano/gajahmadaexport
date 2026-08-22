@@ -17,7 +17,7 @@ const cardVariants = cva("absolute will-change-transform", {
     variant: {
       dark: "flex size-full flex-col items-center justify-center gap-6 rounded-2xl border border-stone-700/50 bg-accent-foreground/80 p-6 backdrop-blur-md",
       light:
-        "flex size-full flex-col items-center justify-center gap-6 rounded-2xl border bg-accent bg-background/80 p-6 backdrop-blur-md ",
+        "flex size-full flex-col items-center justify-center gap-6 rounded-2xl border bg-background/80 p-6 backdrop-blur-md ",
     },
   },
   defaultVariants: {
@@ -113,8 +113,8 @@ export const CardTransformed = React.forwardRef<
     {
       arrayLength,
       index,
-      incrementY = 12,
-      incrementZ = 15,
+      incrementY = 8,
+      incrementZ = 10,
       incrementRotation,
       className,
       variant,
@@ -125,38 +125,30 @@ export const CardTransformed = React.forwardRef<
   ) => {
     const { scrollYProgress } = useContainerScrollContext()
 
-    // Rotasi default bergaya fanned stack (seperti kipas miring) jika tidak diisi
-    const defaultRotation = (index - (arrayLength - 1) / 2) * 3
+    // Tingkat kemiringan default saat diam (dibuat agak miring berurutan)
+    // Kartu paling atas sedikit miring kekiri/kekanan, kartu bawahnya menyebar
+    const rotations = [-6, 4, -4, 6]
+    const initialRotation = incrementRotation ?? (rotations[index % rotations.length] || (index - 1) * 5)
 
+    // Kartu teratas (index = 0) jalan pertama di scroll progress paling awal
     const start = index / arrayLength
     const end = (index + 1) / arrayLength
     const range = React.useMemo(() => [start, end], [start, end])
 
-    const y = useTransform(scrollYProgress, range, ["0%", "-180%"])
-    const rotate = useTransform(scrollYProgress, range, [
-      incrementRotation ?? defaultRotation,
-      0,
-    ])
+    // Animasi bergerak ke atas & meluruskan rotasi ke 0deg
+    const y = useTransform(scrollYProgress, range, ["0%", "-160%"])
+    const rotate = useTransform(scrollYProgress, range, [initialRotation, 0])
 
     const transform = useMotionTemplate`translateZ(${
-      index * incrementZ
+      (arrayLength - index) * incrementZ
     }px) translateY(${y}) rotate(${rotate}deg)`
-
-    const dx = useTransform(scrollYProgress, range, [4, 0])
-    const dy = useTransform(scrollYProgress, range, [4, 12])
-    const blur = useTransform(scrollYProgress, range, [2, 24])
-    const alpha = useTransform(scrollYProgress, range, [0.15, 0.2])
-    const filter =
-      variant === "light"
-        ? useMotionTemplate`drop-shadow(${dx}px ${dy}px ${blur}px rgba(0,0,0,${alpha}))`
-        : "none"
 
     const cardStyle = {
       top: index * incrementY,
       transform,
       backfaceVisibility: "hidden" as const,
+      // PENTING: Kartu index 0 memiliki zIndex paling tinggi agar berada paling depan
       zIndex: arrayLength - index,
-      filter,
       ...style,
     }
 
