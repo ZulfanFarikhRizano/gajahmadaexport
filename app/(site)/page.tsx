@@ -3,6 +3,7 @@ import { getProducts, getSiteContent } from "@/lib/data-store";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 import { HomeGallerySpill } from "@/components/home-gallery-spill";
 import Features from "@/components/features";
+import { TestimonialsSection } from "@/components/testimonials-section";
 import { CTA } from "@/components/cta";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +32,7 @@ export default async function HomePage() {
         subheadline={siteContent.heroSubheadline}
       />
       <Features />
+      <TestimonialsSection />
       <CTA />
     </main>
   );
