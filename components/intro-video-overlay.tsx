@@ -7,15 +7,25 @@ import { Volume2, VolumeX, X } from "lucide-react";
 const SESSION_KEY = "gm_intro_played";
 
 interface IntroVideoOverlayProps {
-  src: string;
-  poster?: string;
+  srcLandscape: string; // URL video untuk Desktop / Laptop
+  srcPortrait: string;  // URL video untuk Mobile / Smartphone
+  posterLandscape?: string;
+  posterPortrait?: string;
 }
 
-export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
+export function IntroVideoOverlay({
+  srcLandscape,
+  srcPortrait,
+  posterLandscape,
+  posterPortrait,
+}: IntroVideoOverlayProps) {
   const [visible, setVisible] = useState(false);
   const [muted, setMuted] = useState(true);
   const [showUnmuteHint, setShowUnmuteHint] = useState(true);
-  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Ref terpisah untuk masing-masing video
+  const desktopVideoRef = useRef<HTMLVideoElement>(null);
+  const mobileVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (process.env.NODE_ENV === "production" && sessionStorage.getItem(SESSION_KEY)) {
@@ -34,29 +44,29 @@ export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
     }
   }, []);
 
+  // Play kedua video agar siap digunakan saat resize layar
   useEffect(() => {
-    if (visible && videoRef.current) {
-      videoRef.current.play().catch((e) => console.error("Autoplay error:", e));
+    if (visible) {
+      desktopVideoRef.current?.play().catch(() => {});
+      mobileVideoRef.current?.play().catch(() => {});
     }
   }, [visible]);
 
-  // Fungsi untuk menyalakan suara via gestur klik pengguna
+  // Fungsi Unmute saat layar ditap/diklik
   const handleEnableAudio = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = false;
-      setMuted(false);
-      setShowUnmuteHint(false);
-    }
+    if (desktopVideoRef.current) desktopVideoRef.current.muted = false;
+    if (mobileVideoRef.current) mobileVideoRef.current.muted = false;
+    setMuted(false);
+    setShowUnmuteHint(false);
   };
 
   const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Biar tidak bentrok dengan handler overlay
-    if (videoRef.current) {
-      const nextMuteState = !videoRef.current.muted;
-      videoRef.current.muted = nextMuteState;
-      setMuted(nextMuteState);
-      if (showUnmuteHint) setShowUnmuteHint(false);
-    }
+    e.stopPropagation();
+    const nextMuteState = !muted;
+    if (desktopVideoRef.current) desktopVideoRef.current.muted = nextMuteState;
+    if (mobileVideoRef.current) mobileVideoRef.current.muted = nextMuteState;
+    setMuted(nextMuteState);
+    if (showUnmuteHint) setShowUnmuteHint(false);
   };
 
   const close = (e?: React.MouseEvent) => {
@@ -74,20 +84,32 @@ export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
           onClick={handleEnableAudio}
           className="fixed inset-0 z-[9999] bg-black cursor-pointer select-none"
         >
+          {/* Video Desktop (Landscape) - Tampil di layar md (768px) ke atas */}
           <video
-            ref={videoRef}
-            src={src}
-            poster={poster}
+            ref={desktopVideoRef}
+            src={srcLandscape}
+            poster={posterLandscape}
             autoPlay
             muted={muted}
             playsInline
             preload="auto"
             onEnded={() => setVisible(false)}
-            onError={(e) => {
-              console.error("Gagal memuat video:", src, e);
-              setVisible(false);
-            }}
-            className="h-full w-full object-cover pointer-events-none"
+            onError={() => setVisible(false)}
+            className="hidden md:block h-full w-full object-cover pointer-events-none"
+          />
+
+          {/* Video Mobile (Portrait) - Tampil di bawah layar md (<768px) */}
+          <video
+            ref={mobileVideoRef}
+            src={srcPortrait}
+            poster={posterPortrait}
+            autoPlay
+            muted={muted}
+            playsInline
+            preload="auto"
+            onEnded={() => setVisible(false)}
+            onError={() => setVisible(false)}
+            className="block md:hidden h-full w-full object-cover pointer-events-none"
           />
 
           {/* Tombol Lewati */}

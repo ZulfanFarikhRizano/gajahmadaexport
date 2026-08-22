@@ -22,8 +22,10 @@ export default async function HomePage() {
   return (
     <main>
       <IntroVideoOverlay 
-        src="/video/intro.mp4" 
-        poster="/images/intro-poster.jpg" 
+        srcLandscape="/video/intro-desktop.mp4" 
+        srcPortrait="/video/intro-mobile.mp4" 
+        posterLandscape="/images/intro-poster-desktop.jpg" 
+        posterPortrait="/images/intro-poster-mobile.jpg" 
       />
       <HomeGallerySpill
         slides={slides}
