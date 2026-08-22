@@ -13,12 +13,11 @@ interface IntroVideoOverlayProps {
 
 export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
   const [visible, setVisible] = useState(false);
-  const [muted, setMuted] = useState(true);
+  // Default langsung di-unmute (suara aktif)
+  const [muted, setMuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // Hanya cek sessionStorage saat di Production (Vercel)
-    // Di Development (localhost) pengecekan diabaikan agar video selalu muncul saat testing
     if (process.env.NODE_ENV === "production" && sessionStorage.getItem(SESSION_KEY)) {
       return;
     }
@@ -37,8 +36,12 @@ export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
 
   const handleVideoReady = () => {
     if (videoRef.current) {
+      // Mencoba play video dengan suara
       videoRef.current.play().catch((err) => {
-        console.warn("Autoplay terhalang oleh kebijakan browser:", err);
+        console.warn("Autoplay bersuara terhalang browser, beralih ke mode bisu:", err);
+        // Fallback: Jika browser menolak suara tanpa interaksi, otomatis mute agar video tetap jalan
+        setMuted(true);
+        videoRef.current?.play().catch((e) => console.error("Gagal pemutaran fallback:", e));
       });
     }
   };
@@ -73,13 +76,20 @@ export function IntroVideoOverlay({ src, poster }: IntroVideoOverlayProps) {
 
           <button
             onClick={close}
+            type="button"
             className="absolute top-5 right-5 flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-sm text-white backdrop-blur hover:bg-white/20 z-[10000]"
           >
             Lewati <X size={16} />
           </button>
 
           <button
-            onClick={() => setMuted((m) => !m)}
+            onClick={() => {
+              if (videoRef.current) {
+                videoRef.current.muted = !muted;
+              }
+              setMuted((m) => !m);
+            }}
+            type="button"
             aria-label={muted ? "Aktifkan suara" : "Matikan suara"}
             className="absolute bottom-5 right-5 rounded-full bg-white/10 p-3 text-white backdrop-blur hover:bg-white/20 z-[10000]"
           >

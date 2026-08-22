@@ -1,3 +1,5 @@
+"use client";
+
 import {
   CardTransformed,
   CardsContainer,
@@ -50,12 +52,16 @@ const TESTIMONIALS: Testimonial[] = [
 ];
 
 function initials(name: string) {
-  return name.split(" ").map((n) => n[0]).join("").slice(0, 2);
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2);
 }
 
 export function TestimonialsSection() {
   return (
-    <section className="relative overflow-hidden bg-cream-100 px-6 py-16">
+    <section className="relative overflow-hidden bg-cream-100 px-6 pt-16 pb-12">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-[0.08]"
@@ -77,27 +83,33 @@ export function TestimonialsSection() {
           Cerita dari klien yang sudah membawa pulang bangku, meja, dan koleksi rotan Gajah Mada.
         </p>
 
-        <ContainerScroll className="container h-[300vh]">
-          <div className="sticky left-0 top-0 flex h-svh w-full items-center py-12">
-            <CardsContainer className="mx-auto size-full h-[440px] w-[300px] sm:h-[460px] sm:w-[380px]">
+        {/* Ketinggian disesuaikan ke h-[180vh] agar pas dengan 4 kartu */}
+        <ContainerScroll className="container h-[180vh] pb-12">
+          {/* Menggunakan top-24 agar tidak bertabrakan/tertutup Navbar */}
+          <div className="sticky top-24 flex w-full justify-center items-center py-6">
+            <CardsContainer className="mx-auto h-[420px] w-[300px] sm:h-[420px] sm:w-[380px]">
               {TESTIMONIALS.map((t, index) => (
                 <CardTransformed
                   arrayLength={TESTIMONIALS.length}
                   key={t.id}
-                  index={index + 2}
-                  className="border-clay-950/10 bg-white/95 shadow-xl"
+                  index={index} /* Menggunakan index murni (0, 1, 2, 3) */
+                  incrementY={10}
+                  incrementZ={12}
+                  incrementRotation={(index - 1.5) * 4}
+                  className="border-clay-950/10 bg-white/95 shadow-xl p-6 sm:p-8 flex flex-col justify-between"
                   role="article"
                   aria-labelledby={`testimonial-${t.id}-name`}
                 >
                   <div className="flex flex-col items-center space-y-4 text-center">
                     <ReviewStars rating={t.rating} className="text-terracotta-600" />
-                    <blockquote className="mx-auto w-5/6 font-display italic text-base leading-relaxed text-clay-800">
+                    <blockquote className="mx-auto w-full font-display italic text-sm sm:text-base leading-relaxed text-clay-800">
                       &ldquo;{t.quote}&rdquo;
                     </blockquote>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="!size-12 border border-clay-950/10">
-                      <AvatarFallback className="bg-brass-200 font-display text-clay-950">
+
+                  <div className="flex items-center gap-3 pt-4 border-t border-clay-950/10 mt-auto">
+                    <Avatar className="!size-11 border border-clay-950/10">
+                      <AvatarFallback className="bg-brass-200 font-display text-clay-950 text-xs">
                         {initials(t.name)}
                       </AvatarFallback>
                     </Avatar>
