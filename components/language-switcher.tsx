@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Globe, Check, ChevronDown } from "lucide-react";
 
 const LANGUAGES = [
@@ -19,6 +19,8 @@ const LANGUAGES = [
 export function LanguageSwitcher() {
   const [currentLang, setCurrentLang] = useState("id");
   const [isOpen, setIsOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const cookies = document.cookie.split("; ");
@@ -45,6 +47,17 @@ export function LanguageSwitcher() {
     }
   }, []);
 
+  const handleToggle = () => {
+    if (!isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom + 8,
+        left: rect.left,
+      });
+    }
+    setIsOpen(!isOpen);
+  };
+
   const changeLanguage = (langCode: string) => {
     if (langCode === currentLang) {
       setIsOpen(false);
@@ -68,28 +81,32 @@ export function LanguageSwitcher() {
   };
 
   return (
-    <div className="relative z-[9999] inline-block text-left">
+    <>
       <div id="google_translate_element_hidden" className="hidden" />
 
       {/* Button Trigger */}
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 rounded-full border border-clay-950/20 bg-white/90 px-4 py-2 text-xs font-medium text-clay-900 shadow-sm transition-all duration-300 hover:border-terracotta-600 hover:bg-white active:scale-95"
+        onClick={handleToggle}
+        className="flex items-center gap-2 rounded-full border border-clay-950/20 bg-white/90 px-4 py-2 text-xs font-medium text-clay-900 shadow-sm transition-all duration-200 hover:border-terracotta-600 hover:bg-white active:scale-95"
       >
         <Globe size={15} className="text-clay-700 shrink-0" />
         <span>{LANGUAGES.find((l) => l.code === currentLang)?.label || "Language"}</span>
-        <ChevronDown 
-          size={14} 
-          className={`text-clay-500 transition-transform duration-300 ease-in-out ${isOpen ? "rotate-180" : ""}`} 
+        <ChevronDown
+          size={14}
+          className={`text-clay-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
 
-      {/* Popover Dropdown dengan Animasi Smooth */}
+      {/* Popover Card Berposisi Fixed (Aman dari Overflow Parent) */}
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-[9998]" onClick={() => setIsOpen(false)} />
-          <div className="absolute left-0 mt-2 w-52 origin-top-left rounded-2xl border border-clay-950/10 bg-white/95 p-2 shadow-xl backdrop-blur-md z-[9999] max-h-64 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200 ease-out">
+          <div className="fixed inset-0 z-[99998]" onClick={() => setIsOpen(false)} />
+          <div
+            style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
+            className="fixed w-52 rounded-2xl border border-clay-950/10 bg-white/95 p-2 shadow-2xl backdrop-blur-md z-[99999] max-h-64 overflow-y-auto transition-all duration-200"
+          >
             {LANGUAGES.map((lang) => {
               const isSelected = currentLang === lang.code;
               return (
@@ -111,6 +128,6 @@ export function LanguageSwitcher() {
           </div>
         </>
       )}
-    </div>
+    </>
   );
 }
