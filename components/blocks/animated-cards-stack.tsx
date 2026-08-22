@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-
 import { VariantProps, cva } from "class-variance-authority"
 import {
   HTMLMotionProps,
@@ -11,7 +10,6 @@ import {
   useScroll,
   useTransform,
 } from "motion/react"
-
 import { cn } from "@/lib/utils"
 
 const cardVariants = cva("absolute will-change-transform", {
@@ -69,14 +67,14 @@ export const ContainerScroll: React.FC<React.HTMLAttributes<HTMLDivElement>> = (
   const scrollRef = React.useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
     target: scrollRef,
-    offset: ["start center", "end end"],
+    offset: ["start start", "end end"],
   })
 
   return (
     <ContainerScrollContext.Provider value={{ scrollYProgress }}>
       <div
         ref={scrollRef}
-        className={cn("relative min-h-svh w-full", className)}
+        className={cn("relative min-h-[250vh] w-full", className)}
         style={{ perspective: "1000px", ...style }}
         {...props}
       >
@@ -115,9 +113,9 @@ export const CardTransformed = React.forwardRef<
     {
       arrayLength,
       index,
-      incrementY = 10,
-      incrementZ = 10,
-      incrementRotation = -index + 90,
+      incrementY = 12,
+      incrementZ = 15,
+      incrementRotation,
       className,
       variant,
       style,
@@ -127,26 +125,29 @@ export const CardTransformed = React.forwardRef<
   ) => {
     const { scrollYProgress } = useContainerScrollContext()
 
-    const start = index / (arrayLength + 1)
-    const end = (index + 1) / (arrayLength + 1)
+    // Rotasi default bergaya fanned stack (seperti kipas miring) jika tidak diisi
+    const defaultRotation = (index - (arrayLength - 1) / 2) * 3
+
+    const start = index / arrayLength
+    const end = (index + 1) / arrayLength
     const range = React.useMemo(() => [start, end], [start, end])
-    const rotateRange = [range[0] - 1.5, range[1] / 1.5]
 
     const y = useTransform(scrollYProgress, range, ["0%", "-180%"])
-    const rotate = useTransform(scrollYProgress, rotateRange, [
-      incrementRotation,
+    const rotate = useTransform(scrollYProgress, range, [
+      incrementRotation ?? defaultRotation,
       0,
     ])
+
     const transform = useMotionTemplate`translateZ(${
       index * incrementZ
     }px) translateY(${y}) rotate(${rotate}deg)`
 
-    const dx = useTransform(scrollYProgress, rotateRange, [4, 0])
-    const dy = useTransform(scrollYProgress, rotateRange, [4, 12])
-    const blur = useTransform(scrollYProgress, rotateRange, [2, 24])
-    const alpha = useTransform(scrollYProgress, rotateRange, [0.15, 0.2])
+    const dx = useTransform(scrollYProgress, range, [4, 0])
+    const dy = useTransform(scrollYProgress, range, [4, 12])
+    const blur = useTransform(scrollYProgress, range, [2, 24])
+    const alpha = useTransform(scrollYProgress, range, [0.15, 0.2])
     const filter =
-      variant === "light" 
+      variant === "light"
         ? useMotionTemplate`drop-shadow(${dx}px ${dy}px ${blur}px rgba(0,0,0,${alpha}))`
         : "none"
 
@@ -154,7 +155,7 @@ export const CardTransformed = React.forwardRef<
       top: index * incrementY,
       transform,
       backfaceVisibility: "hidden" as const,
-      zIndex: (arrayLength - index) * incrementZ,
+      zIndex: arrayLength - index,
       filter,
       ...style,
     }
@@ -180,7 +181,7 @@ export const ReviewStars = React.forwardRef<HTMLDivElement, ReviewProps>(
 
     return (
       <div
-        className={cn("flex items-center gap-2", className)}
+        className={cn("flex items-center gap-1", className)}
         ref={ref}
         {...props}
       >
@@ -188,7 +189,7 @@ export const ReviewStars = React.forwardRef<HTMLDivElement, ReviewProps>(
           {[...Array(filledStars)].map((_, index) => (
             <svg
               key={`filled-${index}`}
-              className="size-4 text-inherit"
+              className="size-4 text-amber-600"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -197,7 +198,7 @@ export const ReviewStars = React.forwardRef<HTMLDivElement, ReviewProps>(
           ))}
           {fractionalPart > 0 && (
             <svg
-              className="size-4 text-inherit"
+              className="size-4 text-amber-600"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -230,7 +231,6 @@ export const ReviewStars = React.forwardRef<HTMLDivElement, ReviewProps>(
             </svg>
           ))}
         </div>
-        <p className="sr-only">{rating}</p>
       </div>
     )
   }

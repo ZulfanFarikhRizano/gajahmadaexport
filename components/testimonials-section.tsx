@@ -61,7 +61,7 @@ function initials(name: string) {
 
 export function TestimonialsSection() {
   return (
-    <section className="relative overflow-hidden bg-cream-100 px-6 pt-16 pb-12">
+    <section className="relative bg-cream-100 py-16">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-[0.08]"
@@ -72,49 +72,43 @@ export function TestimonialsSection() {
         }}
       />
 
-      <div className="relative">
+      <div className="container relative mx-auto px-4">
         <p className="text-center text-xs tracking-[0.3em] uppercase text-brass-500 mb-2">
           Kata Mereka
         </p>
         <h2 className="text-center font-display text-3xl md:text-4xl font-medium text-clay-950">
           Dipercaya Pecinta Rotan
         </h2>
-        <p className="mx-auto mt-2 max-w-md text-center text-sm text-clay-600">
+        <p className="mx-auto mt-2 max-w-md text-center text-sm text-clay-600 mb-8">
           Cerita dari klien yang sudah membawa pulang bangku, meja, dan koleksi rotan Gajah Mada.
         </p>
 
-        {/* Ketinggian disesuaikan ke h-[180vh] agar pas dengan 4 kartu */}
-        <ContainerScroll className="container h-[180vh] pb-12">
-          {/* Menggunakan top-24 agar tidak bertabrakan/tertutup Navbar */}
-          <div className="sticky top-24 flex w-full justify-center items-center py-6">
-            <CardsContainer className="mx-auto h-[420px] w-[300px] sm:h-[420px] sm:w-[380px]">
+        <ContainerScroll className="min-h-[220vh]">
+          <div className="sticky top-28 flex w-full items-center justify-center">
+            <CardsContainer className="h-[420px] w-[310px] sm:w-[380px]">
               {TESTIMONIALS.map((t, index) => (
                 <CardTransformed
-                  arrayLength={TESTIMONIALS.length}
                   key={t.id}
-                  index={index} /* Menggunakan index murni (0, 1, 2, 3) */
-                  incrementY={10}
-                  incrementZ={12}
-                  incrementRotation={(index - 1.5) * 4}
-                  className="border-clay-950/10 bg-white/95 shadow-xl p-6 sm:p-8 flex flex-col justify-between"
-                  role="article"
-                  aria-labelledby={`testimonial-${t.id}-name`}
+                  arrayLength={TESTIMONIALS.length}
+                  index={index}
+                  variant="light"
+                  className="w-full bg-white/95 border border-clay-950/10 shadow-2xl rounded-3xl p-6 sm:p-8 flex flex-col justify-between"
                 >
-                  <div className="flex flex-col items-center space-y-4 text-center">
-                    <ReviewStars rating={t.rating} className="text-terracotta-600" />
-                    <blockquote className="mx-auto w-full font-display italic text-sm sm:text-base leading-relaxed text-clay-800">
+                  <div className="flex flex-col items-center gap-4 text-center">
+                    <ReviewStars rating={t.rating} />
+                    <blockquote className="font-display italic text-sm sm:text-base leading-relaxed text-clay-800">
                       &ldquo;{t.quote}&rdquo;
                     </blockquote>
                   </div>
 
-                  <div className="flex items-center gap-3 pt-4 border-t border-clay-950/10 mt-auto">
-                    <Avatar className="!size-11 border border-clay-950/10">
+                  <div className="flex items-center gap-3 pt-4 border-t border-clay-950/10">
+                    <Avatar className="h-10 w-10 border border-clay-950/10">
                       <AvatarFallback className="bg-brass-200 font-display text-clay-950 text-xs">
                         {initials(t.name)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="text-left">
-                      <span id={`testimonial-${t.id}-name`} className="block text-sm font-semibold text-clay-950">
+                      <span className="block text-sm font-semibold text-clay-950">
                         {t.name}
                       </span>
                       <span className="block text-xs text-clay-600">{t.role}</span>
