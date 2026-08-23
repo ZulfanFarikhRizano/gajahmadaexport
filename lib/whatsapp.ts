@@ -15,3 +15,18 @@ export function buildGeneralWhatsAppLink(waNumber: string) {
   const message = "Halo, saya ingin bertanya tentang produk Gajah Mada Export.";
   return `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
 }
+
+export function buildInquiryWhatsAppLink(
+  waNumber: string,
+  input: { name: string; phone: string; categoryLabel: string; message?: string },
+) {
+  const lines = [
+    `Halo, saya ingin memesan produk Gajah Mada Export.`,
+    ``,
+    `Nama: ${input.name}`,
+    `No. WhatsApp: ${input.phone}`,
+    `Kategori: ${input.categoryLabel}`,
+  ];
+  if (input.message?.trim()) lines.push(`Detail: ${input.message.trim()}`);
+  return `https://wa.me/${waNumber}?text=${encodeURIComponent(lines.join("\n"))}`;
+}

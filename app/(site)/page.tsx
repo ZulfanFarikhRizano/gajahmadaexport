@@ -5,6 +5,9 @@ import { HomeGallerySpill } from "@/components/home-gallery-spill";
 import Features from "@/components/features";
 import { TestimonialsSection } from "@/components/testimonials-section";
 import { CTA } from "@/components/cta";
+import { PaymentInfo } from "@/components/payment-info";
+import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
+import { ECatalogButton } from "@/components/ecatalog-button";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -36,6 +39,13 @@ export default async function HomePage() {
       <Features />
       <TestimonialsSection />
       <CTA />
+      <PaymentInfo />
+
+      <div className="flex justify-center bg-white py-12">
+        <ECatalogButton href="/files/gajah-mada-ecatalog.pdf" />
+      </div>
+
+      <PurchaseInquiryForm waNumber={siteContent.whatsappNumber} />
     </main>
   );
 }
