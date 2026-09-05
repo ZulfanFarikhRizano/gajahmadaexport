@@ -18,22 +18,25 @@ export async function POST(request: NextRequest) {
     const path = `${Date.now()}-${Math.round(Math.random() * 1e6)}.${ext}`;
 
     const supabase = supabaseAdmin();
-    const { data, error } = await supabase.storage
+    
+    // 1. Buat signed upload URL
+    const { data: uploadData, error: uploadError } = await supabase.storage
       .from("uploads")
       .createSignedUploadUrl(path);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (uploadError) {
+      return NextResponse.json({ error: uploadError.message }, { status: 500 });
     }
 
+    // 2. Ambil Public URL dengan path yang persis sama
     const { data: publicData } = supabase.storage
       .from("uploads")
       .getPublicUrl(path);
 
     return NextResponse.json({
-      signedUrl: data.signedUrl,
+      signedUrl: uploadData.signedUrl,
       publicUrl: publicData.publicUrl,
-      path: data.path,
+      path: uploadData.path,
     });
   } catch (err) {
     return NextResponse.json(
