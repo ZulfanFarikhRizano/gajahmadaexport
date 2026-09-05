@@ -25,11 +25,11 @@ export default async function ProductDetailPage({
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
       <Link
-        href={`/product/${product.category}`}
+        href="/gallery"
         className="inline-flex items-center gap-1.5 text-sm text-clay-600 hover:text-terracotta-600 mb-8"
       >
         <ArrowLeft size={16} />
-        Kembali ke {category?.label ?? "kategori"}
+        Kembali ke Gallery
       </Link>
 
       <div className="grid gap-10 md:grid-cols-2">

@@ -8,7 +8,8 @@ export function middleware(request: NextRequest) {
   const expectedToken = process.env.ADMIN_SESSION_TOKEN;
   const isAuthed = Boolean(expectedToken) && sessionCookie === expectedToken;
 
-  const isDashboardPage = pathname.startsWith("/admin/dashboard");
+    const isDashboardPage =
+    pathname.startsWith("/admin/dashboard") || pathname.startsWith("/admin/analytics");
   const isProtectedApi =
     pathname.startsWith("/api/admin") && !pathname.startsWith("/api/admin/auth");
 
@@ -27,5 +28,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/dashboard/:path*", "/api/admin/:path*"],
+  matcher: ["/admin/dashboard/:path*", "/admin/analytics/:path*", "/api/admin/:path*"],
 };
