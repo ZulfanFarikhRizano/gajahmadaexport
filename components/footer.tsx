@@ -37,12 +37,12 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                 </div>
 
                 {/* Amfori BSCI */}
-                <div className="flex h-10 items-center justify-center">
+                <div className="flex h-10 items-center justify-center rounded-lg bg-white p-1.5 shadow-sm overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src="/images/amfori-bsci.png"
                     alt="Amfori BSCI"
-                    className="h-full w-auto object-contain"
+                    className="h-full w-auto object-contain rounded"
                   />
                 </div>
               </div>

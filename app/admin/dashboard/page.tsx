@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, Trash2, Pencil, Plus, Upload, CheckCircle2, AlertTriangle, FileText } from "lucide-react";
+import { LogOut, Trash2, Pencil, Plus, Upload, CheckCircle2, AlertTriangle, FileText, BarChart2 } from "lucide-react";
 import { CATEGORIES, type Product, type SiteContent } from "@/lib/types";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 
@@ -268,20 +268,31 @@ export default function AdminDashboardPage() {
       )}
 
       <div className="mx-auto max-w-4xl px-6 py-8">
-        <div className="mb-8 flex gap-2">
-          {(["content", "products"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`rounded-full px-4 py-2 text-sm font-medium ${
-                tab === t
-                  ? "bg-terracotta-600 text-white"
-                  : "bg-white text-clay-600 border border-clay-950/10"
-              }`}
-            >
-              {t === "content" ? "Logo & Teks Website" : "Produk"}
-            </button>
-          ))}
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex gap-2">
+            {(["content", "products"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`rounded-full px-4 py-2 text-sm font-medium ${
+                  tab === t
+                    ? "bg-terracotta-600 text-white"
+                    : "bg-white text-clay-600 border border-clay-950/10"
+                }`}
+              >
+                {t === "content" ? "Logo & Teks Website" : "Produk"}
+              </button>
+            ))}
+          </div>
+
+          {/* Tombol menuju halaman Analytics */}
+          <button
+            onClick={() => router.push("/admin/analytics")}
+            className="flex items-center gap-2 rounded-full border border-clay-950/10 bg-white px-4 py-2 text-sm font-medium text-clay-800 hover:border-terracotta-600 hover:text-terracotta-600 shadow-sm transition-all"
+          >
+            <BarChart2 size={16} />
+            <span>Analitik Trafik</span>
+          </button>
         </div>
 
         {tab === "content" && (
