@@ -96,6 +96,7 @@ export async function getSiteContent(): Promise<SiteContent> {
   return {
     siteName: data.site_name,
     logoUrl: data.logo_url,
+    catalogUrl: data.catalog_url ?? "", // <--- DITAMBAHKAN
     heroHeadline: data.hero_headline,
     heroSubheadline: data.hero_subheadline,
     whatsappNumber: data.whatsapp_number,
@@ -110,6 +111,7 @@ export async function updateSiteContent(
   const row: Record<string, unknown> = {};
   if (patch.siteName !== undefined) row.site_name = patch.siteName;
   if (patch.logoUrl !== undefined) row.logo_url = patch.logoUrl;
+  if (patch.catalogUrl !== undefined) row.catalog_url = patch.catalogUrl; // <--- DITAMBAHKAN
   if (patch.heroHeadline !== undefined) row.hero_headline = patch.heroHeadline;
   if (patch.heroSubheadline !== undefined) row.hero_subheadline = patch.heroSubheadline;
   if (patch.whatsappNumber !== undefined) row.whatsapp_number = patch.whatsappNumber;
