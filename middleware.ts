@@ -8,10 +8,15 @@ export function middleware(request: NextRequest) {
   const expectedToken = process.env.ADMIN_SESSION_TOKEN;
   const isAuthed = Boolean(expectedToken) && sessionCookie === expectedToken;
 
-    const isDashboardPage =
+  const isDashboardPage =
     pathname.startsWith("/admin/dashboard") || pathname.startsWith("/admin/analytics");
   const isProtectedApi =
     pathname.startsWith("/api/admin") && !pathname.startsWith("/api/admin/auth");
+
+  // Biarkan request OPTIONS lewat agar tidak kena error CORS / 405 Preflight
+  if (request.method === "OPTIONS") {
+    return NextResponse.next();
+  }
 
   if (isAuthed) return NextResponse.next();
 
@@ -28,5 +33,12 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/dashboard/:path*", "/admin/analytics/:path*", "/api/admin/:path*"],
+  // Perbaikan matcher: mencakup root path dan sub-path (:path*)
+  matcher: [
+    "/admin/dashboard",
+    "/admin/dashboard/:path*",
+    "/admin/analytics",
+    "/admin/analytics/:path*",
+    "/api/admin/:path*",
+  ],
 };
