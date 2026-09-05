@@ -15,24 +15,21 @@ interface FloatingMenuProps {
   items?: MenuItem[];
 }
 
-function useResponsiveMenuSize() {
+function useResponsiveMenuSize(menuItemCount: number) {
   const [size, setSize] = useState({ closedW: 150, openW: 280, openH: 260 });
 
   useEffect(() => {
     const compute = () => {
       const vw = window.innerWidth;
-      // Sama seperti clamp() CSS tapi dihitung di JS, karena Motion tidak
-      // bisa animasikan nilai clamp() secara langsung. Nilai maksimum
-      // (150/280/260) identik dengan ukuran lama, jadi PC tidak berubah.
       const closedW = Math.round(Math.min(150, Math.max(92, vw * 0.34)));
       const openW = Math.round(Math.min(280, Math.max(200, vw * 0.62)));
-      const openH = Math.round(openW * (260 / 280));
+      const openH = Math.round(Math.max(openW * (260 / 280), menuItemCount * 52 + 90));
       setSize({ closedW, openW, openH });
     };
     compute();
     window.addEventListener("resize", compute);
     return () => window.removeEventListener("resize", compute);
-  }, []);
+  }, [menuItemCount]);
 
   return size;
 }
@@ -113,7 +110,6 @@ export default function FloatingMenu({ items }: FloatingMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { closedW, openW, openH } = useResponsiveMenuSize();
 
   const menuItems: MenuItem[] = items ?? [
     { label: "Home", href: "/" },
@@ -121,6 +117,8 @@ export default function FloatingMenu({ items }: FloatingMenuProps) {
     { label: "Gallery", href: "/gallery" },
     { label: "Contact Us", href: "/contact" },
   ];
+
+  const { closedW, openW, openH } = useResponsiveMenuSize(menuItems.length);
 
   useEffect(() => {
     if (!isOpen) return;

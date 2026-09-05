@@ -5,6 +5,7 @@ import { getProductById, getSiteContent } from "@/lib/data-store";
 import { CATEGORIES } from "@/lib/types";
 import { SafeImage } from "@/components/safe-image";
 import { ProductWhatsAppButton } from "@/components/whatsapp-button";
+import { AddToQuoteButton } from "@/components/add-to-quote-button";
 
 export default async function ProductDetailPage({
   params,
@@ -66,8 +67,9 @@ export default async function ProductDetailPage({
             {product.description}
           </p>
 
-          <div className="mt-8">
+          <div className="mt-8 flex flex-wrap gap-3">
             <ProductWhatsAppButton waNumber={siteContent.whatsappNumber} product={product} />
+            <AddToQuoteButton id={product.id} name={product.name} category={product.category} />
           </div>
         </div>
       </div>

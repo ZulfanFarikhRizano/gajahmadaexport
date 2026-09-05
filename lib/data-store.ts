@@ -2,8 +2,11 @@ import "server-only";
 import { supabaseAdmin } from "./supabase/admin";
 import type { Product, SiteContent } from "./types";
 
+// Helper agar tidak repetitif
+const db = () => supabaseAdmin() as any;
+
 export async function getProducts(): Promise<Product[]> {
-  const { data, error } = await supabaseAdmin()
+  const { data, error } = await db()
     .from("products")
     .select("*")
     .order("created_at", { ascending: false });
@@ -13,7 +16,7 @@ export async function getProducts(): Promise<Product[]> {
 }
 
 export async function getProductsByCategory(category: string): Promise<Product[]> {
-  const { data, error } = await supabaseAdmin()
+  const { data, error } = await db()
     .from("products")
     .select("*")
     .eq("category", category)
@@ -24,21 +27,18 @@ export async function getProductsByCategory(category: string): Promise<Product[]
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-  const { data, error } = await supabaseAdmin()
+  const { data, error } = await db()
     .from("products")
     .select("*")
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
-  if (error) {
-    if (error.code === "PGRST116") return null;
-    throw new Error(error.message);
-  }
-  return (data as Product) ?? null;
+  if (error) throw new Error(error.message);
+  return (data as Product | null) ?? null;
 }
 
 export async function createProduct(
-  input: Omit<Product, "id" | "createdAt">,
+  input: Omit<Product, "id" | "createdAt">
 ): Promise<Product> {
   const row = {
     id: `${input.category}-${Date.now()}`,
@@ -49,9 +49,9 @@ export async function createProduct(
     images: input.images,
   };
 
-  const { data, error } = await supabaseAdmin()
+  const { data, error } = await db()
     .from("products")
-    .insert(row)
+    .insert([row])
     .select()
     .single();
 
@@ -61,24 +61,21 @@ export async function createProduct(
 
 export async function updateProduct(
   id: string,
-  patch: Partial<Omit<Product, "id" | "createdAt">>,
+  patch: Partial<Omit<Product, "id" | "createdAt">>
 ): Promise<Product | null> {
-  const { data, error } = await supabaseAdmin()
+  const { data, error } = await db()
     .from("products")
     .update(patch)
     .eq("id", id)
     .select()
-    .single();
+    .maybeSingle();
 
-  if (error) {
-    if (error.code === "PGRST116") return null;
-    throw new Error(error.message);
-  }
-  return (data as Product) ?? null;
+  if (error) throw new Error(error.message);
+  return (data as Product | null) ?? null;
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {
-  const { error, count } = await supabaseAdmin()
+  const { error, count } = await db()
     .from("products")
     .delete({ count: "exact" })
     .eq("id", id);
@@ -88,7 +85,7 @@ export async function deleteProduct(id: string): Promise<boolean> {
 }
 
 export async function getSiteContent(): Promise<SiteContent> {
-  const { data, error } = await supabaseAdmin()
+  const { data, error } = await db()
     .from("site_content")
     .select("*")
     .eq("id", 1)
@@ -96,23 +93,21 @@ export async function getSiteContent(): Promise<SiteContent> {
 
   if (error) throw new Error(error.message);
 
-  const content = data as Record<string, any>;
-
   return {
-    siteName: content.site_name ?? "",
-    logoUrl: content.logo_url ?? "",
-    heroHeadline: content.hero_headline ?? "",
-    heroSubheadline: content.hero_subheadline ?? "",
-    whatsappNumber: content.whatsapp_number ?? "",
-    aboutText: content.about_text ?? "",
-    contactAddress: content.contact_address ?? "",
+    siteName: data.site_name,
+    logoUrl: data.logo_url,
+    heroHeadline: data.hero_headline,
+    heroSubheadline: data.hero_subheadline,
+    whatsappNumber: data.whatsapp_number,
+    aboutText: data.about_text,
+    contactAddress: data.contact_address,
   };
 }
 
 export async function updateSiteContent(
-  patch: Partial<SiteContent>,
+  patch: Partial<SiteContent>
 ): Promise<SiteContent> {
-  const row: Record<string, string> = {};
+  const row: Record<string, unknown> = {};
   if (patch.siteName !== undefined) row.site_name = patch.siteName;
   if (patch.logoUrl !== undefined) row.logo_url = patch.logoUrl;
   if (patch.heroHeadline !== undefined) row.hero_headline = patch.heroHeadline;
@@ -121,7 +116,7 @@ export async function updateSiteContent(
   if (patch.aboutText !== undefined) row.about_text = patch.aboutText;
   if (patch.contactAddress !== undefined) row.contact_address = patch.contactAddress;
 
-  const { error } = await supabaseAdmin().from("site_content").update(row).eq("id", 1);
+  const { error } = await db().from("site_content").update(row).eq("id", 1);
   if (error) throw new Error(error.message);
 
   return getSiteContent();

@@ -49,17 +49,21 @@ export function Navbar({ siteName, logoUrl }: NavbarProps) {
           <LanguageSwitcher />
         </div>
 
-        {/* Kolom tengah dibiarkan kosong — logo di bawah ini posisinya
-            absolute supaya bebas "menonjol" keluar dari tinggi header. */}
         <div />
 
         <div className="justify-self-end">
-          <FloatingMenu />
+          <FloatingMenu
+            items={[
+              { label: "Home", href: "/" },
+              { label: "About Us", href: "/about" },
+              { label: "Gallery", href: "/gallery" },
+              { label: "Custom Order", href: "/custom-order" },
+              { label: "Contact Us", href: "/contact" },
+            ]}
+          />
         </div>
       </div>
 
-      {/* Logo besar, dipusatkan, sengaja overflow ke bawah garis header —
-          z-index di atas konten di bawahnya, seperti lambang/crest. */}
       <button
         onClick={handleLogoTap}
         className="absolute left-1/2 top-1/2 z-20 select-none"

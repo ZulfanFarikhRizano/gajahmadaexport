@@ -1,18 +1,19 @@
 export interface Category {
   slug: string;
   label: string;
+  /** Untuk filter Indoor/Outdoor/Lainnya di halaman Galeri. */
+  group: "indoor" | "outdoor" | "other";
 }
 
 export const CATEGORIES: Category[] = [
-  { slug: "chair-bench", label: "Chair & Bench" },
-  { slug: "footstool", label: "Footstool" },
-  { slug: "hanging-chair", label: "Hanging Chair" },
-  { slug: "shelving-storage", label: "Shelving & Storage" },
-  { slug: "table-set", label: "Table Set" },
-  { slug: "barcart-buffet", label: "Barcart & Buffet" },
-  { slug: "bed-bedhead", label: "Bed & Bedhead" },
-  { slug: "daybed", label: "Daybed" },
-  { slug: "mirror-wall-art", label: "Mirror & Wall Art" },
+  { slug: "outdoor-chair", label: "Outdoor Chair", group: "outdoor" },
+  { slug: "lounge-indoor", label: "Lounge Indoor", group: "indoor" },
+  { slug: "lounge-daybed", label: "Lounge and Daybed", group: "outdoor" },
+  { slug: "chair-indoor", label: "Chair Indoor", group: "indoor" },
+  { slug: "bistro-chair", label: "Bistro Chair", group: "outdoor" },
+  { slug: "basket-ware", label: "Basket Ware", group: "other" },
+  { slug: "accessories", label: "Accesoris", group: "other" },
+  { slug: "table-indoor", label: "Table Indoor", group: "indoor" },
 ];
 
 export interface Product {
@@ -20,8 +21,8 @@ export interface Product {
   name: string;
   category: string; // Category slug
   description: string;
-  price?: string; // free text, e.g. "Hubungi kami" or "Rp 3.500.000"
-  images: string[]; // paths under /uploads or /images
+  price?: string;
+  images: string[];
   createdAt: string;
 }
 
@@ -30,7 +31,7 @@ export interface SiteContent {
   logoUrl: string;
   heroHeadline: string;
   heroSubheadline: string;
-  whatsappNumber: string; // digits only, international format e.g. 6285714365948
+  whatsappNumber: string;
   aboutText: string;
   contactAddress: string;
 }

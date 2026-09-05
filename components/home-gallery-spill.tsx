@@ -2,18 +2,25 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, MessageCircle } from "lucide-react";
 import { CoverflowCarousel, type CoverflowSlide } from "./coverflow-carousel";
+import { buildGeneralWhatsAppLink } from "@/lib/whatsapp";
 
 interface HomeGallerySpillProps {
   slides: CoverflowSlide[];
-  /** Link tujuan per kartu, urutan sejajar dengan `slides`. */
   hrefs: string[];
   headline: string;
   subheadline: string;
+  waNumber: string;
 }
 
-export function HomeGallerySpill({ slides, hrefs, headline, subheadline }: HomeGallerySpillProps) {
+export function HomeGallerySpill({
+  slides,
+  hrefs,
+  headline,
+  subheadline,
+  waNumber,
+}: HomeGallerySpillProps) {
   const router = useRouter();
   if (slides.length === 0) return null;
 
@@ -50,13 +57,26 @@ export function HomeGallerySpill({ slides, hrefs, headline, subheadline }: HomeG
         <p className="mt-2 font-display italic text-lg text-terracotta-600">
           {subheadline}
         </p>
-        <Link
-          href="/gallery"
-          className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-clay-800 hover:text-terracotta-600"
-        >
-          Lihat Semua Galeri
-          <ArrowUpRight size={16} />
-        </Link>
+
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+          <Link
+            href="/gallery"
+            className="inline-flex items-center gap-1.5 rounded-full bg-terracotta-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-clay-800"
+          >
+            Explore Catalog
+            <ArrowUpRight size={16} />
+          </Link>
+
+          <a
+            href={buildGeneralWhatsAppLink(waNumber)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-full border border-clay-950/20 px-6 py-2.5 text-sm font-medium text-clay-800 hover:border-terracotta-600 hover:text-terracotta-600"
+          >
+            <MessageCircle size={16} />
+            Request a Quote
+          </a>
+        </div>
       </div>
     </section>
   );
