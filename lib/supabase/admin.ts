@@ -6,12 +6,13 @@ let client: ReturnType<typeof createClient> | null = null;
 export function supabaseAdmin() {
   if (client) return client;
 
-  const url = process.env.SUPABASE_URL;
+  // Membaca SUPABASE_URL atau fallback ke NEXT_PUBLIC_SUPABASE_URL
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !serviceRoleKey) {
     throw new Error(
-      "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables.",
+      "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables."
     );
   }
 
