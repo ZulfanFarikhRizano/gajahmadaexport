@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, Trash2, Pencil, Plus, Upload, CheckCircle2, AlertTriangle } from "lucide-react";
+import { LogOut, Trash2, Pencil, Plus, Upload, CheckCircle2, AlertTriangle, FileText } from "lucide-react";
 import { CATEGORIES, type Product, type SiteContent } from "@/lib/types";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 
@@ -100,7 +100,7 @@ export default function AdminDashboardPage() {
       if (!res.ok) {
         throw new Error(
           data.error ??
-            "Upload gagal. Pastikan bucket 'uploads' sudah dibuat di Supabase Storage (jalankan supabase/schema.sql).",
+            "Upload gagal. Pastikan bucket 'uploads' sudah dibuat di Supabase Storage.",
         );
       }
       return data.url as string;
@@ -117,6 +117,19 @@ export default function AdminDashboardPage() {
     if (url && siteContent) {
       setSiteContent({ ...siteContent, logoUrl: url });
       flash("ok", "Logo terunggah — klik \"Simpan Perubahan\" di bawah untuk menerapkannya.");
+    }
+  };
+
+  // HANDLER UPLOAD FILE PDF CATALOG (LANGSUNG UPLOAD FILE PDF)
+  const handleCatalogPdfUpload = async (file: File) => {
+    if (file.type !== "application/pdf") {
+      flash("error", "File harus berformat PDF.");
+      return;
+    }
+    const url = await uploadFile(file);
+    if (url && siteContent) {
+      setSiteContent({ ...siteContent, catalogUrl: url });
+      flash("ok", "File E-Catalog PDF berhasil terunggah — klik \"Simpan Perubahan\" di bawah untuk menerapkannya.");
     }
   };
 
@@ -264,6 +277,32 @@ export default function AdminDashboardPage() {
                     accept="image/*"
                     className="hidden"
                     onChange={(e) => e.target.files?.[0] && handleLogoUpload(e.target.files[0])}
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* AREA UPLOAD FILE PDF E-CATALOG */}
+            <div className="border-t border-clay-950/10 pt-4">
+              <label className="text-sm font-medium text-clay-800">File E-Catalog (PDF)</label>
+              <div className="mt-2 flex flex-wrap items-center gap-4">
+                {siteContent.catalogUrl ? (
+                  <div className="flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
+                    <FileText size={16} />
+                    <span>File PDF sudah terunggah</span>
+                  </div>
+                ) : (
+                  <span className="text-sm text-clay-500 italic">Belum ada file E-Catalog PDF yang diunggah</span>
+                )}
+
+                <label className="flex cursor-pointer items-center gap-2 rounded-full border border-clay-950/20 px-4 py-2 text-sm text-clay-800 hover:border-terracotta-600">
+                  <Upload size={16} />
+                  {uploading ? "Mengunggah..." : siteContent.catalogUrl ? "Ganti File PDF" : "Unggah File PDF"}
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleCatalogPdfUpload(e.target.files[0])}
                   />
                 </label>
               </div>

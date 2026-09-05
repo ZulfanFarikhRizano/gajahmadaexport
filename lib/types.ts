@@ -28,10 +28,11 @@ export interface Product {
 
 export interface SiteContent {
   siteName: string;
-  logoUrl: string;
   heroHeadline: string;
   heroSubheadline: string;
   whatsappNumber: string;
-  aboutText: string;
   contactAddress: string;
+  aboutText: string;
+  logoUrl: string;
+  catalogUrl?: string; 
 }

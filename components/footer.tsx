@@ -17,7 +17,36 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
             <Mail size={14} />
             gajahmadaexport@gmail.com
           </a>
+
+          {/* Sertifikasi / Certifications */}
+          <div className="mt-6">
+            <p className="text-xs tracking-[0.2em] uppercase text-brass-400 mb-3">
+              Certifications
+            </p>
+            <div className="flex items-center gap-3">
+              {/* Indonesian Legal Wood (diberi background putih tipis agar kontras) */}
+              <div className="flex h-10 items-center justify-center rounded-lg bg-white p-1.5 shadow-sm">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/legal-wood.png"
+                  alt="Indonesian Legal Wood"
+                  className="h-full w-auto object-contain"
+                />
+              </div>
+
+              {/* Amfori BSCI */}
+              <div className="flex h-10 items-center justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/amfori-bsci.png"
+                  alt="Amfori BSCI"
+                  className="h-full w-auto object-contain"
+                />
+              </div>
+            </div>
+          </div>
         </div>
+
         <div>
           <p className="text-xs tracking-[0.2em] uppercase text-brass-400 mb-3">Produk</p>
           <ul className="space-y-1.5 text-sm">
@@ -30,6 +59,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
             ))}
           </ul>
         </div>
+
         <div>
           <p className="text-xs tracking-[0.2em] uppercase text-brass-400 mb-3">Perusahaan</p>
           <ul className="space-y-1.5 text-sm">
@@ -40,6 +70,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
           </ul>
         </div>
       </div>
+
       <p className="mt-10 text-center text-xs text-cream-100/40">
         © {new Date().getFullYear()} {siteName}. All rights reserved.
       </p>
