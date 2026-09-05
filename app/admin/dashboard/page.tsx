@@ -46,17 +46,25 @@ export default function AdminDashboardPage() {
         fetch("/api/admin/site-content"),
         fetch("/api/admin/products"),
       ]);
-      if (!contentRes.ok || !productsRes.ok) {
-        throw new Error("Gagal memuat data dari server.");
+
+      if (!contentRes.ok) {
+        const errData = await contentRes.json().catch(() => ({}));
+        throw new Error(errData.error ?? `Error site-content (status ${contentRes.status})`);
       }
+
+      if (!productsRes.ok) {
+        const errData = await productsRes.json().catch(() => ({}));
+        throw new Error(errData.error ?? `Error products (status ${productsRes.status})`);
+      }
+
       const { siteContent } = await contentRes.json();
       const { products } = await productsRes.json();
       setSiteContent(siteContent);
       setProducts(products);
-    } catch {
+    } catch (err) {
       flash(
         "error",
-        "Gagal terhubung ke database. Cek SUPABASE_URL & SUPABASE_SERVICE_ROLE_KEY di .env, lalu restart server.",
+        err instanceof Error ? err.message : "Gagal terhubung ke database.",
       );
     }
   }, []);
@@ -90,11 +98,9 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // FUNGSI UPLOAD YANG SUDAH DIPERBARUI MENGGUNAKAN SIGNED URL
   const uploadFile = async (file: File): Promise<string | null> => {
     setUploading(true);
     try {
-      // 1. Minta Signed URL ke server (payload kecil, bypass limit 4.5MB Vercel)
       const res = await fetch("/api/admin/upload-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -109,7 +115,6 @@ export default function AdminDashboardPage() {
         throw new Error(data.error ?? "Gagal mendapatkan izin upload.");
       }
 
-      // 2. Direct upload file langsung dari browser ke Supabase Storage via PUT
       const uploadRes = await fetch(data.signedUrl, {
         method: "PUT",
         headers: {
