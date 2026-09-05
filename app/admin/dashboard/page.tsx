@@ -117,20 +117,50 @@ export default function AdminDashboardPage() {
     const url = await uploadFile(file);
     if (url && siteContent) {
       setSiteContent({ ...siteContent, logoUrl: url });
-      flash("ok", "Logo terunggah — klik \"Simpan Perubahan\" di bawah untuk menerapkannya.");
+      flash("ok", 'Logo terunggah — klik "Simpan Perubahan" di bawah untuk menerapkannya.');
     }
   };
 
-  // HANDLER UPLOAD FILE PDF CATALOG (LANGSUNG UPLOAD FILE PDF)
+  // HANDLER UPLOAD FILE PDF CATALOG (DIRECT CLIENT UPLOAD KE SUPABASE)
   const handleCatalogPdfUpload = async (file: File) => {
     if (file.type !== "application/pdf") {
       flash("error", "File harus berformat PDF.");
       return;
     }
-    const url = await uploadFile(file);
-    if (url && siteContent) {
-      setSiteContent({ ...siteContent, catalogUrl: url });
-      flash("ok", "File E-Catalog PDF berhasil terunggah — klik \"Simpan Perubahan\" di bawah untuk menerapkannya.");
+
+    setUploading(true);
+    try {
+      const fileName = `catalog-${Date.now()}.pdf`;
+      const filePath = `catalogs/${fileName}`;
+
+      // Unggah langsung dari browser ke Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from("uploads")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+
+      // Ambil Public URL hasil upload
+      const { data: publicUrlData } = supabase.storage
+        .from("uploads")
+        .getPublicUrl(filePath);
+
+      if (siteContent) {
+        setSiteContent({ ...siteContent, catalogUrl: publicUrlData.publicUrl });
+        flash(
+          "ok",
+          'File E-Catalog PDF berhasil terunggah — klik "Simpan Perubahan" di bawah untuk menerapkannya.'
+        );
+      }
+    } catch (err) {
+      flash("error", err instanceof Error ? err.message : "Gagal mengunggah file PDF.");
+    } finally {
+      setUploading(false);
     }
   };
 

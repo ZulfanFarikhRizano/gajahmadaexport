@@ -15,33 +15,74 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
             className="mt-3 inline-flex items-center gap-1.5 text-sm hover:text-cream-50"
           >
             <Mail size={14} />
-            gajahmadaexport@gmail.com
+            Inquiry@gajahmadaexport.com
           </a>
 
-          {/* Sertifikasi / Certifications */}
-          <div className="mt-6">
-            <p className="text-xs tracking-[0.2em] uppercase text-brass-400 mb-3">
-              Certifications
-            </p>
-            <div className="flex items-center gap-3">
-              {/* Indonesian Legal Wood (diberi background putih tipis agar kontras) */}
-              <div className="flex h-10 items-center justify-center rounded-lg bg-white p-1.5 shadow-sm">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/images/legal-wood.png"
-                  alt="Indonesian Legal Wood"
-                  className="h-full w-auto object-contain"
-                />
-              </div>
+          {/* Sertifikasi & Metode Pembayaran */}
+          <div className="mt-6 space-y-5">
+            {/* Certifications */}
+            <div>
+              <p className="text-xs tracking-[0.2em] uppercase text-brass-400 mb-3">
+                Certifications
+              </p>
+              <div className="flex items-center gap-3">
+                {/* Indonesian Legal Wood */}
+                <div className="flex h-10 items-center justify-center rounded-lg bg-white p-1.5 shadow-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/legal-wood.png"
+                    alt="Indonesian Legal Wood"
+                    className="h-full w-auto object-contain"
+                  />
+                </div>
 
-              {/* Amfori BSCI */}
-              <div className="flex h-10 items-center justify-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/images/amfori-bsci.png"
-                  alt="Amfori BSCI"
-                  className="h-full w-auto object-contain"
-                />
+                {/* Amfori BSCI */}
+                <div className="flex h-10 items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/amfori-bsci.png"
+                    alt="Amfori BSCI"
+                    className="h-full w-auto object-contain"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Methods */}
+            <div>
+              <p className="text-xs tracking-[0.2em] uppercase text-brass-400 mb-3">
+                Payment Methods
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* PayPal */}
+                <div className="flex h-8 items-center justify-center rounded bg-white px-2.5 py-1 shadow-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/paypal.png"
+                    alt="PayPal"
+                    className="h-full w-auto object-contain"
+                  />
+                </div>
+
+                {/* Mastercard */}
+                <div className="flex h-8 items-center justify-center rounded bg-white px-2 py-1 shadow-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/mastercard.png"
+                    alt="Mastercard"
+                    className="h-full w-auto object-contain"
+                  />
+                </div>
+
+                {/* OCBC Bank */}
+                <div className="flex h-8 items-center justify-center rounded bg-white px-2.5 py-1 shadow-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/images/ocbc.png"
+                    alt="OCBC Bank"
+                    className="h-full w-auto object-contain"
+                  />
+                </div>
               </div>
             </div>
           </div>
