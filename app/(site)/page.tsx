@@ -6,6 +6,7 @@ import { TestimonialsSection } from "@/components/testimonials-section";
 import { CTA } from "@/components/cta";
 import { PaymentInfo } from "@/components/payment-info";
 import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
+import { ECatalogButton } from "@/components/ecatalog-button";
 
 export default async function HomePage() {
   const [products, siteContent] = await Promise.all([getProducts(), getSiteContent()]);
@@ -32,8 +33,13 @@ export default async function HomePage() {
       <TestimonialsSection />
       <CTA />
       
-      {/* Cukup lempar URL ke PaymentInfo */}
-      <PaymentInfo catalogUrl={catalogPdfUrl} />
+      {/* PaymentInfo dipanggil biasa tanpa prop catalogUrl */}
+      <PaymentInfo />
+
+      {/* Tombol ECatalogButton utama */}
+      <div className="flex justify-center bg-white py-12">
+        <ECatalogButton href={catalogPdfUrl} />
+      </div>
 
       <PurchaseInquiryForm waNumber={siteContent.whatsappNumber} />
     </main>

@@ -1,14 +1,6 @@
 import { FileText } from "lucide-react";
-import { ECatalogButton } from "./ecatalog-button"; // sesuaikan path ke file button kamu
 
-interface PaymentInfoProps {
-  catalogUrl?: string | null;
-}
-
-export function PaymentInfo({ catalogUrl }: PaymentInfoProps) {
-  // Gunakan catalogUrl dari database, fallback ke '#' jika belum diunggah
-  const pdfLink = catalogUrl || "#";
-
+export function PaymentInfo() {
   return (
     <section className="bg-white py-12 px-6 border-t border-clay-950/10">
       <div className="mx-auto max-w-2xl text-center">
@@ -21,15 +13,10 @@ export function PaymentInfo({ catalogUrl }: PaymentInfoProps) {
             E-Catalog Available for Download
           </span>
         </div>
-        <p className="text-sm text-clay-600 mb-6">
+        <p className="text-sm text-clay-600">
           Explore our complete collection of handcrafted furniture and high-quality rattan products. 
           Download our digital catalog to view full specifications, design variations, and ordering details.
         </p>
-
-        {/* Render tombol E-Catalog */}
-        <div className="flex justify-center">
-          <ECatalogButton href={pdfLink} />
-        </div>
       </div>
     </section>
   );
