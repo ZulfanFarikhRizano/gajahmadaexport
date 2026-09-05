@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LogOut, Trash2, Pencil, Plus, Upload, CheckCircle2, AlertTriangle, FileText } from "lucide-react";
 import { CATEGORIES, type Product, type SiteContent } from "@/lib/types";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
+import { supabase } from "@/lib/supabase/client";
 
 type Tab = "content" | "products";
 
