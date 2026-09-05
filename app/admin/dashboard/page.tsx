@@ -90,20 +90,39 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // FUNGSI UPLOAD YANG SUDAH DIPERBARUI MENGGUNAKAN SIGNED URL
   const uploadFile = async (file: File): Promise<string | null> => {
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
+      // 1. Minta Signed URL ke server (payload kecil, bypass limit 4.5MB Vercel)
+      const res = await fetch("/api/admin/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: file.name,
+          contentType: file.type,
+        }),
+      });
+
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(
-          data.error ??
-            "Upload gagal. Pastikan bucket 'uploads' sudah dibuat di Supabase Storage.",
-        );
+        throw new Error(data.error ?? "Gagal mendapatkan izin upload.");
       }
-      return data.url as string;
+
+      // 2. Direct upload file langsung dari browser ke Supabase Storage via PUT
+      const uploadRes = await fetch(data.signedUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type,
+        },
+        body: file,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error("Gagal mengunggah file ke Supabase Storage.");
+      }
+
+      return data.publicUrl as string;
     } catch (err) {
       flash("error", err instanceof Error ? err.message : "Upload gagal.");
       return null;
