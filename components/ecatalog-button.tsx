@@ -1,13 +1,18 @@
 "use client";
 
-import { Download } from "lucide-react";
+import { Eye } from "lucide-react"; // Mengganti ikon Download menjadi Eye (opsional, agar sesuai dengan konteks melihat PDF)
 
 export function ECatalogButton({ href }: { href: string }) {
-  const state1 = "Unduh E-Catalog";
-  const state2 = "Download PDF";
+  const state1 = "Lihat E-Catalog";
+  const state2 = "Buka PDF";
 
   return (
-    <a href={href} download className="ecat-button">
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="ecat-button"
+    >
       <span className="ecat-bg" aria-hidden="true" />
       <svg aria-hidden="true" viewBox="0 0 342 208" className="ecat-splash" fill="none">
         <path strokeLinecap="round" strokeWidth={3} stroke="currentColor" d="M54.1054 99.7837C54.1054 99.7837 40.0984 90.7874 26.6893 97.6362C13.2802 104.485 1.5 97.6362 1.5 97.6362" />
@@ -30,7 +35,7 @@ export function ECatalogButton({ href }: { href: string }) {
           </span>
         </span>
         <span className="ecat-icon">
-          <Download size={18} />
+          <Eye size={18} />
         </span>
       </span>
     </a>

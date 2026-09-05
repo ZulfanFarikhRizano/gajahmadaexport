@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, Trash2, Pencil, Plus, Upload, CheckCircle2, AlertTriangle, FileText, BarChart2 } from "lucide-react";
+import { LogOut, Trash2, Pencil, Plus, Upload, CheckCircle2, AlertTriangle, FileText, BarChart2, Eye } from "lucide-react";
 import { CATEGORIES, type Product, type SiteContent } from "@/lib/types";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 
@@ -48,13 +48,13 @@ export default function AdminDashboardPage() {
       ]);
 
       if (!contentRes.ok) {
-        const errData = await contentRes.json().catch(() => ({}));
-        throw new Error(errData.error ?? `Error site-content (status ${contentRes.status})`);
+        const errText = await contentRes.text();
+        throw new Error(`Error site-content: ${errText}`);
       }
 
       if (!productsRes.ok) {
-        const errData = await productsRes.json().catch(() => ({}));
-        throw new Error(errData.error ?? `Error products (status ${productsRes.status})`);
+        const errText = await productsRes.text();
+        throw new Error(`Error products: ${errText}`);
       }
 
       const { siteContent } = await contentRes.json();
@@ -87,8 +87,13 @@ export default function AdminDashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(siteContent),
       });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Gagal menyimpan: ${errText}`);
+      }
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Gagal menyimpan.");
       setSiteContent(data.siteContent);
       flash("ok", "Perubahan tersimpan.");
     } catch (err) {
@@ -101,24 +106,28 @@ export default function AdminDashboardPage() {
   const uploadFile = async (file: File): Promise<string | null> => {
     setUploading(true);
     try {
+      const fileType = file.type || (file.name.endsWith(".pdf") ? "application/pdf" : "image/jpeg");
+
       const res = await fetch("/api/admin/upload-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           filename: file.name,
-          contentType: file.type,
+          contentType: fileType,
         }),
       });
 
-      const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error ?? "Gagal mendapatkan izin upload.");
+        const errorText = await res.text();
+        throw new Error(`Gagal mendapatkan izin upload: ${errorText}`);
       }
+
+      const data = await res.json();
 
       const uploadRes = await fetch(data.signedUrl, {
         method: "PUT",
         headers: {
-          "Content-Type": file.type,
+          "Content-Type": fileType,
         },
         body: file,
       });
@@ -145,7 +154,7 @@ export default function AdminDashboardPage() {
   };
 
   const handleCatalogPdfUpload = async (file: File) => {
-    if (file.type !== "application/pdf") {
+    if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") {
       flash("error", "File harus berformat PDF.");
       return;
     }
@@ -191,8 +200,13 @@ export default function AdminDashboardPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(draft),
         });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(`Gagal menyimpan produk: ${errText}`);
+        }
+
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Gagal menyimpan produk.");
         setProducts((prev) => prev.map((p) => (p.id === editingId ? data.product : p)));
       } else {
         const res = await fetch("/api/admin/products", {
@@ -200,8 +214,13 @@ export default function AdminDashboardPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(draft),
         });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(`Gagal menambah produk: ${errText}`);
+        }
+
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "Gagal menambah produk.");
         setProducts((prev) => [...prev, data.product]);
       }
       flash("ok", "Produk tersimpan.");
@@ -218,8 +237,8 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Gagal menghapus produk.");
+        const errText = await res.text();
+        throw new Error(`Gagal menghapus produk: ${errText}`);
       }
       setProducts((prev) => prev.filter((p) => p.id !== id));
       if (editingId === id) resetDraft();
@@ -285,7 +304,6 @@ export default function AdminDashboardPage() {
             ))}
           </div>
 
-          {/* Tombol menuju halaman Analytics */}
           <button
             onClick={() => router.push("/admin/analytics")}
             className="flex items-center gap-2 rounded-full border border-clay-950/10 bg-white px-4 py-2 text-sm font-medium text-clay-800 hover:border-terracotta-600 hover:text-terracotta-600 shadow-sm transition-all"
@@ -324,9 +342,20 @@ export default function AdminDashboardPage() {
               <label className="text-sm font-medium text-clay-800">File E-Catalog (PDF)</label>
               <div className="mt-2 flex flex-wrap items-center gap-4">
                 {siteContent.catalogUrl ? (
-                  <div className="flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
-                    <FileText size={16} />
-                    <span>File PDF sudah terunggah</span>
+                  <div className="flex items-center gap-3 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 text-sm">
+                    <div className="flex items-center gap-1.5 text-emerald-700">
+                      <FileText size={16} />
+                      <span>File PDF aktif</span>
+                    </div>
+                    <a
+                      href={siteContent.catalogUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-blue-600 underline hover:text-blue-800"
+                    >
+                      <Eye size={12} />
+                      Lihat PDF
+                    </a>
                   </div>
                 ) : (
                   <span className="text-sm text-clay-500 italic">Belum ada file E-Catalog PDF yang diunggah</span>
