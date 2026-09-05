@@ -1,11 +1,12 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, Trash2, Pencil, Plus, Upload, CheckCircle2, AlertTriangle, FileText } from "lucide-react";
 import { CATEGORIES, type Product, type SiteContent } from "@/lib/types";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
-import { supabase } from "@/lib/supabase/client";
 
 type Tab = "content" | "products";
 
@@ -17,7 +18,6 @@ const emptyDraft = {
   images: [] as string[],
 };
 
-/** Falls back to the safe placeholder if a stored URL is broken or missing. */
 function onImgError(e: React.SyntheticEvent<HTMLImageElement>) {
   e.currentTarget.onerror = null;
   e.currentTarget.src = PLACEHOLDER_IMAGE;
@@ -90,7 +90,6 @@ export default function AdminDashboardPage() {
     }
   };
 
-  /** Returns the uploaded file's public URL, or null (and shows why) on failure. */
   const uploadFile = async (file: File): Promise<string | null> => {
     setUploading(true);
     try {
@@ -121,46 +120,19 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // HANDLER UPLOAD FILE PDF CATALOG (DIRECT CLIENT UPLOAD KE SUPABASE)
   const handleCatalogPdfUpload = async (file: File) => {
     if (file.type !== "application/pdf") {
       flash("error", "File harus berformat PDF.");
       return;
     }
 
-    setUploading(true);
-    try {
-      const fileName = `catalog-${Date.now()}.pdf`;
-      const filePath = `catalogs/${fileName}`;
-
-      // Unggah langsung dari browser ke Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from("uploads")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: true,
-        });
-
-      if (uploadError) {
-        throw new Error(uploadError.message);
-      }
-
-      // Ambil Public URL hasil upload
-      const { data: publicUrlData } = supabase.storage
-        .from("uploads")
-        .getPublicUrl(filePath);
-
-      if (siteContent) {
-        setSiteContent({ ...siteContent, catalogUrl: publicUrlData.publicUrl });
-        flash(
-          "ok",
-          'File E-Catalog PDF berhasil terunggah — klik "Simpan Perubahan" di bawah untuk menerapkannya.'
-        );
-      }
-    } catch (err) {
-      flash("error", err instanceof Error ? err.message : "Gagal mengunggah file PDF.");
-    } finally {
-      setUploading(false);
+    const url = await uploadFile(file);
+    if (url && siteContent) {
+      setSiteContent({ ...siteContent, catalogUrl: url });
+      flash(
+        "ok",
+        'File E-Catalog PDF berhasil terunggah — klik "Simpan Perubahan" di bawah untuk menerapkannya.'
+      );
     }
   };
 
@@ -313,7 +285,6 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* AREA UPLOAD FILE PDF E-CATALOG */}
             <div className="border-t border-clay-950/10 pt-4">
               <label className="text-sm font-medium text-clay-800">File E-Catalog (PDF)</label>
               <div className="mt-2 flex flex-wrap items-center gap-4">
@@ -527,7 +498,7 @@ export default function AdminDashboardPage() {
                       className="rounded-full p-2 text-clay-600 hover:text-red-600"
                       aria-label="Hapus"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={12} />
                     </button>
                   </div>
                 ))}
