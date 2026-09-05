@@ -17,6 +17,9 @@ export default async function HomePage() {
   }));
   const hrefs = products.slice(0, 5).map((p) => `/product/${p.category}/${p.id}`);
 
+  // URL PDF dinamis dari database (fallback ke '#' jika belum diisi)
+  const catalogPdfUrl = siteContent.catalogUrl || "#";
+
   return (
     <main>
       <HomeGallerySpill
@@ -32,7 +35,7 @@ export default async function HomePage() {
       <PaymentInfo />
 
       <div className="flex justify-center bg-white py-12">
-        <ECatalogButton href="/files/gajah-mada-ecatalog.pdf" />
+        <ECatalogButton href={catalogPdfUrl} />
       </div>
 
       <PurchaseInquiryForm waNumber={siteContent.whatsappNumber} />

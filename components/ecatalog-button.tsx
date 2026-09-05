@@ -1,17 +1,21 @@
 "use client";
 
-import { Eye } from "lucide-react"; // Mengganti ikon Download menjadi Eye (opsional, agar sesuai dengan konteks melihat PDF)
+import { Eye } from "lucide-react";
 
-export function ECatalogButton({ href }: { href: string }) {
+export function ECatalogButton({ href }: { href?: string }) {
   const state1 = "Lihat E-Catalog";
   const state2 = "Buka PDF";
+  const isAvailable = Boolean(href && href !== "#");
 
   return (
     <a
-      href={href}
+      href={isAvailable ? href : undefined}
       target="_blank"
       rel="noopener noreferrer"
-      className="ecat-button"
+      className={`ecat-button ${!isAvailable ? "pointer-events-none opacity-50" : ""}`}
+      onClick={(e) => {
+        if (!isAvailable) e.preventDefault();
+      }}
     >
       <span className="ecat-bg" aria-hidden="true" />
       <svg aria-hidden="true" viewBox="0 0 342 208" className="ecat-splash" fill="none">
