@@ -14,13 +14,13 @@ export function PurchaseInquiryForm({ waNumber }: { waNumber: string }) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError("Nama wajib diisi.");
+      setError("Name is required.");
       return;
     }
     setError(null);
     const link = buildInquiryWhatsAppLink(waNumber, {
       name,
-      phone: email, // Oper email/info kontak ke helper WA
+      phone: email,
       categoryLabel: subject || "General Inquiry",
       message,
     });
@@ -28,9 +28,9 @@ export function PurchaseInquiryForm({ waNumber }: { waNumber: string }) {
   };
 
   return (
-    <section id="order" className="bg-[#121212] py-16 px-6">
-      <div className="mx-auto max-w-2xl rounded-3xl bg-[#1a1a1a] p-8 md:p-10 text-white border border-neutral-800">
-        <h2 className="font-display text-2xl md:text-3xl font-semibold mb-6 text-white">
+    <section id="order" className="bg-cream-100 py-16 px-6">
+      <div className="mx-auto max-w-xl rounded-2xl bg-white p-6 md:p-8 shadow-sm">
+        <h2 className="font-display text-2xl font-medium text-clay-950 mb-6">
           Send us a message
         </h2>
 
@@ -41,14 +41,14 @@ export function PurchaseInquiryForm({ waNumber }: { waNumber: string }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your Name"
-              className="w-full rounded-2xl bg-[#121212] border border-neutral-800 px-4 py-3 text-sm text-white placeholder-neutral-500 outline-none focus:border-neutral-600 transition-colors"
+              className="w-full rounded-lg border border-clay-950/20 px-3 py-2 text-sm text-clay-950 placeholder-clay-400 outline-none focus:border-terracotta-600"
             />
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Your Email"
-              className="w-full rounded-2xl bg-[#121212] border border-neutral-800 px-4 py-3 text-sm text-white placeholder-neutral-500 outline-none focus:border-neutral-600 transition-colors"
+              className="w-full rounded-lg border border-clay-950/20 px-3 py-2 text-sm text-clay-950 placeholder-clay-400 outline-none focus:border-terracotta-600"
             />
           </div>
 
@@ -58,7 +58,7 @@ export function PurchaseInquiryForm({ waNumber }: { waNumber: string }) {
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Subject"
-              className="w-full rounded-2xl bg-[#121212] border border-neutral-800 px-4 py-3 text-sm text-white placeholder-neutral-500 outline-none focus:border-neutral-600 transition-colors"
+              className="w-full rounded-lg border border-clay-950/20 px-3 py-2 text-sm text-clay-950 placeholder-clay-400 outline-none focus:border-terracotta-600"
             />
           </div>
 
@@ -68,17 +68,17 @@ export function PurchaseInquiryForm({ waNumber }: { waNumber: string }) {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="How can we help you?"
-              className="w-full rounded-2xl bg-[#121212] border border-neutral-800 px-4 py-3 text-sm text-white placeholder-neutral-500 outline-none focus:border-neutral-600 transition-colors resize-none"
+              className="w-full rounded-lg border border-clay-950/20 px-3 py-2 text-sm text-clay-950 placeholder-clay-400 outline-none focus:border-terracotta-600 resize-none"
             />
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
 
           <button
             type="submit"
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#ccff00] py-3.5 text-sm font-bold uppercase tracking-wider text-black transition-transform active:scale-[0.99] hover:opacity-90"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-terracotta-600 py-3 text-sm font-medium text-white hover:bg-clay-800 transition-colors"
           >
-            SEND MESSAGE <Send size={16} className="fill-black stroke-black" />
+            SEND MESSAGE <Send size={16} />
           </button>
         </form>
       </div>
