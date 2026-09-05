@@ -1,5 +1,6 @@
 import { getProducts, getSiteContent } from "@/lib/data-store";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
+import { IntroVideoOverlay } from "@/components/intro-video-overlay";
 import { HomeGallerySpill } from "@/components/home-gallery-spill";
 import Features from "@/components/features";
 import { TestimonialsSection } from "@/components/testimonials-section";
@@ -22,6 +23,11 @@ export default async function HomePage() {
 
   return (
     <main>
+      <IntroVideoOverlay 
+        srcLandscape="/video/intro-desktop.mp4" 
+        srcPortrait="/video/intro-mobile.mp4" 
+      />
+      
       <HomeGallerySpill
         slides={slides}
         hrefs={hrefs}
