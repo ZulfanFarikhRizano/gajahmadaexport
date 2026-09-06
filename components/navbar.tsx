@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 import FloatingMenu from "./floating-menu";
@@ -19,9 +18,7 @@ export function Navbar({ siteName, logoUrl }: NavbarProps) {
   const router = useRouter();
   const tapCountRef = React.useRef(0);
   const tapTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [imgSrc, setImgSrc] = React.useState(logoUrl || PLACEHOLDER_IMAGE);
 
-  // Prefetch halaman admin di background agar instan saat diakses
   React.useEffect(() => {
     router.prefetch("/admin/login");
   }, [router]);
@@ -73,20 +70,20 @@ export function Navbar({ siteName, logoUrl }: NavbarProps) {
 
       <button
         onClick={handleLogoTap}
-        className="absolute left-1/2 top-1/2 z-20 select-none -translate-x-1/2 -translate-y-[28%]"
+        className="absolute left-1/2 top-1/2 z-20 select-none"
+        style={{ transform: "translate(-50%, -28%)" }}
         aria-label={siteName}
       >
-        <div className="relative h-16 w-16 sm:h-24 sm:w-24 md:h-28 md:w-28">
-          <Image
-            src={imgSrc}
-            alt={siteName}
-            fill
-            priority
-            sizes="(max-width: 640px) 64px, (max-width: 768px) 96px, 112px"
-            className="object-contain drop-shadow-lg"
-            onError={() => setImgSrc(PLACEHOLDER_IMAGE)}
-          />
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={logoUrl || PLACEHOLDER_IMAGE}
+          alt={siteName}
+          className="h-16 w-16 sm:h-24 sm:w-24 md:h-28 md:w-28 object-contain drop-shadow-lg"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = PLACEHOLDER_IMAGE;
+          }}
+        />
       </button>
     </header>
   );
