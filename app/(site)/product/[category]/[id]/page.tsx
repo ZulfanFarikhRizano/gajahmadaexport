@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getProductById, getSiteContent } from "@/lib/data-store";
 import { CATEGORIES } from "@/lib/types";
+import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 import { SafeImage } from "@/components/safe-image";
 import { ProductWhatsAppButton } from "@/components/whatsapp-button";
 import { AddToQuoteButton } from "@/components/add-to-quote-button";
@@ -20,7 +21,7 @@ export default async function ProductDetailPage({
   if (!product || product.category !== params.category) notFound();
 
   const category = CATEGORIES.find((c) => c.slug === product.category);
-  const images = product.images.length > 0 ? product.images : [undefined];
+  const images = product.images && product.images.length > 0 ? product.images : [PLACEHOLDER_IMAGE];
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">

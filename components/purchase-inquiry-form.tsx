@@ -17,10 +17,15 @@ export function PurchaseInquiryForm({ waNumber }: { waNumber: string }) {
       setError("Name is required.");
       return;
     }
+    if (!email.trim()) {
+      setError("Email is required.");
+      return;
+    }
     setError(null);
+
     const link = buildInquiryWhatsAppLink(waNumber, {
       name,
-      phone: email,
+      email, // 👈 Mengirimkan variabel email ke helper
       categoryLabel: subject || "General Inquiry",
       message,
     });
@@ -76,9 +81,9 @@ export function PurchaseInquiryForm({ waNumber }: { waNumber: string }) {
 
           <button
             type="submit"
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-terracotta-600 py-3 text-sm font-medium text-white hover:bg-clay-800 transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-terracotta-600 py-3 text-sm font-medium text-white hover:bg-clay-800 transition-colors uppercase"
           >
-            SEND MESSAGE <Send size={16} />
+            Send Message <Send size={16} />
           </button>
         </form>
       </div>

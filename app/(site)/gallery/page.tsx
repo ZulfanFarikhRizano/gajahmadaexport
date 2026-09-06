@@ -1,8 +1,15 @@
 import { getProducts } from "@/lib/data-store";
 import { GalleryGrid } from "@/components/gallery-grid";
+import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 
 export default async function GalleryPage() {
-  const products = await getProducts();
+  const rawProducts = await getProducts();
+
+  // Memastikan setiap produk memiliki fallback gambar jika array images kosong
+  const products = rawProducts.map((product) => ({
+    ...product,
+    images: product.images && product.images.length > 0 ? product.images : [PLACEHOLDER_IMAGE],
+  }));
 
   return (
     <main className="min-h-screen bg-cream-50 pt-16 pb-24">

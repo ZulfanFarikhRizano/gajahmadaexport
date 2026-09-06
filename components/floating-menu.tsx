@@ -79,28 +79,38 @@ function MenuButton({
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
       className="text-[#FAF6EE] text-[16px] sm:text-[20px] uppercase leading-none overflow-hidden"
-      style={{ fontFamily: "'Trobika', 'Bebas Neue', sans-serif", letterSpacing: "-0.03em", height: "1em" }}
+      style={{ fontFamily: "'Trobika', 'Bebas Neue', sans-serif", letterSpacing: "normal", height: "1em" }}
       animate={{ opacity: isOpen ? 1 : 0 }}
       transition={{ duration: 0.4, delay: isOpen ? 0.35 + 0.08 * index : 0, ease }}
     >
-      <div className="flex justify-center">
-        {chars.map((char, i) => (
-          <span key={i} className="inline-block overflow-hidden" style={{ height: "1em" }}>
-            <span
-              className="flex flex-col"
-              style={{
-                transitionProperty: "transform",
-                transitionDuration: hovered ? "800ms" : "0ms",
-                transitionDelay: hovered ? `${30 * i}ms` : "0ms",
-                transform: hovered ? "translateY(-50%)" : "translateY(0%)",
-                transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
-              }}
-            >
-              <span className="block" style={{ height: "1em", lineHeight: "1em" }}>{char}</span>
-              <span className="block" style={{ height: "1em", lineHeight: "1em" }} aria-hidden>{char}</span>
+      <div className="flex justify-center items-center">
+        {chars.map((char, i) => {
+          // Jika karakter adalah spasi, render non-breaking space (&nbsp;) agar memiliki lebar
+          const isSpace = char === " ";
+          const displayChar = isSpace ? "\u00A0" : char;
+
+          return (
+            <span key={i} className="inline-block overflow-hidden" style={{ height: "1em" }}>
+              <span
+                className="flex flex-col"
+                style={{
+                  transitionProperty: "transform",
+                  transitionDuration: hovered ? "800ms" : "0ms",
+                  transitionDelay: hovered ? `${30 * i}ms` : "0ms",
+                  transform: hovered ? "translateY(-50%)" : "translateY(0%)",
+                  transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+                }}
+              >
+                <span className="block" style={{ height: "1em", lineHeight: "1em" }}>
+                  {displayChar}
+                </span>
+                <span className="block" style={{ height: "1em", lineHeight: "1em" }} aria-hidden>
+                  {displayChar}
+                </span>
+              </span>
             </span>
-          </span>
-        ))}
+          );
+        })}
       </div>
     </motion.button>
   );
@@ -112,11 +122,12 @@ export default function FloatingMenu({ items }: FloatingMenuProps) {
   const router = useRouter();
 
   const menuItems: MenuItem[] = items ?? [
-    { label: "Home", href: "/" },
-    { label: "About Us", href: "/about" },
-    { label: "Gallery", href: "/gallery" },
-    { label: "Contact Us", href: "/contact" },
-  ];
+  { label: "Home", href: "/" },
+  { label: "About Us", href: "/about" },
+  { label: "Gallery", href: "/gallery" },
+  { label: "Custom Order", href: "/custom-order" }, // 👈 Tambahkan baris ini
+  { label: "Contact Us", href: "/contact" },
+];
 
   const { closedW, openW, openH } = useResponsiveMenuSize(menuItems.length);
 

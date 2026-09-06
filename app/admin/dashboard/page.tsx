@@ -64,7 +64,7 @@ export default function AdminDashboardPage() {
     } catch (err) {
       flash(
         "error",
-        err instanceof Error ? err.message : "Gagal terhubung ke database.",
+        err instanceof Error ? err.message : "Gagal terhubung ke database."
       );
     }
   }, []);
@@ -186,7 +186,7 @@ export default function AdminDashboardPage() {
       category: product.category,
       description: product.description,
       price: product.price ?? "",
-      images: product.images,
+      images: product.images || [],
     });
     setTab("products");
   };
@@ -320,7 +320,7 @@ export default function AdminDashboardPage() {
               <div className="mt-2 flex items-center gap-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={siteContent.logoUrl}
+                  src={siteContent.logoUrl || PLACEHOLDER_IMAGE}
                   alt="Logo"
                   onError={onImgError}
                   className="h-14 w-14 rounded-lg object-contain border border-clay-950/10"
@@ -468,10 +468,10 @@ export default function AdminDashboardPage() {
                   <label className="text-sm font-medium text-clay-800">Gambar</label>
                   <div className="mt-2 flex flex-wrap gap-3">
                     {draft.images.map((src, i) => (
-                      <div key={src} className="relative">
+                      <div key={`${src}-${i}`} className="relative">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={src}
+                          src={src || PLACEHOLDER_IMAGE}
                           alt=""
                           onError={onImgError}
                           className="h-20 w-20 rounded-lg object-cover"
@@ -539,8 +539,8 @@ export default function AdminDashboardPage() {
                   <div key={product.id} className="flex items-center gap-4 py-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={product.images[0] ?? PLACEHOLDER_IMAGE}
-                      alt=""
+                      src={product.images && product.images.length > 0 ? product.images[0] : PLACEHOLDER_IMAGE}
+                      alt={product.name}
                       onError={onImgError}
                       className="h-12 w-12 rounded-lg object-cover"
                     />
