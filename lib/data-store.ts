@@ -1,21 +1,37 @@
 import "server-only";
+import { unstable_noStore as noStore } from "next/cache";
 import { supabaseAdmin } from "./supabase/admin";
 import type { Product, SiteContent } from "./types";
 
-// Helper agar tidak repetitif
+// Gunakan 'as any' khusus di instance client internal agar TypeScript tidak memaksa inferensi 'never'
 const db = () => supabaseAdmin() as any;
 
+// Helper untuk Mapping snake_case Supabase ke camelCase TypeScript
+function mapProduct(data: any): Product {
+  return {
+    id: data.id,
+    name: data.name,
+    category: data.category,
+    description: data.description,
+    price: data.price,
+    images: data.images || [],
+    createdAt: data.created_at,
+  };
+}
+
 export async function getProducts(): Promise<Product[]> {
+  noStore();
   const { data, error } = await db()
     .from("products")
     .select("*")
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
-  return (data ?? []) as Product[];
+  return (data || []).map(mapProduct);
 }
 
 export async function getProductsByCategory(category: string): Promise<Product[]> {
+  noStore();
   const { data, error } = await db()
     .from("products")
     .select("*")
@@ -23,10 +39,11 @@ export async function getProductsByCategory(category: string): Promise<Product[]
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
-  return (data ?? []) as Product[];
+  return (data || []).map(mapProduct);
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
+  noStore();
   const { data, error } = await db()
     .from("products")
     .select("*")
@@ -34,7 +51,7 @@ export async function getProductById(id: string): Promise<Product | null> {
     .maybeSingle();
 
   if (error) throw new Error(error.message);
-  return (data as Product | null) ?? null;
+  return data ? mapProduct(data) : null;
 }
 
 export async function createProduct(
@@ -56,7 +73,7 @@ export async function createProduct(
     .single();
 
   if (error) throw new Error(error.message);
-  return data as Product;
+  return mapProduct(data);
 }
 
 export async function updateProduct(
@@ -71,7 +88,7 @@ export async function updateProduct(
     .maybeSingle();
 
   if (error) throw new Error(error.message);
-  return (data as Product | null) ?? null;
+  return data ? mapProduct(data) : null;
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {
@@ -85,6 +102,7 @@ export async function deleteProduct(id: string): Promise<boolean> {
 }
 
 export async function getSiteContent(): Promise<SiteContent> {
+  noStore();
   const { data, error } = await db()
     .from("site_content")
     .select("*")
@@ -96,7 +114,7 @@ export async function getSiteContent(): Promise<SiteContent> {
   return {
     siteName: data.site_name,
     logoUrl: data.logo_url,
-    catalogUrl: data.catalog_url ?? "", // <--- DITAMBAHKAN
+    catalogUrl: data.catalog_url ?? "",
     heroHeadline: data.hero_headline,
     heroSubheadline: data.hero_subheadline,
     whatsappNumber: data.whatsapp_number,
@@ -108,10 +126,10 @@ export async function getSiteContent(): Promise<SiteContent> {
 export async function updateSiteContent(
   patch: Partial<SiteContent>
 ): Promise<SiteContent> {
-  const row: Record<string, unknown> = {};
+  const row: Record<string, any> = {};
   if (patch.siteName !== undefined) row.site_name = patch.siteName;
   if (patch.logoUrl !== undefined) row.logo_url = patch.logoUrl;
-  if (patch.catalogUrl !== undefined) row.catalog_url = patch.catalogUrl; // <--- DITAMBAHKAN
+  if (patch.catalogUrl !== undefined) row.catalog_url = patch.catalogUrl;
   if (patch.heroHeadline !== undefined) row.hero_headline = patch.heroHeadline;
   if (patch.heroSubheadline !== undefined) row.hero_subheadline = patch.heroSubheadline;
   if (patch.whatsappNumber !== undefined) row.whatsapp_number = patch.whatsappNumber;

@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import { Send } from "lucide-react";
-import { buildInquiryWhatsAppLink } from "@/lib/whatsapp";
 
-export function PurchaseInquiryForm({ waNumber }: { waNumber: string }) {
+export function PurchaseInquiryForm() {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -17,19 +16,22 @@ export function PurchaseInquiryForm({ waNumber }: { waNumber: string }) {
       setError("Name is required.");
       return;
     }
-    if (!email.trim()) {
-      setError("Email is required.");
+    if (!whatsapp.trim()) {
+      setError("WhatsApp number is required.");
       return;
     }
     setError(null);
 
-    const link = buildInquiryWhatsAppLink(waNumber, {
-      name,
-      email, // 👈 Mengirimkan variabel email ke helper
-      categoryLabel: subject || "General Inquiry",
-      message,
-    });
-    window.open(link, "_blank", "noopener,noreferrer");
+    const emailTarget = "inquiry@gajahmadaexport.com";
+    const emailSubject = encodeURIComponent(subject || "Purchase Inquiry");
+    
+    // Format isi email dengan informasi Name, WhatsApp, dan Message
+    const emailBody = encodeURIComponent(
+      `Name: ${name}\nWhatsApp: ${whatsapp}\n\nMessage:\n${message}`
+    );
+
+    // Buka email client bawaan pengguna
+    window.location.href = `mailto:${emailTarget}?subject=${emailSubject}&body=${emailBody}`;
   };
 
   return (
@@ -49,10 +51,10 @@ export function PurchaseInquiryForm({ waNumber }: { waNumber: string }) {
               className="w-full rounded-lg border border-clay-950/20 px-3 py-2 text-sm text-clay-950 placeholder-clay-400 outline-none focus:border-terracotta-600"
             />
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Your Email"
+              type="tel"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+              placeholder="Your WhatsApp"
               className="w-full rounded-lg border border-clay-950/20 px-3 py-2 text-sm text-clay-950 placeholder-clay-400 outline-none focus:border-terracotta-600"
             />
           </div>

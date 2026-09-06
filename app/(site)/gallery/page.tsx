@@ -2,10 +2,12 @@ import { getProducts } from "@/lib/data-store";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 
+// MATIKAN CACHE SERVER COMPONENT UNTUK GALERI
+export const revalidate = 0;
+
 export default async function GalleryPage() {
   const rawProducts = await getProducts();
 
-  // Memastikan setiap produk memiliki fallback gambar jika array images kosong
   const products = rawProducts.map((product) => ({
     ...product,
     images: product.images && product.images.length > 0 ? product.images : [PLACEHOLDER_IMAGE],

@@ -47,7 +47,8 @@ export default async function HomePage() {
         <ECatalogButton href={catalogPdfUrl} />
       </div>
 
-      <PurchaseInquiryForm waNumber={siteContent.whatsappNumber} />
+      {/* Hapus waNumber dari prop komponen di bawah ini */}
+      <PurchaseInquiryForm />
     </main>
   );
 }
