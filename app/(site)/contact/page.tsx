@@ -1,14 +1,39 @@
-import { getSiteContent } from "@/lib/data-store";
-import { buildGeneralWhatsAppLink } from "@/lib/whatsapp";
+"use client";
+
+import { useState } from "react";
 import { MapPin, Mail, MessageCircle, Phone, Send } from "lucide-react";
 
-export const revalidate = 0;
-
-export default async function ContactPage() {
-  const siteContent = await getSiteContent();
-
+export default function ContactPage() {
   const emailTarget = "inquiry@gajahmadaexport.com";
-  const whatsappNumber = siteContent.whatsappNumber || "628212334275";
+  const whatsappNumber = "628212334275";
+  const address = "Cirebon, West Java, Indonesia";
+
+  const [name, setName] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!name.trim()) {
+      setError("Name is required.");
+      return;
+    }
+    if (!whatsapp.trim()) {
+      setError("WhatsApp number is required.");
+      return;
+    }
+    setError(null);
+
+    const emailSubject = encodeURIComponent(subject || "General Inquiry");
+    const emailBody = encodeURIComponent(
+      `Name: ${name}\nWhatsApp: ${whatsapp}\n\nMessage:\n${message}`
+    );
+
+    window.location.href = `mailto:${emailTarget}?subject=${emailSubject}&body=${emailBody}`;
+  };
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-16">
@@ -34,7 +59,7 @@ export default async function ContactPage() {
               <div>
                 <p className="font-semibold text-clay-950">Address</p>
                 <p className="mt-0.5 text-clay-600 leading-relaxed">
-                  {siteContent.contactAddress}
+                  {address}
                 </p>
               </div>
             </div>
@@ -63,7 +88,7 @@ export default async function ContactPage() {
               <div>
                 <p className="font-semibold text-clay-950">WhatsApp</p>
                 <a
-                  href={buildGeneralWhatsAppLink(whatsappNumber)}
+                  href={`https://wa.me/${whatsappNumber}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-0.5 block text-clay-600 hover:text-terracotta-600 transition-colors"
@@ -98,28 +123,23 @@ export default async function ContactPage() {
               Send us a message
             </h2>
 
-            <form
-              action={`mailto:${emailTarget}`}
-              method="get"
-              encType="text/plain"
-              className="space-y-4"
-            >
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <input
                     type="text"
-                    name="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     placeholder="Your Name"
-                    required
                     className="w-full rounded-xl border border-clay-200 bg-cream-50/30 px-4 py-3 text-sm text-clay-900 placeholder:text-clay-400 focus:border-terracotta-600 focus:bg-white focus:outline-none transition-all"
                   />
                 </div>
                 <div>
                   <input
-                    type="email"
-                    name="email"
-                    placeholder="Your Email"
-                    required
+                    type="tel"
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                    placeholder="Your WhatsApp"
                     className="w-full rounded-xl border border-clay-200 bg-cream-50/30 px-4 py-3 text-sm text-clay-900 placeholder:text-clay-400 focus:border-terracotta-600 focus:bg-white focus:outline-none transition-all"
                   />
                 </div>
@@ -128,22 +148,24 @@ export default async function ContactPage() {
               <div>
                 <input
                   type="text"
-                  name="subject"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
                   placeholder="Subject"
-                  required
                   className="w-full rounded-xl border border-clay-200 bg-cream-50/30 px-4 py-3 text-sm text-clay-900 placeholder:text-clay-400 focus:border-terracotta-600 focus:bg-white focus:outline-none transition-all"
                 />
               </div>
 
               <div>
                 <textarea
-                  name="body"
                   rows={4}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
                   placeholder="How can we help you?"
-                  required
                   className="w-full rounded-xl border border-clay-200 bg-cream-50/30 px-4 py-3 text-sm text-clay-900 placeholder:text-clay-400 focus:border-terracotta-600 focus:bg-white focus:outline-none transition-all resize-none"
                 />
               </div>
+
+              {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
 
               <button
                 type="submit"

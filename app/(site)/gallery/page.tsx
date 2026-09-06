@@ -2,8 +2,8 @@ import { getProducts } from "@/lib/data-store";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 
-// MATIKAN CACHE SERVER COMPONENT UNTUK GALERI
-export const revalidate = 0;
+// Cache halaman selama 60 detik agar navigasi instant/cepat
+export const revalidate = 60;
 
 export default async function GalleryPage() {
   const rawProducts = await getProducts();

@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -36,12 +37,16 @@ function useResponsiveMenuSize(menuItemCount: number) {
 
 function MenuButton({
   label,
+  href,
   onClick,
+  onMouseEnter,
   isOpen,
   index,
 }: {
   label: string;
+  href: string;
   onClick?: () => void;
+  onMouseEnter?: () => void;
   isOpen: boolean;
   index: number;
 }) {
@@ -52,6 +57,7 @@ function MenuButton({
   const lockDuration = 30 * chars.length + 300;
 
   const handleEnter = useCallback(() => {
+    onMouseEnter?.();
     pendingLeaveRef.current = false;
     if (hovered) return;
     setHovered(true);
@@ -63,7 +69,7 @@ function MenuButton({
         setHovered(false);
       }
     }, lockDuration);
-  }, [hovered, lockDuration]);
+  }, [hovered, lockDuration, onMouseEnter]);
 
   const handleLeave = useCallback(() => {
     if (animatingRef.current) {
@@ -74,45 +80,49 @@ function MenuButton({
   }, []);
 
   return (
-    <motion.button
-      onClick={onClick}
-      onMouseEnter={handleEnter}
-      onMouseLeave={handleLeave}
-      className="text-[#FAF6EE] text-[16px] sm:text-[20px] uppercase leading-none overflow-hidden"
-      style={{ fontFamily: "'Trobika', 'Bebas Neue', sans-serif", letterSpacing: "normal", height: "1em" }}
+    <motion.div
       animate={{ opacity: isOpen ? 1 : 0 }}
       transition={{ duration: 0.4, delay: isOpen ? 0.35 + 0.08 * index : 0, ease }}
     >
-      <div className="flex justify-center items-center">
-        {chars.map((char, i) => {
-          // Jika karakter adalah spasi, render non-breaking space (&nbsp;) agar memiliki lebar
-          const isSpace = char === " ";
-          const displayChar = isSpace ? "\u00A0" : char;
+      <Link
+        href={href}
+        prefetch={true}
+        onClick={onClick}
+        onMouseEnter={handleEnter}
+        onMouseLeave={handleLeave}
+        className="block text-[#FAF6EE] text-[16px] sm:text-[20px] uppercase leading-none overflow-hidden"
+        style={{ fontFamily: "'Trobika', 'Bebas Neue', sans-serif", letterSpacing: "normal", height: "1em" }}
+      >
+        <div className="flex justify-center items-center">
+          {chars.map((char, i) => {
+            const isSpace = char === " ";
+            const displayChar = isSpace ? "\u00A0" : char;
 
-          return (
-            <span key={i} className="inline-block overflow-hidden" style={{ height: "1em" }}>
-              <span
-                className="flex flex-col"
-                style={{
-                  transitionProperty: "transform",
-                  transitionDuration: hovered ? "800ms" : "0ms",
-                  transitionDelay: hovered ? `${30 * i}ms` : "0ms",
-                  transform: hovered ? "translateY(-50%)" : "translateY(0%)",
-                  transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
-                }}
-              >
-                <span className="block" style={{ height: "1em", lineHeight: "1em" }}>
-                  {displayChar}
-                </span>
-                <span className="block" style={{ height: "1em", lineHeight: "1em" }} aria-hidden>
-                  {displayChar}
+            return (
+              <span key={i} className="inline-block overflow-hidden" style={{ height: "1em" }}>
+                <span
+                  className="flex flex-col"
+                  style={{
+                    transitionProperty: "transform",
+                    transitionDuration: hovered ? "800ms" : "0ms",
+                    transitionDelay: hovered ? `${30 * i}ms` : "0ms",
+                    transform: hovered ? "translateY(-50%)" : "translateY(0%)",
+                    transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+                  }}
+                >
+                  <span className="block" style={{ height: "1em", lineHeight: "1em" }}>
+                    {displayChar}
+                  </span>
+                  <span className="block" style={{ height: "1em", lineHeight: "1em" }} aria-hidden>
+                    {displayChar}
+                  </span>
                 </span>
               </span>
-            </span>
-          );
-        })}
-      </div>
-    </motion.button>
+            );
+          })}
+        </div>
+      </Link>
+    </motion.div>
   );
 }
 
@@ -122,14 +132,23 @@ export default function FloatingMenu({ items }: FloatingMenuProps) {
   const router = useRouter();
 
   const menuItems: MenuItem[] = items ?? [
-  { label: "Home", href: "/" },
-  { label: "About Us", href: "/about" },
-  { label: "Gallery", href: "/gallery" },
-  { label: "Custom Order", href: "/custom-order" }, // 👈 Tambahkan baris ini
-  { label: "Contact Us", href: "/contact" },
-];
+    { label: "Home", href: "/" },
+    { label: "About Us", href: "/about" },
+    { label: "Gallery", href: "/gallery" },
+    { label: "Custom Order", href: "/custom-order" },
+    { label: "Contact Us", href: "/contact" },
+  ];
 
   const { closedW, openW, openH } = useResponsiveMenuSize(menuItems.length);
+
+  // Prefetch semua link ketika menu dibuka
+  useEffect(() => {
+    if (isOpen) {
+      menuItems.forEach((item) => {
+        router.prefetch(item.href);
+      });
+    }
+  }, [isOpen, menuItems, router]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -216,7 +235,9 @@ export default function FloatingMenu({ items }: FloatingMenuProps) {
             <MenuButton
               key={item.label}
               label={item.label}
-              onClick={() => { router.push(item.href); setIsOpen(false); }}
+              href={item.href}
+              onClick={() => setIsOpen(false)}
+              onMouseEnter={() => router.prefetch(item.href)}
               isOpen={isOpen}
               index={idx}
             />
