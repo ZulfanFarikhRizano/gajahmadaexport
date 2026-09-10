@@ -11,6 +11,21 @@ import { AddToQuoteButton } from "@/components/add-to-quote-button";
 // MATIKAN CACHE DETAIL PRODUK
 export const revalidate = 0;
 
+// URL Base Supabase Storage (Bucket: uploads)
+const SUPABASE_STORAGE_URL =
+  "https://vofsmretmpxinnkfiqsk.supabase.co/storage/v1/object/public/uploads";
+
+function getValidImageUrl(img: any): string {
+  if (!img || typeof img !== "string" || img.trim() === "") {
+    return PLACEHOLDER_IMAGE;
+  }
+  if (img.startsWith("http://") || img.startsWith("https://")) {
+    return img;
+  }
+  const cleanFileName = img.startsWith("/") ? img.slice(1) : img;
+  return `${SUPABASE_STORAGE_URL}/${cleanFileName}`;
+}
+
 export default async function ProductDetailPage({
   params,
 }: {
@@ -24,7 +39,14 @@ export default async function ProductDetailPage({
   if (!product || product.category !== params.category) notFound();
 
   const category = CATEGORIES.find((c) => c.slug === product.category);
-  const images = product.images && product.images.length > 0 ? product.images : [PLACEHOLDER_IMAGE];
+
+  // Proses gambar agar selalu mengembalikan URL penuh ke Supabase Storage
+  const rawImages =
+    product.images && product.images.length > 0 ? product.images : [];
+  const formattedImages = rawImages.map((img: string) => getValidImageUrl(img));
+
+  const images =
+    formattedImages.length > 0 ? formattedImages : [PLACEHOLDER_IMAGE];
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
@@ -48,9 +70,16 @@ export default async function ProductDetailPage({
           </div>
           {images.length > 1 && (
             <div className="grid grid-cols-4 gap-3">
-              {images.slice(1).map((img, i) => (
-                <div key={i} className="aspect-square overflow-hidden rounded-lg bg-cream-100 shadow-sm">
-                  <SafeImage src={img} alt={`${product.name} ${i + 2}`} className="h-full w-full object-cover" />
+              {images.slice(1).map((img: string, i: number) => (
+                <div
+                  key={i}
+                  className="aspect-square overflow-hidden rounded-lg bg-cream-100 shadow-sm"
+                >
+                  <SafeImage
+                    src={img}
+                    alt={`${product.name} ${i + 2}`}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
               ))}
             </div>
@@ -86,8 +115,15 @@ export default async function ProductDetailPage({
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <ProductWhatsAppButton waNumber={siteContent.whatsappNumber} product={product} />
-            <AddToQuoteButton id={product.id} name={product.name} category={product.category} />
+            <ProductWhatsAppButton
+              waNumber={siteContent.whatsappNumber}
+              product={product}
+            />
+            <AddToQuoteButton
+              id={product.id}
+              name={product.name}
+              category={product.category}
+            />
           </div>
         </div>
       </div>
