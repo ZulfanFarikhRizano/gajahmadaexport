@@ -16,20 +16,33 @@ export default async function ProductDetailPage({
 }: {
   params: { category: string; id: string };
 }) {
+  const rawCategoryParam = decodeURIComponent(params.category);
+
   const [product, siteContent] = await Promise.all([
     getProductById(params.id),
     getSiteContent(),
   ]);
 
-  if (!product || product.category !== params.category) notFound();
+  if (!product) notFound();
 
-  const category = CATEGORIES.find((c) => c.slug === product.category);
+  // Helper normalisasi agar pencocokan "Table Indoor" vs "table-indoor" tidak error
+  const normalize = (str: string) => str.toLowerCase().replace(/[\s_]+/g, "-");
 
-  // Ambil array gambar dari produk, biarkan SafeImage yang memproses URL-nya
-  const images =
+  if (normalize(rawCategoryParam) !== normalize(product.category)) {
+    notFound();
+  }
+
+  const category = CATEGORIES.find(
+    (c) =>
+      normalize(c.slug) === normalize(product.category) ||
+      normalize(c.label) === normalize(product.category)
+  );
+
+  // Ambil hanya 1 gambar utama saja
+  const mainImage =
     product.images && product.images.length > 0
-      ? product.images
-      : [PLACEHOLDER_IMAGE];
+      ? product.images[0]
+      : PLACEHOLDER_IMAGE;
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
@@ -42,31 +55,15 @@ export default async function ProductDetailPage({
       </Link>
 
       <div className="grid gap-10 md:grid-cols-2">
-        {/* GALERI GAMBAR */}
+        {/* GAMBAR UTAMA SINGLE */}
         <div className="space-y-3">
           <div className="aspect-square overflow-hidden rounded-2xl bg-cream-100 shadow-sm">
             <SafeImage
-              src={images[0]}
+              src={mainImage}
               alt={product.name}
               className="h-full w-full object-cover"
             />
           </div>
-          {images.length > 1 && (
-            <div className="grid grid-cols-4 gap-3">
-              {images.slice(1).map((img: string, i: number) => (
-                <div
-                  key={i}
-                  className="aspect-square overflow-hidden rounded-lg bg-cream-100 shadow-sm"
-                >
-                  <SafeImage
-                    src={img}
-                    alt={`${product.name} ${i + 2}`}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* DETAIL PRODUK */}

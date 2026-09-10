@@ -12,32 +12,36 @@ interface GalleryGridProps {
 }
 
 export function GalleryGrid({ products }: GalleryGridProps) {
-  // State untuk Filter Utama (All, Indoor, Outdoor, Other)
   const [selectedGroup, setSelectedGroup] = useState<"all" | "indoor" | "outdoor" | "other">("all");
-  // State untuk Sub-Kategori Spesifik
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  // Filter pilihan sub-kategori yang relevan berdasarkan Main Group yang aktif
   const availableCategories = useMemo(() => {
     if (selectedGroup === "all") return CATEGORIES;
     return CATEGORIES.filter((c) => c.group === selectedGroup);
   }, [selectedGroup]);
 
-  // Handler saat pengguna mengganti Tab Utama
   const handleGroupChange = (group: "all" | "indoor" | "outdoor" | "other") => {
     setSelectedGroup(group);
-    setSelectedCategory("all"); // Reset sub-kategori ke "all" saat tab utama berganti
+    setSelectedCategory("all");
   };
 
-  // Map untuk pencarian kategori O(1) agar tidak lambat
+  // Helper normalisasi string untuk pencocokan kategori
+  const normalize = (str: string) => str.toLowerCase().replace(/[\s_]+/g, "-");
+
+  // Map kategori dengan key yang sudah dinormalisasi
   const categoryMap = useMemo(() => {
-    return new Map(CATEGORIES.map((c) => [c.slug, c]));
+    const map = new Map();
+    CATEGORIES.forEach((c) => {
+      map.set(normalize(c.slug), c);
+      map.set(normalize(c.label), c);
+    });
+    return map;
   }, []);
 
-  // Filter produk gabungan (Group + Specific Sub Category)
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      const matchedCategory = categoryMap.get(product.category);
+      const normalizedProdCat = normalize(product.category || "");
+      const matchedCategory = categoryMap.get(normalizedProdCat);
 
       // Match Main Group
       const matchesGroup =
@@ -45,7 +49,9 @@ export function GalleryGrid({ products }: GalleryGridProps) {
 
       // Match Sub Category
       const matchesCategory =
-        selectedCategory === "all" || product.category === selectedCategory;
+        selectedCategory === "all" ||
+        normalizedProdCat === normalize(selectedCategory) ||
+        (matchedCategory && normalize(matchedCategory.slug) === normalize(selectedCategory));
 
       return matchesGroup && matchesCategory;
     });
@@ -53,7 +59,7 @@ export function GalleryGrid({ products }: GalleryGridProps) {
 
   return (
     <div className="mx-auto max-w-6xl px-6">
-      {/* 1. Main Group Tabs (All, Indoor, Outdoor, Other) */}
+      {/* 1. Main Group Tabs */}
       <div className="flex flex-wrap items-center justify-center gap-2 mb-5">
         {[
           { id: "all", label: "All Products" },
@@ -75,7 +81,7 @@ export function GalleryGrid({ products }: GalleryGridProps) {
         ))}
       </div>
 
-      {/* 2. Dynamic Sub-Category Pills (Kategori Lengkap) */}
+      {/* 2. Dynamic Sub-Category Pills */}
       <div className="flex flex-wrap items-center justify-center gap-2 mb-6 border-b border-clay-200/60 pb-6">
         <button
           onClick={() => setSelectedCategory("all")}
@@ -129,7 +135,7 @@ export function GalleryGrid({ products }: GalleryGridProps) {
       ) : (
         <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
           {filteredProducts.map((product) => {
-            const category = categoryMap.get(product.category);
+            const category = categoryMap.get(normalize(product.category || ""));
             return (
               <Link
                 key={product.id}
