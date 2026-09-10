@@ -139,7 +139,7 @@ export function GalleryGrid({ products }: GalleryGridProps) {
             return (
               <Link
                 key={product.id}
-                href={`/product/${product.category}/${product.id}`}
+                href={`/product/${encodeURIComponent(product.category)}/${product.id}`}
                 className="group block transition-all duration-300 hover:-translate-y-1"
               >
                 <div className="relative aspect-square overflow-hidden rounded-2xl bg-cream-100 shadow-sm transition-shadow group-hover:shadow-lg">

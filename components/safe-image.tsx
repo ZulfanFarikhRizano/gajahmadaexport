@@ -18,8 +18,8 @@ interface SafeImageProps {
 
 export function SafeImage({ src, alt, className = "", fill }: SafeImageProps) {
   const [imgSrc, setImgSrc] = useState<string>(PLACEHOLDER_IMAGE);
-  const [triedExtensions, setTriedExtensions] = useState<string[]>([]);
   const [baseFileName, setBaseFileName] = useState<string>("");
+  const [currentExtIndex, setCurrentExtIndex] = useState<number>(-1);
 
   useEffect(() => {
     let rawPath = src;
@@ -39,35 +39,32 @@ export function SafeImage({ src, alt, className = "", fill }: SafeImageProps) {
 
     if (rawPath.startsWith("http://") || rawPath.startsWith("https://")) {
       setImgSrc(rawPath);
+      setCurrentExtIndex(99); // bypass fallback
       return;
     }
 
     const cleanPath = rawPath.startsWith("/") ? rawPath.slice(1) : rawPath;
-    const initialUrl = `${SUPABASE_STORAGE_URL}/${cleanPath}`;
 
-    // Ambil nama dasar file tanpa ekstensi (misal: "acc-001")
+    // Ambil nama dasar file tanpa ekstensi (misal: "tbi-002")
     const lastDotIndex = cleanPath.lastIndexOf(".");
     const baseName =
       lastDotIndex !== -1 ? cleanPath.substring(0, lastDotIndex) : cleanPath;
 
     setBaseFileName(baseName);
-    setImgSrc(initialUrl);
-
-    // Dapatkan ekstensi awal dari file
-    const currentExt =
-      lastDotIndex !== -1 ? cleanPath.substring(lastDotIndex).toLowerCase() : "";
-    setTriedExtensions([currentExt]);
+    setCurrentExtIndex(0);
+    // Langsung tembak ekstensi pertama (.png)
+    setImgSrc(`${SUPABASE_STORAGE_URL}/${baseName}${EXTENSIONS[0]}`);
   }, [src]);
 
   const handleError = () => {
-    // Cari ekstensi yang belum pernah dicoba
-    const nextExt = EXTENSIONS.find((ext) => !triedExtensions.includes(ext));
+    // Jika index masih dalam jangkauan EXTENSIONS
+    const nextIndex = currentExtIndex + 1;
 
-    if (nextExt && baseFileName) {
-      setTriedExtensions((prev) => [...prev, nextExt]);
-      setImgSrc(`${SUPABASE_STORAGE_URL}/${baseFileName}${nextExt}`);
+    if (nextIndex < EXTENSIONS.length) {
+      setCurrentExtIndex(nextIndex);
+      setImgSrc(`${SUPABASE_STORAGE_URL}/${baseFileName}${EXTENSIONS[nextIndex]}`);
     } else {
-      // Jika semua ekstensi (.png, .jpg, .jpeg, .webp) sudah dicoba dan tetap 404, baru ganti ke placeholder
+      // Jika semua (.png, .jpg, .jpeg, .webp) sudah dicoba dan tetap 404
       setImgSrc(PLACEHOLDER_IMAGE);
     }
   };
