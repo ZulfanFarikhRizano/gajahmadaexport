@@ -9,25 +9,59 @@ import { PaymentInfo } from "@/components/payment-info";
 import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
 import { ECatalogButton } from "@/components/ecatalog-button";
 
+// URL Base Supabase Storage (Bucket: uploads)
+const SUPABASE_STORAGE_URL =
+  "https://vofsmretmpxinnkfiqsk.supabase.co/storage/v1/object/public/uploads";
+
+function getValidImageUrl(images: any): string {
+  let rawUrl = "";
+
+  if (Array.isArray(images) && images.length > 0) {
+    rawUrl = images[0];
+  } else if (typeof images === "string") {
+    rawUrl = images;
+  }
+
+  if (!rawUrl || typeof rawUrl !== "string" || rawUrl.trim() === "") {
+    return PLACEHOLDER_IMAGE;
+  }
+
+  // Jika di DB sudah berupa URL lengkap https://
+  if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+    return rawUrl;
+  }
+
+  // Jika di DB hanya berupa nama file (misal: "bc-001.jpg" atau "acc-001.png")
+  const cleanFileName = rawUrl.startsWith("/") ? rawUrl.slice(1) : rawUrl;
+  return `${SUPABASE_STORAGE_URL}/${cleanFileName}`;
+}
+
 export default async function HomePage() {
-  const [products, siteContent] = await Promise.all([getProducts(), getSiteContent()]);
+  const [products, siteContent] = await Promise.all([
+    getProducts(),
+    getSiteContent(),
+  ]);
 
-  const slides = products.slice(0, 5).map((p) => ({
-    src: p.images[0] ?? PLACEHOLDER_IMAGE,
-    alt: p.name,
+  const topProducts = products.slice(0, 5);
+
+  const slides = topProducts.map((p) => ({
+    src: getValidImageUrl(p.images),
+    alt: p.name || "Product Image",
   }));
-  const hrefs = products.slice(0, 5).map((p) => `/product/${p.category}/${p.id}`);
 
-  // URL PDF dinamis dari database (fallback ke '#' jika belum diisi)
+  const hrefs = topProducts.map(
+    (p) => `/product/${p.category}/${p.id}`
+  );
+
   const catalogPdfUrl = siteContent.catalogUrl || "#";
 
   return (
     <main>
-      <IntroVideoOverlay 
-        srcLandscape="/video/intro-desktop.mp4" 
-        srcPortrait="/video/intro-mobile.mp4" 
+      <IntroVideoOverlay
+        srcLandscape="/video/intro-desktop.mp4"
+        srcPortrait="/video/intro-mobile.mp4"
       />
-      
+
       <HomeGallerySpill
         slides={slides}
         hrefs={hrefs}
@@ -38,16 +72,13 @@ export default async function HomePage() {
       <Features />
       <TestimonialsSection />
       <CTA />
-      
-      {/* PaymentInfo dipanggil biasa tanpa prop catalogUrl */}
+
       <PaymentInfo />
 
-      {/* Tombol ECatalogButton utama */}
       <div className="flex justify-center bg-white py-12">
         <ECatalogButton href={catalogPdfUrl} />
       </div>
 
-      {/* Hapus waNumber dari prop komponen di bawah ini */}
       <PurchaseInquiryForm />
     </main>
   );

@@ -2,16 +2,37 @@ import { getProducts } from "@/lib/data-store";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 
-// Cache halaman selama 60 detik agar navigasi instant/cepat
+// URL Base Supabase Storage (Bucket: uploads)
+const SUPABASE_STORAGE_URL =
+  "https://vofsmretmpxinnkfiqsk.supabase.co/storage/v1/object/public/uploads";
+
+function getValidImageUrl(img: any): string {
+  if (!img || typeof img !== "string" || img.trim() === "") {
+    return PLACEHOLDER_IMAGE;
+  }
+  if (img.startsWith("http://") || img.startsWith("https://")) {
+    return img;
+  }
+  const cleanFileName = img.startsWith("/") ? img.slice(1) : img;
+  return `${SUPABASE_STORAGE_URL}/${cleanFileName}`;
+}
+
 export const revalidate = 60;
 
 export default async function GalleryPage() {
   const rawProducts = await getProducts();
 
-  const products = rawProducts.map((product) => ({
-    ...product,
-    images: product.images && product.images.length > 0 ? product.images : [PLACEHOLDER_IMAGE],
-  }));
+  const products = rawProducts.map((product) => {
+    // Memperbaiki seluruh array gambar produk
+    const validImages = Array.isArray(product.images)
+      ? product.images.map((img) => getValidImageUrl(img))
+      : [getValidImageUrl(product.images)];
+
+    return {
+      ...product,
+      images: validImages,
+    };
+  });
 
   return (
     <main className="min-h-screen bg-cream-50 pt-16 pb-24">

@@ -8,6 +8,14 @@ const nextConfig = {
     // Mengabaikan error ESLint saat build
     ignoreDuringBuilds: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "vofsmretmpxinnkfiqsk.supabase.co",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
