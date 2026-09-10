@@ -11,21 +11,6 @@ import { AddToQuoteButton } from "@/components/add-to-quote-button";
 // MATIKAN CACHE DETAIL PRODUK
 export const revalidate = 0;
 
-// URL Base Supabase Storage (Bucket: uploads)
-const SUPABASE_STORAGE_URL =
-  "https://vofsmretmpxinnkfiqsk.supabase.co/storage/v1/object/public/uploads";
-
-function getValidImageUrl(img: any): string {
-  if (!img || typeof img !== "string" || img.trim() === "") {
-    return PLACEHOLDER_IMAGE;
-  }
-  if (img.startsWith("http://") || img.startsWith("https://")) {
-    return img;
-  }
-  const cleanFileName = img.startsWith("/") ? img.slice(1) : img;
-  return `${SUPABASE_STORAGE_URL}/${cleanFileName}`;
-}
-
 export default async function ProductDetailPage({
   params,
 }: {
@@ -40,13 +25,11 @@ export default async function ProductDetailPage({
 
   const category = CATEGORIES.find((c) => c.slug === product.category);
 
-  // Proses gambar agar selalu mengembalikan URL penuh ke Supabase Storage
-  const rawImages =
-    product.images && product.images.length > 0 ? product.images : [];
-  const formattedImages = rawImages.map((img: string) => getValidImageUrl(img));
-
+  // Ambil array gambar dari produk, biarkan SafeImage yang memproses URL-nya
   const images =
-    formattedImages.length > 0 ? formattedImages : [PLACEHOLDER_IMAGE];
+    product.images && product.images.length > 0
+      ? product.images
+      : [PLACEHOLDER_IMAGE];
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">

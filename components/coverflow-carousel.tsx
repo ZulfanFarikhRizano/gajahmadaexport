@@ -4,6 +4,7 @@ import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { SafeImage } from "@/components/safe-image";
 
 const useIsoLayoutEffect =
   typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect;
@@ -309,11 +310,9 @@ export function CoverflowCarousel({
                 )}
                 style={{ width: "var(--cf-card)" }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <SafeImage
                   src={slide.src}
                   alt={slide.alt}
-                  draggable={false}
                   className="h-full w-full select-none object-cover"
                 />
               </div>
