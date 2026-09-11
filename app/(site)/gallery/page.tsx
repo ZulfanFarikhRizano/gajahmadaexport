@@ -10,19 +10,14 @@ function getValidImageUrl(img: any): string {
   if (!img || typeof img !== "string" || img.trim() === "") {
     return PLACEHOLDER_IMAGE;
   }
-  
-  let formattedImg = img.trim();
-  
-  // Apabila belum menggunakan .webp, ubah/tambahkan ekstensi .webp
-  if (!formattedImg.endsWith(".webp")) {
-    // Jika ada ekstensi lain (seperti .png/.jpg), ganti dengan .webp
-    formattedImg = formattedImg.replace(/\.[^/.]+$/, "") + ".webp";
-  }
 
+  const formattedImg = img.trim();
+
+  // Jika sudah berupa URL utuh (http/https), langsung kembalikan tanpa maksa ekstensi .webp
   if (formattedImg.startsWith("http://") || formattedImg.startsWith("https://")) {
     return formattedImg;
   }
-  
+
   const cleanFileName = formattedImg.startsWith("/") ? formattedImg.slice(1) : formattedImg;
   return `${SUPABASE_STORAGE_URL}/${cleanFileName}`;
 }
@@ -33,10 +28,24 @@ export default async function GalleryPage() {
   const rawProducts = await getProducts();
 
   const products = rawProducts.map((product) => {
-    // Memperbaiki seluruh array gambar produk
-    const validImages = Array.isArray(product.images)
-      ? product.images.map((img) => getValidImageUrl(img))
-      : [getValidImageUrl(product.images)];
+    let imagesArray: any[] = [];
+
+    // Parse aman untuk penanganan array maupun string JSON
+    if (Array.isArray(product.images)) {
+      imagesArray = product.images;
+    } else if (typeof product.images === "string") {
+      try {
+        const parsed = JSON.parse(product.images);
+        imagesArray = Array.isArray(parsed) ? parsed : [product.images];
+      } catch {
+        imagesArray = [product.images];
+      }
+    }
+
+    const validImages =
+      imagesArray.length > 0
+        ? imagesArray.map((img) => getValidImageUrl(img))
+        : [PLACEHOLDER_IMAGE];
 
     return {
       ...product,
