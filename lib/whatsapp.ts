@@ -30,8 +30,8 @@ export function buildProductWhatsAppLink(waNumber: string, product: Product) {
   const cleanNumber = cleanPhoneNumber(waNumber);
   const categorySlug = getCategorySlug(product);
 
-  // Link URL halaman produk agar WhatsApp memuat preview gambar (OG Image)
-  const productUrl = `https://gajahmadaexport.com/product/${categorySlug}/${product.id}`;
+  // Ditambahkan query param ?v=1 sebagai cache buster agar WhatsApp memaksa fetch ulang OG Image terbaru
+  const productUrl = `https://gajahmadaexport.com/product/${categorySlug}/${product.id}?v=1`;
 
   const message = `Hello, I am interested in your product "${product.name}" (SKU/ID: ${product.id}). Could you please provide information regarding wholesale pricing and availability?\n\nProduct Link: ${productUrl}`;
 
