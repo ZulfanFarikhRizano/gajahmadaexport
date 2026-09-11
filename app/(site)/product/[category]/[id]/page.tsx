@@ -14,7 +14,6 @@ export const revalidate = 0;
 const SUPABASE_STORAGE_URL =
   "https://vofsmretmpxinnkfiqsk.supabase.co/storage/v1/object/public/uploads";
 
-// Helper untuk validasi URL gambar
 function getValidImageUrl(img: any): string {
   if (!img || typeof img !== "string" || img.trim() === "") {
     return PLACEHOLDER_IMAGE;
@@ -34,25 +33,10 @@ function getValidImageUrl(img: any): string {
   return `${SUPABASE_STORAGE_URL}/${cleanFileName}`;
 }
 
-// Helper khusus URL Open Graph (WhatsApp Preview)
-function getOptimizedOgImageUrl(imgUrl: string): string {
-  if (!imgUrl || imgUrl === PLACEHOLDER_IMAGE) return PLACEHOLDER_IMAGE;
-
-  // Pastikan URL selalu menggunakan absolute path
-  if (!imgUrl.startsWith("http://") && !imgUrl.startsWith("https://")) {
-    const cleanFileName = imgUrl.startsWith("/") ? imgUrl.slice(1) : imgUrl;
-    return `${SUPABASE_STORAGE_URL}/${cleanFileName}`;
-  }
-
-  return imgUrl;
-}
-
-// Type Props sesuai dengan rute [category]/[id]
 type Props = {
   params: { category: string; id: string };
 };
 
-// Dynamic Open Graph Metadata untuk WhatsApp
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductById(params.id);
 
@@ -62,18 +46,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const rawMainImage =
-    product.images && product.images.length > 0
-      ? product.images[0]
-      : PLACEHOLDER_IMAGE;
-
-  const fullImageUrl = getValidImageUrl(rawMainImage);
-  const ogImageUrl = getOptimizedOgImageUrl(fullImageUrl);
-
   const title = `${product.name} | Gajah Mada Export`;
   const description = `Inquiry for ${product.name}. Price: ${
     product.price || "Contact Us"
   }. Sustainable Rattan & Wood Supplier.`;
+
+  // Dynamic PNG URL yang dihasilkan oleh opengraph-image.tsx
+  const ogImageUrl = `https://gajahmadaexport.com/product/${params.category}/${params.id}/opengraph-image`;
 
   return {
     title,
@@ -89,7 +68,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           secureUrl: ogImageUrl,
           width: 800,
           height: 800,
-          type: "image/webp",
+          type: "image/png", // Diubah ke PNG agar WhatsApp dapat membaca
           alt: product.name,
         },
       ],
