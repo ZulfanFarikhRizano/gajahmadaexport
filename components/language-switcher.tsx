@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
-import { Check, ChevronDown } from "lucide-react";
+import { Globe, Check, ChevronDown } from "lucide-react";
 
 const LANGUAGES = [
   { code: "id", label: "Bahasa Indonesia" },
@@ -92,7 +92,6 @@ export function LanguageSwitcher() {
     }
 
     setIsLoading(true);
-
     clearGoogleTranslateCookies();
 
     if (langCode !== "id") {
@@ -147,31 +146,16 @@ export function LanguageSwitcher() {
 
       <div id="google_translate_element_hidden" className="hidden" />
 
-      {/* Button Trigger */}
+      {/* Button Trigger (Kembali pakai Icon Globe) */}
       <button
         ref={buttonRef}
         type="button"
         disabled={isLoading}
         onClick={handleToggle}
-        className="flex items-center gap-2 rounded-full border border-clay-950/20 bg-white/90 px-3.5 py-1.5 text-xs font-medium text-clay-900 shadow-sm transition-all duration-200 hover:border-terracotta-600 hover:bg-white active:scale-95 disabled:opacity-80"
+        className="flex items-center gap-2 rounded-full border border-clay-950/20 bg-white/90 px-4 py-2 text-xs font-medium text-clay-900 shadow-sm transition-all duration-200 hover:border-terracotta-600 hover:bg-white active:scale-95 disabled:opacity-80"
       >
-        {/* Path Logo Disesuaikan ke /images/logo.png */}
-        <div className={`relative h-5 w-5 shrink-0 transition-transform ${isLoading ? "animate-spin" : ""}`}>
-          <Image
-            src="/images/logo.png"
-            alt="Gajah Mada Logo"
-            width={20}
-            height={20}
-            className="h-full w-full object-contain"
-          />
-        </div>
-
-        <span>
-          {isLoading
-            ? "Translating..."
-            : LANGUAGES.find((l) => l.code === currentLang)?.label || "Language"}
-        </span>
-
+        <Globe size={15} className="text-clay-700 shrink-0" />
+        <span>{LANGUAGES.find((l) => l.code === currentLang)?.label || "Language"}</span>
         <ChevronDown
           size={14}
           className={`text-clay-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
@@ -206,6 +190,23 @@ export function LanguageSwitcher() {
             })}
           </div>
         </>
+      )}
+
+      {/* Floating Loading Screen khusus Logo Gajah Mada (Hanya muncul saat isLoading === true) */}
+      {isLoading && (
+        <div className="fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm">
+          <div className="relative h-12 w-12 animate-spin">
+            <Image
+              src="/images/logo.png"
+              alt="Translating..."
+              fill
+              className="object-contain"
+            />
+          </div>
+          <span className="mt-3 text-xs font-semibold text-clay-900 tracking-wide animate-pulse">
+            Translating...
+          </span>
+        </div>
       )}
     </>
   );
