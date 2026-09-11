@@ -14,6 +14,7 @@ export const revalidate = 0;
 const SUPABASE_STORAGE_URL =
   "https://vofsmretmpxinnkfiqsk.supabase.co/storage/v1/object/public/uploads";
 
+// Helper untuk validasi URL gambar yang dipakai di tampilan web
 function getValidImageUrl(img: any): string {
   if (!img || typeof img !== "string" || img.trim() === "") {
     return PLACEHOLDER_IMAGE;
@@ -37,6 +38,7 @@ type Props = {
   params: { category: string; id: string };
 };
 
+// Dynamic Open Graph Metadata untuk WhatsApp Preview
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductById(params.id);
 
@@ -51,8 +53,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     product.price || "Contact Us"
   }. Sustainable Rattan & Wood Supplier.`;
 
-  // Dynamic PNG URL yang dihasilkan oleh opengraph-image.tsx
-  const ogImageUrl = `https://gajahmadaexport.com/product/${params.category}/${params.id}/opengraph-image`;
+  const rawImg =
+    product.images && product.images.length > 0 ? product.images[0] : "";
+
+  // Mengarahkan Open Graph Image ke Route API kompresi khusus agar di bawah 100 KB
+  const ogImageUrl = `https://gajahmadaexport.com/api/og?img=${encodeURIComponent(
+    rawImg
+  )}`;
 
   return {
     title,
@@ -66,9 +73,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         {
           url: ogImageUrl,
           secureUrl: ogImageUrl,
-          width: 800,
-          height: 800,
-          type: "image/png", // Diubah ke PNG agar WhatsApp dapat membaca
+          width: 600,
+          height: 600,
+          type: "image/png",
           alt: product.name,
         },
       ],
