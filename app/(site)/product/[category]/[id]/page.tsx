@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Tag } from "lucide-react";
 import { getProductById, getSiteContent } from "@/lib/data-store";
 import { CATEGORIES } from "@/lib/types";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
-import { SafeImage } from "@/components/safe-image";
 import { ProductWhatsAppButton } from "@/components/whatsapp-button";
 import { AddToQuoteButton } from "@/components/add-to-quote-button";
 
@@ -66,23 +66,26 @@ export default async function ProductDetailPage({
   const mainImage = getValidImageUrl(rawMainImage);
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
+    <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8 sm:py-12">
       <Link
         href="/gallery"
-        className="inline-flex items-center gap-1.5 text-sm text-clay-600 hover:text-terracotta-600 mb-8 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-clay-600 hover:text-terracotta-600 mb-6 sm:mb-8 transition-colors"
       >
         <ArrowLeft size={16} />
         Kembali ke Gallery
       </Link>
 
-      <div className="grid gap-10 md:grid-cols-2">
+      <div className="grid gap-8 md:grid-cols-2">
         {/* GAMBAR UTAMA SINGLE */}
         <div className="space-y-3">
-          <div className="aspect-square overflow-hidden rounded-2xl bg-cream-100 shadow-sm">
-            <SafeImage
+          <div className="relative aspect-square overflow-hidden rounded-2xl bg-cream-100 shadow-sm w-full">
+            <Image
               src={mainImage}
               alt={product.name}
-              className="h-full w-full object-cover"
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover"
             />
           </div>
         </div>
@@ -95,7 +98,7 @@ export default async function ProductDetailPage({
             </p>
           )}
 
-          <h1 className="font-display text-3xl md:text-4xl font-medium text-clay-950">
+          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-medium text-clay-950">
             {product.name}
           </h1>
 
@@ -106,7 +109,7 @@ export default async function ProductDetailPage({
             </span>
           </div>
 
-          <p className="mt-4 text-lg font-medium text-terracotta-600">
+          <p className="mt-4 text-base sm:text-lg font-medium text-terracotta-600">
             {product.price || "Contact Us"}
           </p>
 

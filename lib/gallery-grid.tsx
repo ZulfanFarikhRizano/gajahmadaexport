@@ -1,84 +1,238 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import * as React from "react";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import Image from "next/image";
 import { CATEGORIES, type Product } from "@/lib/types";
-import { SafeImage } from "@/components/safe-image";
 
-type Group = "all" | "indoor" | "outdoor" | "other";
+interface GalleryGridProps {
+  products: Product[];
+}
 
-const GROUP_LABELS: Record<Group, string> = {
-  all: "Semua",
-  indoor: "Indoor",
-  outdoor: "Outdoor",
-  other: "Lainnya",
-};
+const ITEMS_PER_PAGE = 12;
 
-export function GalleryGrid({ products }: { products: Product[] }) {
-  const [group, setGroup] = useState<Group>("all");
+export function GalleryGrid({ products }: GalleryGridProps) {
+  const [selectedGroup, setSelectedGroup] = React.useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = React.useState<string>("all");
+  const [currentPage, setCurrentPage] = React.useState<number>(1);
 
-  const filtered = useMemo(() => {
-    if (group === "all") return products;
-    return products.filter((p) => {
-      const cat = CATEGORIES.find((c) => c.slug === p.category);
-      return cat?.group === group;
+  // Reset page saat filter berubah
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedGroup, selectedCategory]);
+
+  const availableCategories = React.useMemo(() => {
+    if (selectedGroup === "all") return CATEGORIES;
+    return CATEGORIES.filter((c) => c.group === selectedGroup);
+  }, [selectedGroup]);
+
+  const filteredProducts = React.useMemo(() => {
+    return products.filter((product) => {
+      const rawCat = (product.category || "").toLowerCase().trim();
+      const selectedSub = selectedCategory.toLowerCase().trim();
+
+      if (selectedCategory !== "all") {
+        const isSubMatch =
+          rawCat === selectedSub ||
+          rawCat.replace(/\s+/g, "-") === selectedSub ||
+          rawCat.replace(/-/g, " ") === selectedSub;
+
+        if (!isSubMatch) return false;
+      }
+
+      if (selectedGroup !== "all") {
+        const matchingCatDef = CATEGORIES.find(
+          (c) =>
+            c.slug.toLowerCase() === rawCat ||
+            c.label.toLowerCase() === rawCat ||
+            c.slug.toLowerCase() === rawCat.replace(/\s+/g, "-")
+        );
+
+        if (matchingCatDef && matchingCatDef.group !== selectedGroup) {
+          return false;
+        }
+      }
+
+      return true;
     });
-  }, [group, products]);
+  }, [products, selectedCategory, selectedGroup]);
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = React.useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredProducts, currentPage]);
 
   return (
-    <>
-      <div className="mx-auto max-w-6xl px-6 mb-8 flex flex-wrap justify-center gap-2">
-        {(["all", "indoor", "outdoor", "other"] as Group[]).map((g) => (
+    <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
+      {/* Group Filter */}
+      <div className="flex flex-wrap justify-center gap-2 mb-4">
+        <button
+          onClick={() => {
+            setSelectedGroup("all");
+            setSelectedCategory("all");
+          }}
+          className={`rounded-full px-4 py-1.5 text-xs sm:text-sm font-medium transition-all ${
+            selectedGroup === "all"
+              ? "bg-clay-950 text-white"
+              : "bg-white text-clay-700 hover:bg-clay-100 border border-clay-200"
+          }`}
+        >
+          All Products
+        </button>
+        <button
+          onClick={() => {
+            setSelectedGroup("indoor");
+            setSelectedCategory("all");
+          }}
+          className={`rounded-full px-4 py-1.5 text-xs sm:text-sm font-medium transition-all ${
+            selectedGroup === "indoor"
+              ? "bg-clay-950 text-white"
+              : "bg-white text-clay-700 hover:bg-clay-100 border border-clay-200"
+          }`}
+        >
+          Indoor Collection
+        </button>
+        <button
+          onClick={() => {
+            setSelectedGroup("outdoor");
+            setSelectedCategory("all");
+          }}
+          className={`rounded-full px-4 py-1.5 text-xs sm:text-sm font-medium transition-all ${
+            selectedGroup === "outdoor"
+              ? "bg-clay-950 text-white"
+              : "bg-white text-clay-700 hover:bg-clay-100 border border-clay-200"
+          }`}
+        >
+          Outdoor Collection
+        </button>
+        <button
+          onClick={() => {
+            setSelectedGroup("other");
+            setSelectedCategory("all");
+          }}
+          className={`rounded-full px-4 py-1.5 text-xs sm:text-sm font-medium transition-all ${
+            selectedGroup === "other"
+              ? "bg-clay-950 text-white"
+              : "bg-white text-clay-700 hover:bg-clay-100 border border-clay-200"
+          }`}
+        >
+          Accessories & Others
+        </button>
+      </div>
+
+      {/* Sub Category Filter */}
+      <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 mb-6">
+        <button
+          onClick={() => setSelectedCategory("all")}
+          className={`rounded-xl px-3 py-1 text-[11px] sm:text-xs font-medium transition-all ${
+            selectedCategory === "all"
+              ? "bg-terracotta-600 text-white"
+              : "bg-clay-100 text-clay-700 hover:bg-clay-200"
+          }`}
+        >
+          Semua Kategori
+        </button>
+        {availableCategories.map((cat) => (
           <button
-            key={g}
-            onClick={() => setGroup(g)}
-            className={`rounded-full px-4 py-2 text-sm font-medium ${
-              group === g
+            key={cat.slug}
+            onClick={() => setSelectedCategory(cat.slug)}
+            className={`rounded-xl px-3 py-1 text-[11px] sm:text-xs font-medium transition-all ${
+              selectedCategory === cat.slug
                 ? "bg-terracotta-600 text-white"
-                : "bg-white text-clay-600 border border-clay-950/10"
+                : "bg-clay-100 text-clay-700 hover:bg-clay-200"
             }`}
           >
-            {GROUP_LABELS[g]}
+            {cat.label}
           </button>
         ))}
       </div>
 
-      {filtered.length === 0 ? (
-        <p className="text-center text-clay-600">Belum ada produk pada kategori ini.</p>
-      ) : (
-        <div className="mx-auto max-w-6xl px-6 grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
-          {filtered.map((product) => {
-            const category = CATEGORIES.find((c) => c.slug === product.category);
-            return (
-              <Link
-                key={product.id}
-                href={`/product/${product.category}/${product.id}`}
-                className="group block"
-              >
-                <div className="relative aspect-square overflow-hidden rounded-2xl bg-cream-100 shadow-sm transition-shadow group-hover:shadow-lg">
-                  <SafeImage
-                    src={product.images[0]}
-                    alt={product.name}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-clay-950/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                  <span className="absolute bottom-3 left-3 flex items-center gap-1 text-xs font-medium text-cream-50 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                    Lihat Detail <ArrowUpRight size={13} />
-                  </span>
-                  {category && (
-                    <span className="absolute top-3 left-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-clay-800 backdrop-blur-sm">
-                      {category.label}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-2.5 text-sm font-medium text-clay-950 line-clamp-1">{product.name}</p>
-                <p className="text-xs text-terracotta-600">{product.price}</p>
-              </Link>
-            );
-          })}
+      <p className="text-xs text-clay-500 mb-6 text-center">
+        Menampilkan {filteredProducts.length} produk
+      </p>
+
+      {/* Product Grid - grid-cols-2 untuk mobile */}
+      {filteredProducts.length === 0 ? (
+        <div className="rounded-2xl bg-white/50 p-12 text-center border border-clay-200">
+          <p className="text-clay-600 font-medium">
+            Belum ada produk untuk kategori ini.
+          </p>
+          <button
+            onClick={() => {
+              setSelectedGroup("all");
+              setSelectedCategory("all");
+            }}
+            className="mt-3 text-xs text-terracotta-600 hover:underline"
+          >
+            Lihat semua produk
+          </button>
         </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+            {paginatedProducts.map((product) => {
+              const imageUrl =
+                Array.isArray(product.images) && product.images.length > 0
+                  ? product.images[0]
+                  : "/placeholder.jpg";
+
+              return (
+                <Link
+                  key={product.id}
+                  href={`/gallery/${product.category}/${product.id}`}
+                  className="group overflow-hidden rounded-2xl bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md border border-clay-950/5 flex flex-col"
+                >
+                  <div className="relative aspect-square w-full overflow-hidden bg-clay-100">
+                    <Image
+                      src={imageUrl}
+                      alt={product.name}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      loading="lazy"
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="p-3 sm:p-4 flex flex-col flex-1 justify-between">
+                    <div>
+                      <h3 className="font-medium text-xs sm:text-sm text-clay-950 line-clamp-2 group-hover:text-terracotta-600 transition-colors leading-snug">
+                        {product.name}
+                      </h3>
+                      <p className="mt-1 text-[11px] sm:text-xs text-clay-500 font-mono">
+                        {product.price || "Contact us"}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Controls Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-10 flex items-center justify-center gap-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className="rounded-lg border border-clay-200 px-3 py-1.5 text-xs font-medium text-clay-700 disabled:opacity-40"
+              >
+                Prev
+              </button>
+              <span className="text-xs text-clay-600">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="rounded-lg border border-clay-200 px-3 py-1.5 text-xs font-medium text-clay-700 disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
       )}
-    </>
+    </div>
   );
 }
