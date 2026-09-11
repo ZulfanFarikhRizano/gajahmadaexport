@@ -8,13 +8,13 @@ export default async function AboutPage() {
   const siteContent = await getSiteContent();
   const rawText = siteContent?.aboutText || "";
 
-  // Parser pintar untuk memisahkan baris teks dari manajemen
+  // Parser memisahkan baris teks dari manajemen
   const lines = rawText
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
 
-  // Menyaring jika ada judul yang terduplikasi di baris paling atas
+  // Filter teks agar judul tidak terduplikasi di dalam kotak putih
   const filteredLines = lines.filter(
     (line) =>
       !line.toLowerCase().startsWith("gajah mada export: weaving heritage") &&
@@ -42,10 +42,10 @@ export default async function AboutPage() {
           
           <div className="space-y-8">
             {filteredLines.map((line, index) => {
-              // Deteksi jika baris adalah Sub-heading (teks pendek tanpa titik di akhir)
+              // Deteksi Sub-heading (teks pendek tanpa titik di akhir)
               const isHeading = line.length < 60 && !line.endsWith(".");
               
-              // Deteksi jika baris adalah Poin List (diawali tanda strip '-' atau '•')
+              // Deteksi Poin List (diawali tanda strip '-' atau '•')
               const isListItem = line.startsWith("-") || line.startsWith("•");
 
               if (isHeading) {
@@ -54,20 +54,19 @@ export default async function AboutPage() {
                     <h2 className="font-serif text-xl font-bold tracking-tight text-clay-950 sm:text-2xl">
                       {line}
                     </h2>
-                    <div className="mt-2 h-0.5 w-12 bg-terracotta-600/80" />
+                    <div className="mt-2 h-0.5 w-12 bg-[#b3593b]" />
                   </div>
                 );
               }
 
               if (isListItem) {
-                // Bersihkan karakter strip/bullet di awal
                 const cleanText = line.replace(/^[-•]\s*/, "");
                 const [title, ...descParts] = cleanText.split(":");
                 const description = descParts.join(":").trim();
 
                 return (
                   <div key={index} className="flex items-start gap-3.5 rounded-2xl border border-clay-100 bg-clay-50/50 p-4 transition-colors hover:border-clay-200">
-                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-terracotta-600" />
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-[#b3593b]" />
                     <div className="text-xs sm:text-sm text-clay-800 leading-relaxed text-justify">
                       {description ? (
                         <>
@@ -82,7 +81,7 @@ export default async function AboutPage() {
                 );
               }
 
-              // Default Paragraph dengan Justify alignment
+              // Paragraf Biasa dengan Justify Alignment
               return (
                 <p 
                   key={index} 
@@ -95,25 +94,49 @@ export default async function AboutPage() {
             })}
           </div>
 
-          {/* Core Values Badge Footer */}
+          {/* Core Values Badges */}
           <div className="mt-12 grid grid-cols-2 gap-4 border-t border-clay-100 pt-8 sm:grid-cols-3">
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-terracotta-50 p-2 text-terracotta-600">
+              <div className="rounded-xl bg-terracotta-50 p-2 text-[#b3593b]">
                 <Globe2 size={18} />
               </div>
               <span className="text-xs font-semibold text-clay-900">Global Shipping</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-terracotta-50 p-2 text-terracotta-600">
+              <div className="rounded-xl bg-terracotta-50 p-2 text-[#b3593b]">
                 <ShieldCheck size={18} />
               </div>
               <span className="text-xs font-semibold text-clay-900">Export Certified</span>
             </div>
             <div className="col-span-2 sm:col-span-1 flex items-center gap-3">
-              <div className="rounded-xl bg-terracotta-50 p-2 text-terracotta-600">
+              <div className="rounded-xl bg-terracotta-50 p-2 text-[#b3593b]">
                 <Sparkles size={18} />
               </div>
               <span className="text-xs font-semibold text-clay-900">Sustainable Rattan</span>
+            </div>
+          </div>
+
+          {/* Call to Action Section (Tombol Sudah Kontras) */}
+          <div className="mt-12 border-t border-clay-100 pt-8 text-center">
+            <h3 className="font-serif text-lg font-bold text-clay-950">
+              Interested in Wholesale Collaboration?
+            </h3>
+            <p className="mt-1 text-xs text-clay-600">
+              Get in touch with our export team to request custom specifications and catalog.
+            </p>
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <a
+                href="/custom-order"
+                className="w-full sm:w-auto inline-flex items-center justify-center rounded-full bg-[#b3593b] px-6 py-3 text-xs sm:text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#96482e]"
+              >
+                Inquire Bespoke Order
+              </a>
+              <a
+                href="/contact"
+                className="w-full sm:w-auto inline-flex items-center justify-center rounded-full border border-clay-300 bg-white px-6 py-3 text-xs sm:text-sm font-semibold text-clay-800 shadow-sm transition-colors hover:bg-clay-50 hover:border-clay-400 hover:text-clay-950"
+              >
+                Contact Export Team
+              </a>
             </div>
           </div>
 
