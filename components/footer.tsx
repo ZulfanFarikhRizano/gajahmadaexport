@@ -4,14 +4,23 @@ import { CATEGORIES } from "@/lib/types";
 
 export function Footer({ siteName, tagline }: { siteName: string; tagline: string }) {
   return (
-    <footer 
-      className="relative w-full text-clay-800 pt-14 pb-28 sm:pb-16 border-t border-clay-200 overflow-hidden bg-white bg-repeat bg-[length:240px_240px]"
-      style={{ backgroundImage: `url('/images/batik-pattern.png')` }}
-    >
+    <footer className="relative w-full bg-white text-clay-800 pt-14 pb-28 sm:pb-16 border-t border-clay-200 overflow-hidden">
+      
+      {/* Pattern Batik: Opacity 0.1 disesuaikan ke footer dengan skala 260px */}
+      <div 
+        aria-hidden="true" 
+        className="pointer-events-none absolute inset-0 opacity-[0.1]" 
+        style={{ 
+          backgroundImage: "url('/images/batik-pattern.png')",
+          backgroundSize: "260px 260px",
+          backgroundRepeat: "repeat"
+        }} 
+      />
+
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-12 items-start">
           
-          {/* Kolom Profil Brand & Kontak Eksportir */}
+          {/* Brand Profile & Contact */}
           <div className="lg:col-span-5 space-y-4">
             <div>
               <p className="font-serif text-2xl font-bold text-clay-950 tracking-tight">{siteName}</p>
@@ -34,16 +43,15 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
               </div>
             </div>
 
-            {/* Badges Sertifikasi & Pembayaran */}
+            {/* Certifications & Payment */}
             <div className="pt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
               
-              {/* Certifications */}
               <div>
                 <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-[#b3593b] block mb-2">
                   Certifications
                 </span>
                 <div className="flex items-center gap-2">
-                  <div className="flex h-9 items-center justify-center rounded-lg bg-white/90 border border-clay-200/80 p-1.5 shadow-sm backdrop-blur-sm">
+                  <div className="flex h-9 items-center justify-center rounded-lg bg-white border border-clay-200/80 p-1.5 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/images/legal-wood.png"
@@ -52,7 +60,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                     />
                   </div>
 
-                  <div className="flex h-9 items-center justify-center rounded-lg bg-white/90 border border-clay-200/80 p-1.5 shadow-sm backdrop-blur-sm">
+                  <div className="flex h-9 items-center justify-center rounded-lg bg-white border border-clay-200/80 p-1.5 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/images/amfori-bsci.png"
@@ -63,13 +71,12 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                 </div>
               </div>
 
-              {/* Payment Methods */}
               <div>
                 <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-[#b3593b] block mb-2">
                   Accepted Payments
                 </span>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <div className="flex h-8 items-center justify-center rounded-md bg-white/90 border border-clay-200/80 px-2 py-1 shadow-sm backdrop-blur-sm">
+                  <div className="flex h-8 items-center justify-center rounded-md bg-white border border-clay-200/80 px-2 py-1 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/images/paypal.png"
@@ -78,7 +85,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                     />
                   </div>
 
-                  <div className="flex h-8 items-center justify-center rounded-md bg-white/90 border border-clay-200/80 px-2 py-1 shadow-sm backdrop-blur-sm">
+                  <div className="flex h-8 items-center justify-center rounded-md bg-white border border-clay-200/80 px-2 py-1 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/images/mastercard.png"
@@ -87,7 +94,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                     />
                   </div>
 
-                  <div className="flex h-8 items-center justify-center rounded-md bg-white/90 border border-clay-200/80 px-2 py-1 shadow-sm backdrop-blur-sm">
+                  <div className="flex h-8 items-center justify-center rounded-md bg-white border border-clay-200/80 px-2 py-1 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/images/ocbc.png"
@@ -101,10 +108,9 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
             </div>
           </div>
 
-          {/* Kolom Navigation Links */}
+          {/* Navigation Links */}
           <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-6 pt-6 lg:pt-0 border-t lg:border-t-0 border-clay-200">
             
-            {/* Catalog Collections */}
             <div>
               <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-[#b3593b] block mb-3">
                 Collections
@@ -120,7 +126,6 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
               </ul>
             </div>
 
-            {/* Quick Links */}
             <div>
               <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-[#b3593b] block mb-3">
                 Company
@@ -133,7 +138,6 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
               </ul>
             </div>
 
-            {/* Export Info */}
             <div className="col-span-2 sm:col-span-1">
               <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-[#b3593b] block mb-3">
                 Export Services
