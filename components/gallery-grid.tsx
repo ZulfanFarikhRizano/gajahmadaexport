@@ -12,7 +12,7 @@ interface GalleryGridProps {
 
 const ITEMS_PER_PAGE = 12;
 
-// --- UTILITIES (Di luar komponen agar memori optimal & bebas re-render) ---
+// --- UTILITIES ---
 const cleanStr = (str?: string) =>
   (str || "")
     .toString()
@@ -68,22 +68,13 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
   const [selectedCategory, setSelectedCategory] = React.useState<string>("all");
   const [currentPage, setCurrentPage] = React.useState<number>(1);
   const [isAnimating, setIsAnimating] = React.useState<boolean>(false);
+  const gridTopRef = React.useRef<HTMLDivElement>(null);
 
   const triggerAnimation = React.useCallback(() => {
     setIsAnimating(true);
     const timer = setTimeout(() => setIsAnimating(false), 120);
     return () => clearTimeout(timer);
   }, []);
-
-  React.useEffect(() => {
-    setCurrentPage(1);
-    triggerAnimation();
-  }, [selectedCategory, triggerAnimation]);
-
-  const handlePageChange = (newPage: number) => {
-    triggerAnimation();
-    setCurrentPage(newPage);
-  };
 
   // Filter & Deduplikasi Produk
   const filteredProducts = React.useMemo(() => {
@@ -106,15 +97,35 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
     const targetSlug = cleanStr(selectedCategory);
 
     return uniqueProducts.filter((product) => {
-      const prodSlug = getProductCategorySlug(product);
+      const prodSlug = cleanStr(getProductCategorySlug(product));
       return (
-        cleanStr(prodSlug) === targetSlug ||
+        prodSlug === targetSlug ||
         cleanStr(product.category) === targetSlug
       );
     });
   }, [products, selectedCategory]);
 
-  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
+
+  // Reset ke halaman 1 saat ganti kategori
+  React.useEffect(() => {
+    setCurrentPage(1);
+    triggerAnimation();
+  }, [selectedCategory, triggerAnimation]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    
+    triggerAnimation();
+    setCurrentPage(newPage);
+
+    // Otomatis Scroll Halus ke Bagian Atas Grid Produk
+    if (gridTopRef.current) {
+      gridTopRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   const paginatedProducts = React.useMemo(() => {
     if (filteredProducts.length === 0) return [];
@@ -123,10 +134,11 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
   }, [filteredProducts, currentPage]);
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+    <div ref={gridTopRef} className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 scroll-mt-24">
       {/* Category Filter Buttons */}
       <div className="flex flex-wrap justify-center gap-2 mb-4">
         <button
+          type="button"
           onClick={() => setSelectedCategory("all")}
           className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 border ${
             selectedCategory === "all"
@@ -139,6 +151,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
         {CATEGORIES.map((cat) => (
           <button
             key={cat.slug}
+            type="button"
             onClick={() => setSelectedCategory(cat.slug)}
             className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 border ${
               selectedCategory === cat.slug
@@ -151,7 +164,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
         ))}
       </div>
 
-      {/* Counter Info Bersih & Terisolasi */}
+      {/* Counter Info */}
       <div className="w-full text-center my-3 py-1">
         <p className="text-xs text-clay-600 font-medium tracking-wide">
           Menampilkan <span className="font-semibold text-clay-900">{filteredProducts.length}</span> produk
@@ -165,6 +178,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
             Belum ada produk untuk kategori ini.
           </p>
           <button
+            type="button"
             onClick={() => setSelectedCategory("all")}
             className="mt-3 text-xs font-semibold text-[#b3593b] hover:underline"
           >
@@ -174,11 +188,11 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
       ) : (
         <div className="relative w-full min-h-[450px]">
           
-          {/* FLOATING BUTTONS (Dibuat Lebih Kecil & Super Transparan) */}
+          {/* FLOATING BUTTONS */}
           <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-20 flex items-center justify-between px-0.5 -mx-2 sm:-mx-4">
-            
             {/* Prev Button */}
             <button
+              type="button"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1 || totalPages <= 1}
               aria-label="Previous Page"
@@ -196,6 +210,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
 
             {/* Next Button */}
             <button
+              type="button"
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages || totalPages <= 1}
               aria-label="Next Page"
@@ -224,7 +239,6 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
               const imageUrl = getSafeImageUrl(product.images);
               const categoryParam = getProductCategorySlug(product);
               const productName = product.name || "Unnamed Product";
-              // Priority preload 4 item teratas agar render gambar instan
               const isPriority = idx < 4;
 
               return (
@@ -265,6 +279,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
           {totalPages > 1 && (
             <div className="mt-8 flex items-center justify-center gap-2 pb-6">
               <button
+                type="button"
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
                 className="rounded-xl border border-clay-300 bg-white px-4 py-2 text-xs font-semibold text-clay-700 shadow-sm hover:bg-clay-50 disabled:opacity-40 transition-colors"
@@ -275,6 +290,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
                 {currentPage} / {totalPages}
               </span>
               <button
+                type="button"
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
                 className="rounded-xl border border-clay-300 bg-white px-4 py-2 text-xs font-semibold text-clay-700 shadow-sm hover:bg-clay-50 disabled:opacity-40 transition-colors"

@@ -50,22 +50,22 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                 <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-[#b3593b] block mb-2">
                   Certifications
                 </span>
-                <div className="flex items-center gap-2">
-                  <div className="flex h-9 items-center justify-center rounded-lg bg-white border border-clay-200/80 p-1.5 shadow-sm">
+                <div className="flex items-center gap-1.5">
+                  <div className="flex h-8 items-center justify-center rounded-md bg-white border border-clay-200/80 px-2.5 py-1 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/images/legal-wood.png"
                       alt="SVLK Indonesian Legal Wood Certification"
-                      className="h-full w-auto object-contain"
+                      className="h-6 w-auto object-contain"
                     />
                   </div>
 
-                  <div className="flex h-9 items-center justify-center rounded-lg bg-white border border-clay-200/80 p-1.5 shadow-sm">
+                  <div className="flex h-8 items-center justify-center rounded-md bg-white border border-clay-200/80 px-2.5 py-1 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/images/amfori-bsci.png"
                       alt="Amfori BSCI Social Compliance Audit"
-                      className="h-full w-auto object-contain rounded"
+                      className="h-5 w-auto object-contain rounded"
                     />
                   </div>
                 </div>
@@ -81,7 +81,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                     <img
                       src="/images/paypal.png"
                       alt="PayPal Verified Merchant"
-                      className="h-full w-auto object-contain"
+                      className="h-5 w-auto object-contain"
                     />
                   </div>
 
@@ -90,7 +90,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                     <img
                       src="/images/mastercard.png"
                       alt="Mastercard Accepted"
-                      className="h-full w-auto object-contain"
+                      className="h-5 w-auto object-contain"
                     />
                   </div>
 
@@ -99,7 +99,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                     <img
                       src="/images/ocbc.png"
                       alt="OCBC Bank Telegraphic Transfer"
-                      className="h-full w-auto object-contain"
+                      className="h-5 w-auto object-contain"
                     />
                   </div>
                 </div>
