@@ -17,7 +17,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
   const [currentPage, setCurrentPage] = React.useState<number>(1);
   const [isAnimating, setIsAnimating] = React.useState<boolean>(false);
 
-  // Helper pembersihan string aman
+  // Helper pembersihan string aman (menghapus spasi & karakter khusus)
   const cleanStr = (str?: string) =>
     (str || "")
       .toString()
@@ -25,26 +25,37 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
       .replace(/[^a-z0-9]/g, "")
       .trim();
 
-  // Determinasi Kategori berdasarkan Prefix Kode / Field Category
+  // Determinasi Kategori berdasarkan Prefix Kode ID / Field Category dari DB
   const getProductCategorySlug = (product: Product): string => {
     if (!product) return "chair-indoor";
 
     const rawCat = cleanStr(product.category);
     const prodId = cleanStr(product.id);
 
+    // 1. Cek Prefix ID produk terlebih dahulu (misal: "li-001" -> "li")
+    if (/^li/i.test(prodId)) return "lounge-indoor";
+    if (/^co/i.test(prodId)) return "outdoor-chair";
+    if (/^ld/i.test(prodId)) return "lounge-daybed";
+    if (/^ch/i.test(prodId)) return "chair-indoor";
+    if (/^bc/i.test(prodId)) return "bistro-chair";
+    if (/^bw/i.test(prodId)) return "basket-ware";
+    if (/^acc/i.test(prodId)) return "accessories";
+    if (/^tbi/i.test(prodId)) return "table-indoor";
+
+    // 2. Jika ID tidak memakai prefix, kreasikan pencocokan dengan daftar CATEGORIES
     const matchedCategory = CATEGORIES.find(
       (c) => cleanStr(c.slug) === rawCat || cleanStr(c.label) === rawCat
     );
     if (matchedCategory) return matchedCategory.slug;
 
-    if (/^li[-_]?/i.test(prodId)) return "lounge-indoor";
-    if (/^co[-_]?/i.test(prodId)) return "outdoor-chair";
-    if (/^ld[-_]?/i.test(prodId)) return "lounge-daybed";
-    if (/^ch[-_]?/i.test(prodId)) return "chair-indoor";
-    if (/^bc[-_]?/i.test(prodId)) return "bistro-chair";
-    if (/^bw[-_]?/i.test(prodId)) return "basket-ware";
-    if (/^acc[-_]?/i.test(prodId)) return "accessories";
-    if (/^tbi[-_]?/i.test(prodId)) return "table-indoor";
+    // 3. Fallback jika string category di DB berbentuk kalimat fleksibel
+    if (rawCat.includes("loungeindoor") || rawCat === "lounge") return "lounge-indoor";
+    if (rawCat.includes("loungedaybed") || rawCat.includes("daybed")) return "lounge-daybed";
+    if (rawCat.includes("outdoor")) return "outdoor-chair";
+    if (rawCat.includes("bistro")) return "bistro-chair";
+    if (rawCat.includes("basket")) return "basket-ware";
+    if (rawCat.includes("accessori") || rawCat.includes("accesori")) return "accessories";
+    if (rawCat.includes("table")) return "table-indoor";
 
     return "chair-indoor";
   };
@@ -73,10 +84,8 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
     products.forEach((item) => {
       if (!item) return;
 
-      // Ambil kode unik produk (misal: "acc-001")
       const codeKey = cleanStr(item.id);
 
-      // Hanya masukkan jika kode valid & belum ada di Map
       if (codeKey && !uniqueMap.has(codeKey)) {
         uniqueMap.set(codeKey, item);
       }
@@ -105,7 +114,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
     return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProducts, currentPage]);
 
-  // Safe Image Helper (mencegah error/blank di mobile)
+  // Safe Image Helper
   const getSafeImageUrl = (images?: string[]): string => {
     if (
       Array.isArray(images) &&
@@ -165,28 +174,46 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
           </button>
         </div>
       ) : (
-        <div className="relative min-h-[400px]">
-          {/* Floating Prev Button */}
-          {totalPages > 1 && currentPage > 1 && (
+        /* PARENT CONTAINER GRID */
+        <div className="relative w-full min-h-[400px]">
+          
+          {/* FLOATING STICKY BUTTONS LAYER */}
+          <div className="pointer-events-none sticky top-1/2 z-20 h-0 -mb-10 flex items-center justify-between px-1 sm:-mx-4 -translate-y-1/2">
+            
+            {/* Prev Button (Glassmorphism + Smooth Fade Out) */}
             <button
               onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1 || totalPages <= 1}
               aria-label="Previous Page"
-              className="absolute -left-2 sm:-left-4 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white text-clay-800 shadow-md border border-clay-200 hover:bg-clay-50 active:scale-95 transition-transform"
+              className={`pointer-events-auto flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full 
+                bg-white/40 backdrop-blur-md border border-white/60 text-clay-900 shadow-lg shadow-black/5
+                hover:bg-white/80 hover:scale-105 active:scale-95 hover:shadow-xl
+                transition-all duration-300 ease-in-out ${
+                  currentPage === 1 || totalPages <= 1
+                    ? "opacity-0 pointer-events-none scale-75 -translate-x-2"
+                    : "opacity-100 scale-100 translate-x-0"
+                }`}
             >
-              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-clay-900" />
             </button>
-          )}
 
-          {/* Floating Next Button */}
-          {totalPages > 1 && currentPage < totalPages && (
+            {/* Next Button (Glassmorphism + Smooth Fade Out) */}
             <button
               onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages || totalPages <= 1}
               aria-label="Next Page"
-              className="absolute -right-2 sm:-right-4 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white text-clay-800 shadow-md border border-clay-200 hover:bg-clay-50 active:scale-95 transition-transform"
+              className={`pointer-events-auto flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full 
+                bg-white/40 backdrop-blur-md border border-white/60 text-clay-900 shadow-lg shadow-black/5
+                hover:bg-white/80 hover:scale-105 active:scale-95 hover:shadow-xl
+                transition-all duration-300 ease-in-out ${
+                  currentPage === totalPages || totalPages <= 1
+                    ? "opacity-0 pointer-events-none scale-75 translate-x-2"
+                    : "opacity-100 scale-100 translate-x-0"
+                }`}
             >
-              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-clay-900" />
             </button>
-          )}
+          </div>
 
           {/* Grid Products */}
           <div
