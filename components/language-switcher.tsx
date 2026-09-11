@@ -25,7 +25,7 @@ export function LanguageSwitcher() {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    // 1. Ambil cookie terjemahan saat ini
+    // 1. Cek cookie terjemahan saat halaman dimuat
     const cookies = document.cookie.split("; ");
     const googtrans = cookies.find((row) => row.startsWith("googtrans="));
     if (googtrans) {
@@ -34,8 +34,8 @@ export function LanguageSwitcher() {
       if (lang) setCurrentLang(lang);
     }
 
-    // 2. Observer untuk langsung menghapus elemen floating Google Translate yang baru di-inject ke DOM
-    const removeGoogleElements = () => {
+    // 2. Observer untuk menyembunyikan elemen UI Google tanpa menghapus DOM-nya
+    const hideGoogleElements = () => {
       const selectors = [
         ".goog-te-banner-frame",
         ".goog-te-gadget-icon",
@@ -46,20 +46,21 @@ export function LanguageSwitcher() {
         "#goog-gt-",
         "iframe[id*=':1.container']",
         "iframe[src*='translate.googleapis.com']",
-        "div[id*='google_translate']",
       ];
 
       selectors.forEach((selector) => {
         document.querySelectorAll(selector).forEach((el) => {
-          if (el.id !== "google_translate_element_hidden") {
-            el.remove();
-          }
+          const htmlEl = el as HTMLElement;
+          htmlEl.style.setProperty("display", "none", "important");
+          htmlEl.style.setProperty("visibility", "hidden", "important");
+          htmlEl.style.setProperty("opacity", "0", "important");
+          htmlEl.style.setProperty("pointer-events", "none", "important");
         });
       });
     };
 
     const observer = new MutationObserver(() => {
-      removeGoogleElements();
+      hideGoogleElements();
     });
 
     observer.observe(document.body, {
@@ -67,7 +68,7 @@ export function LanguageSwitcher() {
       subtree: true,
     });
 
-    // 3. Init Google Translate Widget
+    // 3. Init Script Google Translate
     (window as any).googleTranslateElementInit = () => {
       new (window as any).google.translate.TranslateElement(
         {
@@ -144,13 +145,13 @@ export function LanguageSwitcher() {
 
     setTimeout(() => {
       window.location.reload();
-    }, 100);
+    }, 150);
   };
 
   return (
     <>
       <style jsx global>{`
-        /* Sembunyikan semua elemen visual, tooltip, dan iframe Google Translate */
+        /* Sembunyikan elemen visual Google Translate tanpa merusak fungsinya */
         .goog-te-banner-frame,
         .goog-te-banner,
         .goog-te-gadget-icon,
@@ -161,25 +162,21 @@ export function LanguageSwitcher() {
         #goog-gt-,
         .goog-te-balloon-frame,
         .goog-tooltip,
-        .goog-tooltip:hover,
         iframe[id*=":1.container"],
-        iframe[src*="translate.googleapis.com"],
-        div[class*="goog-te-"] {
+        iframe[src*="translate.googleapis.com"] {
           display: none !important;
           visibility: hidden !important;
           opacity: 0 !important;
           pointer-events: none !important;
-          width: 0 !important;
-          height: 0 !important;
         }
 
-        /* Pastikan body tidak terdorong turun ke bawah */
+        /* Jaga posisi body tetap di atas */
         body {
           top: 0px !important;
           position: static !important;
         }
 
-        /* Hilangkan highlight kuning Google saat diterjemahkan */
+        /* Hilangkan highlight kuning pada teks */
         .goog-text-highlight {
           background-color: transparent !important;
           box-shadow: none !important;
@@ -238,7 +235,7 @@ export function LanguageSwitcher() {
         </>
       )}
 
-      {/* Floating Loading Overlay dengan Logo Gajah Mada (Tampil hanya saat ganti bahasa) */}
+      {/* Floating Loading Screen dengan Logo Gajah Mada */}
       {isLoading && (
         <div className="fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm">
           <div className="relative h-12 w-12 animate-spin">
