@@ -12,70 +12,80 @@ interface GalleryGridProps {
 
 const ITEMS_PER_PAGE = 12;
 
+// --- UTILITIES (Di luar komponen agar memori optimal & bebas re-render) ---
+const cleanStr = (str?: string) =>
+  (str || "")
+    .toString()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "")
+    .trim();
+
+const getProductCategorySlug = (product: Product): string => {
+  if (!product) return "chair-indoor";
+
+  const rawCat = cleanStr(product.category);
+  const prodId = cleanStr(product.id);
+
+  if (/^li/i.test(prodId)) return "lounge-indoor";
+  if (/^co/i.test(prodId)) return "outdoor-chair";
+  if (/^ld/i.test(prodId)) return "lounge-daybed";
+  if (/^ch/i.test(prodId)) return "chair-indoor";
+  if (/^bc/i.test(prodId)) return "bistro-chair";
+  if (/^bw/i.test(prodId)) return "basket-ware";
+  if (/^acc/i.test(prodId)) return "accessories";
+  if (/^tbi/i.test(prodId)) return "table-indoor";
+
+  const matchedCategory = CATEGORIES.find(
+    (c) => cleanStr(c.slug) === rawCat || cleanStr(c.label) === rawCat
+  );
+  if (matchedCategory) return matchedCategory.slug;
+
+  if (rawCat.includes("loungeindoor") || rawCat === "lounge") return "lounge-indoor";
+  if (rawCat.includes("loungedaybed") || rawCat.includes("daybed")) return "lounge-daybed";
+  if (rawCat.includes("outdoor")) return "outdoor-chair";
+  if (rawCat.includes("bistro")) return "bistro-chair";
+  if (rawCat.includes("basket")) return "basket-ware";
+  if (rawCat.includes("accessori") || rawCat.includes("accesori")) return "accessories";
+  if (rawCat.includes("table")) return "table-indoor";
+
+  return "chair-indoor";
+};
+
+const getSafeImageUrl = (images?: string[]): string => {
+  if (
+    Array.isArray(images) &&
+    images.length > 0 &&
+    typeof images[0] === "string" &&
+    images[0].trim() !== ""
+  ) {
+    return images[0];
+  }
+  return "/placeholder.jpg";
+};
+
+// --- MAIN COMPONENT ---
 export function GalleryGrid({ products = [] }: GalleryGridProps) {
   const [selectedCategory, setSelectedCategory] = React.useState<string>("all");
   const [currentPage, setCurrentPage] = React.useState<number>(1);
   const [isAnimating, setIsAnimating] = React.useState<boolean>(false);
 
-  // Helper pembersihan string aman (menghapus spasi & karakter khusus)
-  const cleanStr = (str?: string) =>
-    (str || "")
-      .toString()
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "")
-      .trim();
-
-  // Determinasi Kategori berdasarkan Prefix Kode ID / Field Category dari DB
-  const getProductCategorySlug = (product: Product): string => {
-    if (!product) return "chair-indoor";
-
-    const rawCat = cleanStr(product.category);
-    const prodId = cleanStr(product.id);
-
-    // 1. Cek Prefix ID produk terlebih dahulu (misal: "li-001" -> "li")
-    if (/^li/i.test(prodId)) return "lounge-indoor";
-    if (/^co/i.test(prodId)) return "outdoor-chair";
-    if (/^ld/i.test(prodId)) return "lounge-daybed";
-    if (/^ch/i.test(prodId)) return "chair-indoor";
-    if (/^bc/i.test(prodId)) return "bistro-chair";
-    if (/^bw/i.test(prodId)) return "basket-ware";
-    if (/^acc/i.test(prodId)) return "accessories";
-    if (/^tbi/i.test(prodId)) return "table-indoor";
-
-    // 2. Jika ID tidak memakai prefix, kreasikan pencocokan dengan daftar CATEGORIES
-    const matchedCategory = CATEGORIES.find(
-      (c) => cleanStr(c.slug) === rawCat || cleanStr(c.label) === rawCat
-    );
-    if (matchedCategory) return matchedCategory.slug;
-
-    // 3. Fallback jika string category di DB berbentuk kalimat fleksibel
-    if (rawCat.includes("loungeindoor") || rawCat === "lounge") return "lounge-indoor";
-    if (rawCat.includes("loungedaybed") || rawCat.includes("daybed")) return "lounge-daybed";
-    if (rawCat.includes("outdoor")) return "outdoor-chair";
-    if (rawCat.includes("bistro")) return "bistro-chair";
-    if (rawCat.includes("basket")) return "basket-ware";
-    if (rawCat.includes("accessori") || rawCat.includes("accesori")) return "accessories";
-    if (rawCat.includes("table")) return "table-indoor";
-
-    return "chair-indoor";
-  };
-
-  const triggerAnimation = () => {
+  const triggerAnimation = React.useCallback(() => {
     setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 200);
-  };
+    const timer = setTimeout(() => setIsAnimating(false), 120);
+    return () => clearTimeout(timer);
+  }, []);
 
   React.useEffect(() => {
     setCurrentPage(1);
     triggerAnimation();
-  }, [selectedCategory]);
+  }, [selectedCategory, triggerAnimation]);
 
   const handlePageChange = (newPage: number) => {
     triggerAnimation();
     setCurrentPage(newPage);
   };
 
-  // Filtering & Deduplikasi berdasarkan Kode Unik (product.id)
+  // Filter & Deduplikasi Produk
   const filteredProducts = React.useMemo(() => {
     if (!Array.isArray(products)) return [];
 
@@ -83,9 +93,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
 
     products.forEach((item) => {
       if (!item) return;
-
       const codeKey = cleanStr(item.id);
-
       if (codeKey && !uniqueMap.has(codeKey)) {
         uniqueMap.set(codeKey, item);
       }
@@ -114,23 +122,10 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
     return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProducts, currentPage]);
 
-  // Safe Image Helper
-  const getSafeImageUrl = (images?: string[]): string => {
-    if (
-      Array.isArray(images) &&
-      images.length > 0 &&
-      typeof images[0] === "string" &&
-      images[0].trim() !== ""
-    ) {
-      return images[0];
-    }
-    return "/placeholder.jpg";
-  };
-
   return (
     <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
       {/* Category Filter Buttons */}
-      <div className="flex flex-wrap justify-center gap-2 mb-6">
+      <div className="flex flex-wrap justify-center gap-2 mb-4">
         <button
           onClick={() => setSelectedCategory("all")}
           className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 border ${
@@ -156,13 +151,16 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
         ))}
       </div>
 
-      <p className="text-xs text-clay-500 mb-6 text-center font-medium">
-        Menampilkan {filteredProducts.length} produk
-      </p>
+      {/* Counter Info Bersih & Terisolasi */}
+      <div className="w-full text-center my-3 py-1">
+        <p className="text-xs text-clay-600 font-medium tracking-wide">
+          Menampilkan <span className="font-semibold text-clay-900">{filteredProducts.length}</span> produk
+        </p>
+      </div>
 
-      {/* Grid Container */}
+      {/* Grid Content Area */}
       {filteredProducts.length === 0 ? (
-        <div className="rounded-2xl bg-white p-12 text-center border border-clay-200 shadow-sm">
+        <div className="rounded-2xl bg-white p-12 text-center border border-clay-200 shadow-sm my-6">
           <p className="text-clay-600 font-medium">
             Belum ada produk untuk kategori ini.
           </p>
@@ -174,53 +172,50 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
           </button>
         </div>
       ) : (
-        /* PARENT CONTAINER GRID */
-        <div className="relative w-full min-h-[400px]">
+        <div className="relative w-full min-h-[450px]">
           
-          {/* FLOATING STICKY BUTTONS LAYER */}
-          <div className="pointer-events-none sticky top-1/2 z-20 h-0 -mb-10 flex items-center justify-between px-1 sm:-mx-4 -translate-y-1/2">
+          {/* FLOATING BUTTONS (Dibuat Lebih Kecil & Super Transparan) */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-20 flex items-center justify-between px-0.5 -mx-2 sm:-mx-4">
             
-            {/* Prev Button (Glassmorphism + Smooth Fade Out) */}
+            {/* Prev Button */}
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1 || totalPages <= 1}
               aria-label="Previous Page"
-              className={`pointer-events-auto flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full 
-                bg-white/40 backdrop-blur-md border border-white/60 text-clay-900 shadow-lg shadow-black/5
-                hover:bg-white/80 hover:scale-105 active:scale-95 hover:shadow-xl
-                transition-all duration-300 ease-in-out ${
+              className={`pointer-events-auto flex items-center justify-center 
+                w-8 h-8 sm:w-11 sm:h-11 rounded-full 
+                bg-white/30 sm:bg-white/80 backdrop-blur-sm border border-white/40 sm:border-clay-200 
+                text-clay-900 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all duration-150 ${
                   currentPage === 1 || totalPages <= 1
-                    ? "opacity-0 pointer-events-none scale-75 -translate-x-2"
-                    : "opacity-100 scale-100 translate-x-0"
+                    ? "opacity-0 pointer-events-none scale-75"
+                    : "opacity-100 scale-100"
                 }`}
             >
-              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-clay-900" />
+              <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 text-clay-900" />
             </button>
 
-            {/* Next Button (Glassmorphism + Smooth Fade Out) */}
+            {/* Next Button */}
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages || totalPages <= 1}
               aria-label="Next Page"
-              className={`pointer-events-auto flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full 
-                bg-white/40 backdrop-blur-md border border-white/60 text-clay-900 shadow-lg shadow-black/5
-                hover:bg-white/80 hover:scale-105 active:scale-95 hover:shadow-xl
-                transition-all duration-300 ease-in-out ${
+              className={`pointer-events-auto flex items-center justify-center 
+                w-8 h-8 sm:w-11 sm:h-11 rounded-full 
+                bg-white/30 sm:bg-white/80 backdrop-blur-sm border border-white/40 sm:border-clay-200 
+                text-clay-900 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all duration-150 ${
                   currentPage === totalPages || totalPages <= 1
-                    ? "opacity-0 pointer-events-none scale-75 translate-x-2"
-                    : "opacity-100 scale-100 translate-x-0"
+                    ? "opacity-0 pointer-events-none scale-75"
+                    : "opacity-100 scale-100"
                 }`}
             >
-              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-clay-900" />
+              <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 text-clay-900" />
             </button>
           </div>
 
-          {/* Grid Products */}
+          {/* Product Cards Grid */}
           <div
-            className={`grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 w-full transition-all duration-200 ease-out ${
-              isAnimating
-                ? "opacity-40 translate-y-1 scale-[0.99]"
-                : "opacity-100 translate-y-0 scale-100"
+            className={`grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 w-full transition-opacity duration-150 ease-out ${
+              isAnimating ? "opacity-40" : "opacity-100"
             }`}
           >
             {paginatedProducts.map((product, idx) => {
@@ -229,6 +224,8 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
               const imageUrl = getSafeImageUrl(product.images);
               const categoryParam = getProductCategorySlug(product);
               const productName = product.name || "Unnamed Product";
+              // Priority preload 4 item teratas agar render gambar instan
+              const isPriority = idx < 4;
 
               return (
                 <Link
@@ -243,9 +240,9 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
                       src={imageUrl}
                       alt={productName}
                       fill
+                      priority={isPriority}
+                      loading={isPriority ? "eager" : "lazy"}
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      loading="lazy"
-                      unoptimized={imageUrl.startsWith("http")}
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
@@ -266,21 +263,21 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
 
           {/* Bottom Pagination */}
           {totalPages > 1 && (
-            <div className="mt-8 flex items-center justify-center gap-2">
+            <div className="mt-8 flex items-center justify-center gap-2 pb-6">
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="rounded-lg border border-clay-300 bg-white px-3 py-1.5 text-xs font-semibold text-clay-700 shadow-sm disabled:opacity-40"
+                className="rounded-xl border border-clay-300 bg-white px-4 py-2 text-xs font-semibold text-clay-700 shadow-sm hover:bg-clay-50 disabled:opacity-40 transition-colors"
               >
                 Prev
               </button>
-              <span className="text-xs font-mono font-medium text-clay-600 px-2">
+              <span className="text-xs font-mono font-medium text-clay-600 px-3">
                 {currentPage} / {totalPages}
               </span>
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="rounded-lg border border-clay-300 bg-white px-3 py-1.5 text-xs font-semibold text-clay-700 shadow-sm disabled:opacity-40"
+                className="rounded-xl border border-clay-300 bg-white px-4 py-2 text-xs font-semibold text-clay-700 shadow-sm hover:bg-clay-50 disabled:opacity-40 transition-colors"
               >
                 Next
               </button>
