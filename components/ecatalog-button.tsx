@@ -1,18 +1,26 @@
 "use client";
 
 import { Eye } from "lucide-react";
+import React from "react";
 
-export function ECatalogButton({ href }: { href?: string }) {
+interface ECatalogButtonProps {
+  href?: string;
+}
+
+export function ECatalogButton({ href = "/catalog.pdf" }: ECatalogButtonProps) {
   const state1 = "Lihat E-Catalog";
   const state2 = "Buka PDF";
-  const isAvailable = Boolean(href && href !== "#");
+  
+  // Validasi jika href ada, tidak kosong, dan bukan '#'
+  const isAvailable = Boolean(href && href.trim() !== "" && href !== "#");
 
   return (
     <a
       href={isAvailable ? href : undefined}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`ecat-button ${!isAvailable ? "pointer-events-none opacity-50" : ""}`}
+      target={isAvailable ? "_blank" : undefined}
+      rel={isAvailable ? "noopener noreferrer" : undefined}
+      aria-disabled={!isAvailable}
+      className={`ecat-button ${!isAvailable ? "pointer-events-none opacity-50 cursor-not-allowed" : ""}`}
       onClick={(e) => {
         if (!isAvailable) e.preventDefault();
       }}
@@ -29,12 +37,16 @@ export function ECatalogButton({ href }: { href?: string }) {
         <span className="ecat-label-stack">
           <span className="ecat-char state-1">
             {state1.split("").map((c, i) => (
-              <span key={i} style={{ ["--i" as string]: i + 1 }}>{c === " " ? "\u00A0" : c}</span>
+              <span key={`state1-${i}`} style={{ "--i": i + 1 } as React.CSSProperties}>
+                {c === " " ? "\u00A0" : c}
+              </span>
             ))}
           </span>
           <span className="ecat-char state-2">
             {state2.split("").map((c, i) => (
-              <span key={i} style={{ ["--i" as string]: i + 1 }}>{c === " " ? "\u00A0" : c}</span>
+              <span key={`state2-${i}`} style={{ "--i": i + 1 } as React.CSSProperties}>
+                {c === " " ? "\u00A0" : c}
+              </span>
             ))}
           </span>
         </span>
