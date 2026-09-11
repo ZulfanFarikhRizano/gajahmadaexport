@@ -3,18 +3,20 @@ import { unstable_noStore as noStore } from "next/cache";
 import { supabaseAdmin } from "./supabase/admin";
 import type { Product, SiteContent } from "./types";
 
-// Gunakan 'as any' khusus di instance client internal agar TypeScript tidak memaksa inferensi 'never'
 const db = () => supabaseAdmin() as any;
 
-// Helper untuk Mapping snake_case Supabase ke camelCase TypeScript
+// Helper untuk Mapping & Pembersihan Kode Unik (ID)
 function mapProduct(data: any): Product {
+  // Membersihkan kode unik dari whitespace agar konsisten
+  const cleanId = (data.id || "").toString().trim().toLowerCase();
+
   return {
-    id: data.id,
+    id: cleanId,
     name: data.name,
     category: data.category,
     description: data.description,
     price: data.price,
-    images: data.images || [],
+    images: Array.isArray(data.images) ? data.images : [],
     createdAt: data.created_at,
   };
 }
@@ -24,6 +26,7 @@ export async function getProducts(): Promise<Product[]> {
   const { data, error } = await db()
     .from("products")
     .select("*")
+    .range(0, 9999) // Mencegah pembatasan default 100 row Supabase
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
@@ -36,6 +39,7 @@ export async function getProductsByCategory(category: string): Promise<Product[]
     .from("products")
     .select("*")
     .eq("category", category)
+    .range(0, 9999)
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
@@ -44,10 +48,12 @@ export async function getProductsByCategory(category: string): Promise<Product[]
 
 export async function getProductById(id: string): Promise<Product | null> {
   noStore();
+  const cleanId = (id || "").toString().trim().toLowerCase();
+
   const { data, error } = await db()
     .from("products")
     .select("*")
-    .eq("id", id)
+    .eq("id", cleanId)
     .maybeSingle();
 
   if (error) throw new Error(error.message);
@@ -80,10 +86,12 @@ export async function updateProduct(
   id: string,
   patch: Partial<Omit<Product, "id" | "createdAt">>
 ): Promise<Product | null> {
+  const cleanId = (id || "").toString().trim().toLowerCase();
+
   const { data, error } = await db()
     .from("products")
     .update(patch)
-    .eq("id", id)
+    .eq("id", cleanId)
     .select()
     .maybeSingle();
 
@@ -92,10 +100,12 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {
+  const cleanId = (id || "").toString().trim().toLowerCase();
+
   const { error, count } = await db()
     .from("products")
     .delete({ count: "exact" })
-    .eq("id", id);
+    .eq("id", cleanId);
 
   if (error) throw new Error(error.message);
   return (count ?? 0) > 0;
