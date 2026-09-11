@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Globe, Check, ChevronDown } from "lucide-react";
+import Image from "next/image";
+import { Check, ChevronDown } from "lucide-react";
 
 const LANGUAGES = [
-  { code: "en", label: "English" },
   { code: "id", label: "Bahasa Indonesia" },
+  { code: "en", label: "English" },
   { code: "zh-CN", label: "中文 (Chinese)" },
   { code: "ja", label: "日本語 (Japanese)" },
   { code: "ko", label: "한국어 (Korean)" },
@@ -17,13 +18,13 @@ const LANGUAGES = [
 ];
 
 export function LanguageSwitcher() {
-  const [currentLang, setCurrentLang] = useState("en");
+  const [currentLang, setCurrentLang] = useState("id");
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    // 1. Baca cookie terjemahan saat ini
     const cookies = document.cookie.split("; ");
     const googtrans = cookies.find((row) => row.startsWith("googtrans="));
     if (googtrans) {
@@ -32,13 +33,12 @@ export function LanguageSwitcher() {
       if (lang) setCurrentLang(lang);
     }
 
-    // 2. Inisialisasi Google Translate dengan Source Language: English ('en')
     (window as any).googleTranslateElementInit = () => {
       new (window as any).google.translate.TranslateElement(
-        { 
-          pageLanguage: "en", 
-          includedLanguages: "en,id,zh-CN,ja,ko,ar,nl,de,fr,es",
-          autoDisplay: false 
+        {
+          pageLanguage: "id",
+          includedLanguages: "id,en,zh-CN,ja,ko,ar,nl,de,fr,es",
+          autoDisplay: false,
         },
         "google_translate_element_hidden"
       );
@@ -64,52 +64,75 @@ export function LanguageSwitcher() {
     setIsOpen(!isOpen);
   };
 
+  const clearGoogleTranslateCookies = () => {
+    const domain = window.location.hostname;
+    const hostParts = domain.split(".");
+    
+    const domainsToClear = [
+      "",
+      domain,
+      `.${domain}`,
+      hostParts.length > 2 ? `.${hostParts.slice(-2).join(".")}` : "",
+    ];
+
+    const pathsToClear = ["/", "/id", "/en"];
+
+    domainsToClear.forEach((d) => {
+      pathsToClear.forEach((p) => {
+        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${p}; ${d ? `domain=${d};` : ""}`;
+        document.cookie = `googtrans=; path=${p}; ${d ? `domain=${d};` : ""} max-age=0;`;
+      });
+    });
+  };
+
   const changeLanguage = (langCode: string) => {
     if (langCode === currentLang) {
       setIsOpen(false);
       return;
     }
 
-    const domain = window.location.hostname;
+    setIsLoading(true);
 
-    // Hapus cookie googtrans lama
-    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.${domain}; path=/;`;
-    document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=${domain}; path=/;`;
+    clearGoogleTranslateCookies();
 
-    // Set cookie terjemahan baru dari 'en' ke target language
-    if (langCode !== "en") {
-      document.cookie = `googtrans=/en/${langCode}; path=/;`;
-      document.cookie = `googtrans=/en/${langCode}; domain=.${domain}; path=/;`;
+    if (langCode !== "id") {
+      const domain = window.location.hostname;
+      const cookieValue = `/id/${langCode}`;
+
+      document.cookie = `googtrans=${cookieValue}; path=/;`;
+      document.cookie = `googtrans=${cookieValue}; path=/; domain=.${domain};`;
     }
 
     setCurrentLang(langCode);
     setIsOpen(false);
-    window.location.reload();
+
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   return (
     <>
-      {/* CSS Override untuk Menyembunyikan Toolbar & Widget Google Translate */}
       <style jsx global>{`
-        /* Sembunyikan top banner Google Translate */
-        .goog-te-banner-frame.skiptranslate,
         .goog-te-banner-frame,
-        iframe.goog-te-banner-frame {
+        .goog-te-banner,
+        .goog-te-gadget-icon,
+        .goog-te-gadget-simple,
+        .goog-te-menu-value,
+        .goog-te-spinner-pos,
+        #goog-gt-tt,
+        .goog-te-balloon-frame,
+        iframe[id*=":1.container"],
+        iframe[src*="translate.googleapis.com"] {
           display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
         }
 
-        /* Pastikan posisi body tidak terdorong turun ke bawah */
         body {
           top: 0px !important;
           position: static !important;
-        }
-
-        /* Sembunyikan tooltip hover & highlight pada teks */
-        .goog-te-balloon-frame,
-        #goog-gt-tt,
-        .goog-te-balloon-frame * {
-          display: none !important;
         }
 
         .goog-text-highlight {
@@ -117,7 +140,6 @@ export function LanguageSwitcher() {
           box-shadow: none !important;
         }
 
-        /* Sembunyikan kontainer asli google translate */
         #google_translate_element_hidden {
           display: none !important;
         }
@@ -129,18 +151,34 @@ export function LanguageSwitcher() {
       <button
         ref={buttonRef}
         type="button"
+        disabled={isLoading}
         onClick={handleToggle}
-        className="flex items-center gap-2 rounded-full border border-clay-950/20 bg-white/90 px-4 py-2 text-xs font-medium text-clay-900 shadow-sm transition-all duration-200 hover:border-terracotta-600 hover:bg-white active:scale-95"
+        className="flex items-center gap-2 rounded-full border border-clay-950/20 bg-white/90 px-3.5 py-1.5 text-xs font-medium text-clay-900 shadow-sm transition-all duration-200 hover:border-terracotta-600 hover:bg-white active:scale-95 disabled:opacity-80"
       >
-        <Globe size={15} className="text-clay-700 shrink-0" />
-        <span>{LANGUAGES.find((l) => l.code === currentLang)?.label || "Language"}</span>
+        {/* Path Logo Disesuaikan ke /images/logo.png */}
+        <div className={`relative h-5 w-5 shrink-0 transition-transform ${isLoading ? "animate-spin" : ""}`}>
+          <Image
+            src="/images/logo.png"
+            alt="Gajah Mada Logo"
+            width={20}
+            height={20}
+            className="h-full w-full object-contain"
+          />
+        </div>
+
+        <span>
+          {isLoading
+            ? "Translating..."
+            : LANGUAGES.find((l) => l.code === currentLang)?.label || "Language"}
+        </span>
+
         <ChevronDown
           size={14}
           className={`text-clay-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
 
-      {/* Popover Card Berposisi Fixed (Aman dari Overflow Parent) */}
+      {/* Popover Menu Dropdown */}
       {isOpen && (
         <>
           <div className="fixed inset-0 z-[99998]" onClick={() => setIsOpen(false)} />
