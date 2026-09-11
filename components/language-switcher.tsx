@@ -25,6 +25,7 @@ export function LanguageSwitcher() {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    // 1. Ambil cookie terjemahan saat ini
     const cookies = document.cookie.split("; ");
     const googtrans = cookies.find((row) => row.startsWith("googtrans="));
     if (googtrans) {
@@ -33,6 +34,40 @@ export function LanguageSwitcher() {
       if (lang) setCurrentLang(lang);
     }
 
+    // 2. Observer untuk langsung menghapus elemen floating Google Translate yang baru di-inject ke DOM
+    const removeGoogleElements = () => {
+      const selectors = [
+        ".goog-te-banner-frame",
+        ".goog-te-gadget-icon",
+        ".goog-te-gadget-simple",
+        ".goog-te-spinner-pos",
+        ".goog-te-balloon-frame",
+        "#goog-gt-tt",
+        "#goog-gt-",
+        "iframe[id*=':1.container']",
+        "iframe[src*='translate.googleapis.com']",
+        "div[id*='google_translate']",
+      ];
+
+      selectors.forEach((selector) => {
+        document.querySelectorAll(selector).forEach((el) => {
+          if (el.id !== "google_translate_element_hidden") {
+            el.remove();
+          }
+        });
+      });
+    };
+
+    const observer = new MutationObserver(() => {
+      removeGoogleElements();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    // 3. Init Google Translate Widget
     (window as any).googleTranslateElementInit = () => {
       new (window as any).google.translate.TranslateElement(
         {
@@ -51,6 +86,8 @@ export function LanguageSwitcher() {
       script.async = true;
       document.body.appendChild(script);
     }
+
+    return () => observer.disconnect();
   }, []);
 
   const handleToggle = () => {
@@ -67,7 +104,7 @@ export function LanguageSwitcher() {
   const clearGoogleTranslateCookies = () => {
     const domain = window.location.hostname;
     const hostParts = domain.split(".");
-    
+
     const domainsToClear = [
       "",
       domain,
@@ -113,6 +150,7 @@ export function LanguageSwitcher() {
   return (
     <>
       <style jsx global>{`
+        /* Sembunyikan semua elemen visual, tooltip, dan iframe Google Translate */
         .goog-te-banner-frame,
         .goog-te-banner,
         .goog-te-gadget-icon,
@@ -120,20 +158,28 @@ export function LanguageSwitcher() {
         .goog-te-menu-value,
         .goog-te-spinner-pos,
         #goog-gt-tt,
+        #goog-gt-,
         .goog-te-balloon-frame,
+        .goog-tooltip,
+        .goog-tooltip:hover,
         iframe[id*=":1.container"],
-        iframe[src*="translate.googleapis.com"] {
+        iframe[src*="translate.googleapis.com"],
+        div[class*="goog-te-"] {
           display: none !important;
           visibility: hidden !important;
           opacity: 0 !important;
           pointer-events: none !important;
+          width: 0 !important;
+          height: 0 !important;
         }
 
+        /* Pastikan body tidak terdorong turun ke bawah */
         body {
           top: 0px !important;
           position: static !important;
         }
 
+        /* Hilangkan highlight kuning Google saat diterjemahkan */
         .goog-text-highlight {
           background-color: transparent !important;
           box-shadow: none !important;
@@ -146,7 +192,7 @@ export function LanguageSwitcher() {
 
       <div id="google_translate_element_hidden" className="hidden" />
 
-      {/* Button Trigger (Kembali pakai Icon Globe) */}
+      {/* Button Trigger Header */}
       <button
         ref={buttonRef}
         type="button"
@@ -192,7 +238,7 @@ export function LanguageSwitcher() {
         </>
       )}
 
-      {/* Floating Loading Screen khusus Logo Gajah Mada (Hanya muncul saat isLoading === true) */}
+      {/* Floating Loading Overlay dengan Logo Gajah Mada (Tampil hanya saat ganti bahasa) */}
       {isLoading && (
         <div className="fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm">
           <div className="relative h-12 w-12 animate-spin">
