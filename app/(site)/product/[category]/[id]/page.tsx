@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -17,9 +18,9 @@ function getValidImageUrl(img: any): string {
   if (!img || typeof img !== "string" || img.trim() === "") {
     return PLACEHOLDER_IMAGE;
   }
-  
+
   let formattedImg = img.trim();
-  
+
   if (!formattedImg.endsWith(".webp")) {
     formattedImg = formattedImg.replace(/\.[^/.]+$/, "") + ".webp";
   }
@@ -27,16 +28,82 @@ function getValidImageUrl(img: any): string {
   if (formattedImg.startsWith("http://") || formattedImg.startsWith("https://")) {
     return formattedImg;
   }
-  
+
   const cleanFileName = formattedImg.startsWith("/") ? formattedImg.slice(1) : formattedImg;
   return `${SUPABASE_STORAGE_URL}/${cleanFileName}`;
 }
 
-export default async function ProductDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+// Transformasi URL Supabase khusus Open Graph (agar preview WhatsApp muncul & ringan)
+function getOptimizedOgImageUrl(imgUrl: string): string {
+  if (!imgUrl || imgUrl === PLACEHOLDER_IMAGE) return PLACEHOLDER_IMAGE;
+
+  if (imgUrl.includes("/storage/v1/object/public/")) {
+    const transformedUrl = imgUrl.replace(
+      "/storage/v1/object/public/",
+      "/storage/v1/render/image/public/"
+    );
+    return `${transformedUrl}?width=600&quality=60`;
+  }
+
+  return imgUrl;
+}
+
+// Type Props disesuaikan dengan folder [category]/[id]
+type Props = {
+  params: { category: string; id: string };
+};
+
+// Dynamic Open Graph Metadata
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const product = await getProductById(params.id);
+
+  if (!product) {
+    return {
+      title: "Product Not Found",
+    };
+  }
+
+  const rawMainImage =
+    product.images && product.images.length > 0
+      ? product.images[0]
+      : PLACEHOLDER_IMAGE;
+
+  const fullImageUrl = getValidImageUrl(rawMainImage);
+  const ogImageUrl = getOptimizedOgImageUrl(fullImageUrl);
+
+  const title = `${product.name} | Gajah Mada Export`;
+  const description = `Inquiry for ${product.name}. Price: ${
+    product.price || "Contact Us"
+  }. Sustainable Rattan & Wood Supplier.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://gajahmadaexport.com/product/${params.category}/${params.id}`,
+      siteName: "Gajah Mada Export",
+      images: [
+        {
+          url: ogImageUrl,
+          width: 600,
+          height: 600,
+          alt: product.name,
+        },
+      ],
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImageUrl],
+    },
+  };
+}
+
+export default async function ProductDetailPage({ params }: Props) {
   const [product, siteContent] = await Promise.all([
     getProductById(params.id),
     getSiteContent(),
@@ -64,7 +131,7 @@ export default async function ProductDetailPage({
         className="inline-flex items-center gap-1.5 text-sm text-clay-600 hover:text-terracotta-600 mb-6 sm:mb-8 transition-colors"
       >
         <ArrowLeft size={16} />
-        Kembali ke Gallery
+        Back to Gallery
       </Link>
 
       <div className="grid gap-8 md:grid-cols-2">
@@ -100,7 +167,7 @@ export default async function ProductDetailPage({
           </div>
 
           <p className="mt-4 text-base sm:text-lg font-medium text-terracotta-600">
-            {product.price || "Contact Us"}
+            {product.price || "Contact us"}
           </p>
 
           <p className="mt-6 leading-relaxed text-clay-800 whitespace-pre-line text-sm md:text-base">
