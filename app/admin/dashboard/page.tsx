@@ -9,12 +9,6 @@ import { CATEGORIES, type Product, type SiteContent } from "@/lib/types";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 import { createClient } from "@supabase/supabase-js";
 
-// Inisialisasi client Supabase
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 type Tab = "content" | "products";
 
 const emptyDraft = {
@@ -78,6 +72,14 @@ export default function AdminDashboardPage() {
 
   React.useEffect(() => {
     loadAll();
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    // Aman dari error prerender Vercel
+    if (!supabaseUrl || !supabaseAnonKey) return;
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     // Setup Realtime Subscription
     const channel = supabase
