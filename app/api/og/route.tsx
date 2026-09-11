@@ -6,22 +6,21 @@ export const runtime = "edge";
 const SUPABASE_STORAGE_URL =
   "https://vofsmretmpxinnkfiqsk.supabase.co/storage/v1/object/public/uploads";
 
-// Gambar fallback super ringan jika gambar Supabase bermasalah
-const FALLBACK_IMAGE = "https://gajahmadaexport.com/images/legal-wood.png";
+// Fallback gambar statis publik
+const DEFAULT_OG_IMAGE = "https://gajahmadaexport.com/images/og-image.png";
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const imgParam = searchParams.get("img") || "";
 
-    let imageUrl = FALLBACK_IMAGE;
+    let imageUrl = DEFAULT_OG_IMAGE;
 
     if (imgParam && imgParam.trim() !== "") {
       let clean = imgParam.trim();
       if (clean.startsWith("http://") || clean.startsWith("https://")) {
         imageUrl = clean;
       } else {
-        // Otomatis pastikan ekstensi .webp jika disimpan di Supabase
         if (!clean.endsWith(".webp")) {
           clean = clean.replace(/\.[^/.]+$/, "") + ".webp";
         }
@@ -64,7 +63,6 @@ export async function GET(req: NextRequest) {
       }
     );
   } catch (err) {
-    // Jika crash total, return response PNG kosong/status ok agar tidak bikin UI WhatsApp rusak
-    return new Response("Error loading preview", { status: 200 });
+    return new Response("OK", { status: 200 });
   }
 }
