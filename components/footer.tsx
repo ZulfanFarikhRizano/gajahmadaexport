@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Mail, MapPin, Globe } from "lucide-react";
+import { Mail, MapPin, Globe, Instagram } from "lucide-react";
 import { CATEGORIES } from "@/lib/types";
 
 export function Footer({ siteName, tagline }: { siteName: string; tagline: string }) {
@@ -43,8 +43,8 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
               </div>
             </div>
 
-            {/* Certifications & Payment */}
-            <div className="pt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Certifications, Payment & Social Media */}
+            <div className="pt-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
               
               <div>
                 <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-[#b3593b] block mb-2">
@@ -102,6 +102,25 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                       className="h-5 w-auto object-contain"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Section Social Media */}
+              <div>
+                <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-[#b3593b] block mb-2">
+                  Follow Us
+                </span>
+                <div className="flex items-center gap-2">
+                  <a
+                    href="https://www.instagram.com/gajahmadaexport?stkn=MTFsZzR3dGdiNjJ3"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram Gajah Mada Export"
+                    className="inline-flex h-8 items-center gap-2 rounded-md bg-white border border-clay-200/80 px-2.5 py-1 text-xs font-medium text-clay-800 hover:text-[#b3593b] hover:border-[#b3593b] shadow-sm transition-colors"
+                  >
+                    <Instagram size={16} className="text-[#E4405F]" />
+                    <span>Instagram</span>
+                  </a>
                 </div>
               </div>
 

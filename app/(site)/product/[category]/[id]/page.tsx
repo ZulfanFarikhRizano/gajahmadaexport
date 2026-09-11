@@ -14,6 +14,7 @@ export const revalidate = 0;
 const SUPABASE_STORAGE_URL =
   "https://vofsmretmpxinnkfiqsk.supabase.co/storage/v1/object/public/uploads";
 
+// Helper untuk validasi URL gambar
 function getValidImageUrl(img: any): string {
   if (!img || typeof img !== "string" || img.trim() === "") {
     return PLACEHOLDER_IMAGE;
@@ -33,33 +34,31 @@ function getValidImageUrl(img: any): string {
   return `${SUPABASE_STORAGE_URL}/${cleanFileName}`;
 }
 
-// Transformasi URL Supabase khusus Open Graph (agar preview WhatsApp muncul & ringan)
+// Helper khusus URL Open Graph (WhatsApp Preview)
 function getOptimizedOgImageUrl(imgUrl: string): string {
   if (!imgUrl || imgUrl === PLACEHOLDER_IMAGE) return PLACEHOLDER_IMAGE;
 
-  if (imgUrl.includes("/storage/v1/object/public/")) {
-    const transformedUrl = imgUrl.replace(
-      "/storage/v1/object/public/",
-      "/storage/v1/render/image/public/"
-    );
-    return `${transformedUrl}?width=600&quality=60`;
+  // Pastikan URL selalu menggunakan absolute path
+  if (!imgUrl.startsWith("http://") && !imgUrl.startsWith("https://")) {
+    const cleanFileName = imgUrl.startsWith("/") ? imgUrl.slice(1) : imgUrl;
+    return `${SUPABASE_STORAGE_URL}/${cleanFileName}`;
   }
 
   return imgUrl;
 }
 
-// Type Props disesuaikan dengan folder [category]/[id]
+// Type Props sesuai dengan rute [category]/[id]
 type Props = {
   params: { category: string; id: string };
 };
 
-// Dynamic Open Graph Metadata
+// Dynamic Open Graph Metadata untuk WhatsApp
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductById(params.id);
 
   if (!product) {
     return {
-      title: "Product Not Found",
+      title: "Product Not Found | Gajah Mada Export",
     };
   }
 
@@ -87,8 +86,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [
         {
           url: ogImageUrl,
-          width: 600,
-          height: 600,
+          secureUrl: ogImageUrl,
+          width: 800,
+          height: 800,
+          type: "image/webp",
           alt: product.name,
         },
       ],
