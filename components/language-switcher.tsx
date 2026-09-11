@@ -4,8 +4,8 @@ import { useEffect, useState, useRef } from "react";
 import { Globe, Check, ChevronDown } from "lucide-react";
 
 const LANGUAGES = [
-  { code: "id", label: "Bahasa Indonesia" },
   { code: "en", label: "English" },
+  { code: "id", label: "Bahasa Indonesia" },
   { code: "zh-CN", label: "中文 (Chinese)" },
   { code: "ja", label: "日本語 (Japanese)" },
   { code: "ko", label: "한국어 (Korean)" },
@@ -17,12 +17,13 @@ const LANGUAGES = [
 ];
 
 export function LanguageSwitcher() {
-  const [currentLang, setCurrentLang] = useState("id");
+  const [currentLang, setCurrentLang] = useState("en");
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
+    // 1. Baca cookie terjemahan saat ini
     const cookies = document.cookie.split("; ");
     const googtrans = cookies.find((row) => row.startsWith("googtrans="));
     if (googtrans) {
@@ -31,9 +32,14 @@ export function LanguageSwitcher() {
       if (lang) setCurrentLang(lang);
     }
 
+    // 2. Inisialisasi Google Translate dengan Source Language: English ('en')
     (window as any).googleTranslateElementInit = () => {
       new (window as any).google.translate.TranslateElement(
-        { pageLanguage: "id", autoDisplay: false },
+        { 
+          pageLanguage: "en", 
+          includedLanguages: "en,id,zh-CN,ja,ko,ar,nl,de,fr,es",
+          autoDisplay: false 
+        },
         "google_translate_element_hidden"
       );
     };
@@ -66,13 +72,15 @@ export function LanguageSwitcher() {
 
     const domain = window.location.hostname;
 
+    // Hapus cookie googtrans lama
     document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=.${domain}; path=/;`;
     document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=${domain}; path=/;`;
 
-    if (langCode !== "id") {
-      document.cookie = `googtrans=/id/${langCode}; path=/;`;
-      document.cookie = `googtrans=/id/${langCode}; domain=.${domain}; path=/;`;
+    // Set cookie terjemahan baru dari 'en' ke target language
+    if (langCode !== "en") {
+      document.cookie = `googtrans=/en/${langCode}; path=/;`;
+      document.cookie = `googtrans=/en/${langCode}; domain=.${domain}; path=/;`;
     }
 
     setCurrentLang(langCode);
@@ -82,6 +90,39 @@ export function LanguageSwitcher() {
 
   return (
     <>
+      {/* CSS Override untuk Menyembunyikan Toolbar & Widget Google Translate */}
+      <style jsx global>{`
+        /* Sembunyikan top banner Google Translate */
+        .goog-te-banner-frame.skiptranslate,
+        .goog-te-banner-frame,
+        iframe.goog-te-banner-frame {
+          display: none !important;
+        }
+
+        /* Pastikan posisi body tidak terdorong turun ke bawah */
+        body {
+          top: 0px !important;
+          position: static !important;
+        }
+
+        /* Sembunyikan tooltip hover & highlight pada teks */
+        .goog-te-balloon-frame,
+        #goog-gt-tt,
+        .goog-te-balloon-frame * {
+          display: none !important;
+        }
+
+        .goog-text-highlight {
+          background-color: transparent !important;
+          box-shadow: none !important;
+        }
+
+        /* Sembunyikan kontainer asli google translate */
+        #google_translate_element_hidden {
+          display: none !important;
+        }
+      `}</style>
+
       <div id="google_translate_element_hidden" className="hidden" />
 
       {/* Button Trigger */}
