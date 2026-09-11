@@ -8,15 +8,40 @@ function cleanPhoneNumber(phone: string): string {
   return phone.replace(/[^0-9]/g, "");
 }
 
+/**
+ * Helper untuk mengubah nama/slug kategori produk ke format URL yang valid
+ */
+function getCategorySlug(product: Product): string {
+  if (!product.category) return "chair-indoor";
+  const cat = product.category.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  if (cat.includes("loungeindoor")) return "lounge-indoor";
+  if (cat.includes("loungedaybed") || cat.includes("daybed")) return "lounge-daybed";
+  if (cat.includes("outdoor")) return "outdoor-chair";
+  if (cat.includes("bistro")) return "bistro-chair";
+  if (cat.includes("basket")) return "basket-ware";
+  if (cat.includes("accessori") || cat.includes("accesori")) return "accessories";
+  if (cat.includes("table")) return "table-indoor";
+
+  return product.category.toLowerCase().replace(/\s+/g, "-");
+}
+
 export function buildProductWhatsAppLink(waNumber: string, product: Product) {
   const cleanNumber = cleanPhoneNumber(waNumber);
-  const message = `Hello, I am interested in your product "${product.name}" (SKU/ID: ${product.id}). Could you please provide information regarding wholesale pricing and availability?`;
+  const categorySlug = getCategorySlug(product);
+
+  // Link URL halaman produk agar WhatsApp memuat preview gambar (OG Image)
+  const productUrl = `https://gajahmadaexport.com/product/${categorySlug}/${product.id}`;
+
+  const message = `Hello, I am interested in your product "${product.name}" (SKU/ID: ${product.id}). Could you please provide information regarding wholesale pricing and availability?\n\nProduct Link: ${productUrl}`;
+
   return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
 }
 
 export function buildGeneralWhatsAppLink(waNumber: string) {
   const cleanNumber = cleanPhoneNumber(waNumber);
-  const message = "Hello, I would like to inquire about B2B wholesale cooperation and your product catalog for Gajah Mada Export.";
+  const message =
+    "Hello, I would like to inquire about B2B wholesale cooperation and your product catalog for Gajah Mada Export.";
   return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
 }
 
