@@ -7,16 +7,21 @@ interface ECatalogButtonProps {
   href?: string;
 }
 
-export function ECatalogButton({ href = "/catalog.pdf" }: ECatalogButtonProps) {
+export function ECatalogButton({ href }: ECatalogButtonProps) {
   const state1 = "Lihat E-Catalog";
   const state2 = "Buka PDF";
   
-  // Validasi jika href ada, tidak kosong, dan bukan '#'
-  const isAvailable = Boolean(href && href.trim() !== "" && href !== "#");
+  // Jika href tidak ada atau berisi link Supabase, paksa gunakan URL /catalog.pdf
+  let targetHref = href;
+  if (!targetHref || targetHref.includes("supabase.co") || targetHref === "#") {
+    targetHref = "/catalog.pdf";
+  }
+
+  const isAvailable = Boolean(targetHref && targetHref.trim() !== "");
 
   return (
     <a
-      href={isAvailable ? href : undefined}
+      href={isAvailable ? targetHref : undefined}
       target={isAvailable ? "_blank" : undefined}
       rel={isAvailable ? "noopener noreferrer" : undefined}
       aria-disabled={!isAvailable}
