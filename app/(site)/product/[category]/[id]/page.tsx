@@ -35,10 +35,8 @@ function getValidImageUrl(img: any): string {
 export default async function ProductDetailPage({
   params,
 }: {
-  params: { category: string; id: string };
+  params: { id: string };
 }) {
-  const rawCategoryParam = decodeURIComponent(params.category);
-
   const [product, siteContent] = await Promise.all([
     getProductById(params.id),
     getSiteContent(),
@@ -46,16 +44,10 @@ export default async function ProductDetailPage({
 
   if (!product) notFound();
 
-  const normalize = (str: string) => str.toLowerCase().replace(/[\s_]+/g, "-");
-
-  if (normalize(rawCategoryParam) !== normalize(product.category)) {
-    notFound();
-  }
-
   const category = CATEGORIES.find(
     (c) =>
-      normalize(c.slug) === normalize(product.category) ||
-      normalize(c.label) === normalize(product.category)
+      c.slug.toLowerCase() === (product.category || "").toLowerCase() ||
+      c.label.toLowerCase() === (product.category || "").toLowerCase()
   );
 
   const rawMainImage =
@@ -76,7 +68,6 @@ export default async function ProductDetailPage({
       </Link>
 
       <div className="grid gap-8 md:grid-cols-2">
-        {/* GAMBAR UTAMA SINGLE */}
         <div className="space-y-3">
           <div className="relative aspect-square overflow-hidden rounded-2xl bg-cream-100 shadow-sm w-full">
             <Image
@@ -90,7 +81,6 @@ export default async function ProductDetailPage({
           </div>
         </div>
 
-        {/* DETAIL PRODUK */}
         <div>
           {category && (
             <p className="text-xs tracking-[0.2em] uppercase text-brass-500 mb-2 font-semibold">
