@@ -113,17 +113,20 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
     triggerAnimation();
   }, [selectedCategory, triggerAnimation]);
 
-  const handlePageChange = (newPage: number) => {
+  // Handle pergantian halaman dengan opsi scroll
+  const handlePageChange = (newPage: number, shouldScroll: boolean = false) => {
     if (newPage < 1 || newPage > totalPages) return;
     
     triggerAnimation();
     setCurrentPage(newPage);
 
-    // Otomatis Scroll Halus ke Bagian Atas Grid Produk
-    if (gridTopRef.current) {
-      gridTopRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+    // Hanya scroll ke atas jika dipanggil oleh tombol bawah
+    if (shouldScroll) {
+      if (gridTopRef.current) {
+        gridTopRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     }
   };
 
@@ -188,12 +191,12 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
       ) : (
         <div className="relative w-full min-h-[450px]">
           
-          {/* FLOATING BUTTONS */}
+          {/* FLOATING BUTTONS (Tanpa Scroll Saat Klik) */}
           <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-20 flex items-center justify-between px-0.5 -mx-2 sm:-mx-4">
-            {/* Prev Button */}
+            {/* Prev Button Floating */}
             <button
               type="button"
-              onClick={() => handlePageChange(currentPage - 1)}
+              onClick={() => handlePageChange(currentPage - 1, false)}
               disabled={currentPage === 1 || totalPages <= 1}
               aria-label="Previous Page"
               className={`pointer-events-auto flex items-center justify-center 
@@ -208,10 +211,10 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
               <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 text-clay-900" />
             </button>
 
-            {/* Next Button */}
+            {/* Next Button Floating */}
             <button
               type="button"
-              onClick={() => handlePageChange(currentPage + 1)}
+              onClick={() => handlePageChange(currentPage + 1, false)}
               disabled={currentPage === totalPages || totalPages <= 1}
               aria-label="Next Page"
               className={`pointer-events-auto flex items-center justify-center 
@@ -275,12 +278,12 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
             })}
           </div>
 
-          {/* Bottom Pagination */}
+          {/* Bottom Pagination (Dengan Scroll ke Atas saat Klik) */}
           {totalPages > 1 && (
             <div className="mt-8 flex items-center justify-center gap-2 pb-6">
               <button
                 type="button"
-                onClick={() => handlePageChange(currentPage - 1)}
+                onClick={() => handlePageChange(currentPage - 1, true)}
                 disabled={currentPage === 1}
                 className="rounded-xl border border-clay-300 bg-white px-4 py-2 text-xs font-semibold text-clay-700 shadow-sm hover:bg-clay-50 disabled:opacity-40 transition-colors"
               >
@@ -291,7 +294,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
               </span>
               <button
                 type="button"
-                onClick={() => handlePageChange(currentPage + 1)}
+                onClick={() => handlePageChange(currentPage + 1, true)}
                 disabled={currentPage === totalPages}
                 className="rounded-xl border border-clay-300 bg-white px-4 py-2 text-xs font-semibold text-clay-700 shadow-sm hover:bg-clay-50 disabled:opacity-40 transition-colors"
               >
