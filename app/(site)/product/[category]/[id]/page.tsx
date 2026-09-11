@@ -8,8 +8,29 @@ import { SafeImage } from "@/components/safe-image";
 import { ProductWhatsAppButton } from "@/components/whatsapp-button";
 import { AddToQuoteButton } from "@/components/add-to-quote-button";
 
-// MATIKAN CACHE DETAIL PRODUK
 export const revalidate = 0;
+
+const SUPABASE_STORAGE_URL =
+  "https://vofsmretmpxinnkfiqsk.supabase.co/storage/v1/object/public/uploads";
+
+function getValidImageUrl(img: any): string {
+  if (!img || typeof img !== "string" || img.trim() === "") {
+    return PLACEHOLDER_IMAGE;
+  }
+  
+  let formattedImg = img.trim();
+  
+  if (!formattedImg.endsWith(".webp")) {
+    formattedImg = formattedImg.replace(/\.[^/.]+$/, "") + ".webp";
+  }
+
+  if (formattedImg.startsWith("http://") || formattedImg.startsWith("https://")) {
+    return formattedImg;
+  }
+  
+  const cleanFileName = formattedImg.startsWith("/") ? formattedImg.slice(1) : formattedImg;
+  return `${SUPABASE_STORAGE_URL}/${cleanFileName}`;
+}
 
 export default async function ProductDetailPage({
   params,
@@ -25,7 +46,6 @@ export default async function ProductDetailPage({
 
   if (!product) notFound();
 
-  // Helper normalisasi agar pencocokan "Table Indoor" vs "table-indoor" tidak error
   const normalize = (str: string) => str.toLowerCase().replace(/[\s_]+/g, "-");
 
   if (normalize(rawCategoryParam) !== normalize(product.category)) {
@@ -38,11 +58,12 @@ export default async function ProductDetailPage({
       normalize(c.label) === normalize(product.category)
   );
 
-  // Ambil hanya 1 gambar utama saja
-  const mainImage =
+  const rawMainImage =
     product.images && product.images.length > 0
       ? product.images[0]
       : PLACEHOLDER_IMAGE;
+
+  const mainImage = getValidImageUrl(rawMainImage);
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
@@ -78,7 +99,6 @@ export default async function ProductDetailPage({
             {product.name}
           </h1>
 
-          {/* BADGE / DISPLAY KODE PRODUK (SKU) */}
           <div className="mt-2.5 flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-md bg-clay-200/50 px-2.5 py-1 text-xs font-mono font-medium text-clay-700 tracking-wide">
               <Tag size={12} className="text-clay-500" />

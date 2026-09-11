@@ -10,10 +10,20 @@ function getValidImageUrl(img: any): string {
   if (!img || typeof img !== "string" || img.trim() === "") {
     return PLACEHOLDER_IMAGE;
   }
-  if (img.startsWith("http://") || img.startsWith("https://")) {
-    return img;
+  
+  let formattedImg = img.trim();
+  
+  // Apabila belum menggunakan .webp, ubah/tambahkan ekstensi .webp
+  if (!formattedImg.endsWith(".webp")) {
+    // Jika ada ekstensi lain (seperti .png/.jpg), ganti dengan .webp
+    formattedImg = formattedImg.replace(/\.[^/.]+$/, "") + ".webp";
   }
-  const cleanFileName = img.startsWith("/") ? img.slice(1) : img;
+
+  if (formattedImg.startsWith("http://") || formattedImg.startsWith("https://")) {
+    return formattedImg;
+  }
+  
+  const cleanFileName = formattedImg.startsWith("/") ? formattedImg.slice(1) : formattedImg;
   return `${SUPABASE_STORAGE_URL}/${cleanFileName}`;
 }
 

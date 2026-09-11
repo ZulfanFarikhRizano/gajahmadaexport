@@ -7,6 +7,13 @@ import { useRouter } from "next/navigation";
 import { LogOut, Trash2, Pencil, Plus, Upload, CheckCircle2, AlertTriangle, FileText, BarChart2, Eye } from "lucide-react";
 import { CATEGORIES, type Product, type SiteContent } from "@/lib/types";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
+import { createClient } from "@supabase/supabase-js";
+
+// Inisialisasi client Supabase
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 type Tab = "content" | "products";
 
@@ -71,6 +78,29 @@ export default function AdminDashboardPage() {
 
   React.useEffect(() => {
     loadAll();
+
+    // Setup Realtime Subscription
+    const channel = supabase
+      .channel("realtime-admin-dashboard")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "products" },
+        () => {
+          loadAll();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "site_content" },
+        () => {
+          loadAll();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [loadAll]);
 
   const handleLogout = async () => {
