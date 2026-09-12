@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CATEGORIES, type Product } from "@/lib/types";
 
@@ -63,25 +64,20 @@ const getSafeImageUrl = (images?: string[]): string => {
   return "/placeholder.jpg";
 };
 
-// --- MAIN COMPONENT ---
 export function GalleryGrid({ products = [] }: GalleryGridProps) {
-  const [selectedCategory, setSelectedCategory] = React.useState<string>("all");
-  const [currentPage, setCurrentPage] = React.useState<number>(1);
-  const [isAnimating, setIsAnimating] = React.useState<boolean>(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const gridTopRef = React.useRef<HTMLDivElement>(null);
 
-  const triggerAnimation = React.useCallback(() => {
-    setIsAnimating(true);
-    const timer = setTimeout(() => setIsAnimating(false), 120);
-    return () => clearTimeout(timer);
-  }, []);
+  // Sync state langsung dengan URL params
+  const selectedCategory = searchParams.get("category") || "all";
+  const currentPage = Math.max(1, Number(searchParams.get("page") || 1));
 
   // Filter & Deduplikasi Produk
   const filteredProducts = React.useMemo(() => {
     if (!Array.isArray(products)) return [];
 
     const uniqueMap = new Map<string, Product>();
-
     products.forEach((item) => {
       if (!item) return;
       const codeKey = cleanStr(item.id);
@@ -91,11 +87,9 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
     });
 
     const uniqueProducts = Array.from(uniqueMap.values());
-
     if (selectedCategory === "all") return uniqueProducts;
 
     const targetSlug = cleanStr(selectedCategory);
-
     return uniqueProducts.filter((product) => {
       const prodSlug = cleanStr(getProductCategorySlug(product));
       return (
@@ -107,20 +101,14 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
 
-  // Reset ke halaman 1 saat ganti kategori
-  React.useEffect(() => {
-    setCurrentPage(1);
-    triggerAnimation();
-  }, [selectedCategory, triggerAnimation]);
+  // Fungsi update URL
+  const updateQueryParams = (newCategory: string, newPage: number, shouldScroll: boolean = false) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("category", newCategory);
+    params.set("page", newPage.toString());
 
-  // Handle pergantian halaman dengan opsi scroll
-  const handlePageChange = (newPage: number, shouldScroll: boolean = false) => {
-    if (newPage < 1 || newPage > totalPages) return;
-    
-    triggerAnimation();
-    setCurrentPage(newPage);
+    router.push(`?${params.toString()}`, { scroll: false });
 
-    // Hanya scroll ke atas jika dipanggil oleh tombol bawah
     if (shouldScroll) {
       if (gridTopRef.current) {
         gridTopRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -130,6 +118,15 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
     }
   };
 
+  const handleCategoryChange = (categorySlug: string) => {
+    updateQueryParams(categorySlug, 1, false);
+  };
+
+  const handlePageChange = (newPage: number, shouldScroll: boolean = false) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    updateQueryParams(selectedCategory, newPage, shouldScroll);
+  };
+
   const paginatedProducts = React.useMemo(() => {
     if (filteredProducts.length === 0) return [];
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -137,12 +134,12 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
   }, [filteredProducts, currentPage]);
 
   return (
-    <div ref={gridTopRef} className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 scroll-mt-24">
+    <div ref={gridTopRef} className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 scroll-mt-28">
       {/* Category Filter Buttons */}
       <div className="flex flex-wrap justify-center gap-2 mb-4">
         <button
           type="button"
-          onClick={() => setSelectedCategory("all")}
+          onClick={() => handleCategoryChange("all")}
           className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 border ${
             selectedCategory === "all"
               ? "bg-[#2d211a] text-white border-[#2d211a] shadow-sm"
@@ -155,7 +152,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
           <button
             key={cat.slug}
             type="button"
-            onClick={() => setSelectedCategory(cat.slug)}
+            onClick={() => handleCategoryChange(cat.slug)}
             className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 border ${
               selectedCategory === cat.slug
                 ? "bg-[#b3593b] text-white border-[#b3593b] shadow-sm"
@@ -182,7 +179,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
           </p>
           <button
             type="button"
-            onClick={() => setSelectedCategory("all")}
+            onClick={() => handleCategoryChange("all")}
             className="mt-3 text-xs font-semibold text-[#b3593b] hover:underline"
           >
             Lihat semua produk
@@ -191,9 +188,8 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
       ) : (
         <div className="relative w-full min-h-[450px]">
           
-          {/* FLOATING BUTTONS (Tanpa Scroll Saat Klik) */}
+          {/* FLOATING BUTTONS */}
           <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-20 flex items-center justify-between px-0.5 -mx-2 sm:-mx-4">
-            {/* Prev Button Floating */}
             <button
               type="button"
               onClick={() => handlePageChange(currentPage - 1, false)}
@@ -211,7 +207,6 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
               <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 text-clay-900" />
             </button>
 
-            {/* Next Button Floating */}
             <button
               type="button"
               onClick={() => handlePageChange(currentPage + 1, false)}
@@ -230,11 +225,10 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
             </button>
           </div>
 
-          {/* Product Cards Grid */}
-          <div
-            className={`grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 w-full transition-opacity duration-150 ease-out ${
-              isAnimating ? "opacity-40" : "opacity-100"
-            }`}
+          {/* Product Cards Grid dengan Efek Transition Key */}
+          <div 
+            key={`${selectedCategory}-page-${currentPage}`}
+            className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 w-full animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out"
           >
             {paginatedProducts.map((product, idx) => {
               if (!product || !product.id) return null;
@@ -242,25 +236,22 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
               const imageUrl = getSafeImageUrl(product.images);
               const categoryParam = getProductCategorySlug(product);
               const productName = product.name || "Unnamed Product";
-              const isPriority = idx < 4;
 
               return (
                 <Link
-                  key={product.id || `prod-${idx}`}
-                  href={`/product/${encodeURIComponent(categoryParam)}/${
-                    product.id
-                  }`}
-                  className="group overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md border border-clay-200 flex flex-col w-full"
+                  key={`${product.id}-p${currentPage}`}
+                  href={`/product/${encodeURIComponent(categoryParam)}/${product.id}`}
+                  className="group overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg border border-clay-200 flex flex-col w-full"
                 >
                   <div className="relative aspect-square w-full overflow-hidden bg-clay-100">
                     <Image
+                      key={`${imageUrl}-p${currentPage}`}
                       src={imageUrl}
                       alt={productName}
                       fill
-                      priority={isPriority}
-                      loading={isPriority ? "eager" : "lazy"}
+                      unoptimized={true}
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                     />
                   </div>
                   <div className="p-3 sm:p-4 flex flex-col flex-1 justify-between bg-white">
@@ -278,9 +269,9 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
             })}
           </div>
 
-          {/* Bottom Pagination (Dengan Scroll ke Atas saat Klik) */}
+          {/* Bottom Pagination */}
           {totalPages > 1 && (
-            <div className="mt-8 flex items-center justify-center gap-2 pb-6">
+            <div className="mt-8 flex items-center justify-center gap-2 pb-12">
               <button
                 type="button"
                 onClick={() => handlePageChange(currentPage - 1, true)}
