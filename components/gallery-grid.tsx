@@ -145,9 +145,6 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
     return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProducts, currentPage]);
 
-  // DEBUG SEMENTARA — hapus setelah bug ketemu
-  console.log("[GalleryGrid] render → currentPage:", currentPage, "totalPages:", totalPages);
-
   return (
     <div ref={gridTopRef} className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 scroll-mt-24">
       {/* Category Filter Buttons */}
@@ -181,7 +178,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
 
       {/* Counter Info */}
       <div className="w-full text-center my-3 py-1">
-        <p className="text-xs text-clay-600 font-medium tracking-wide">
+        <p translate="no" className="notranslate text-xs text-clay-600 font-medium tracking-wide">
           Menampilkan <span className="font-semibold text-clay-900">{filteredProducts.length}</span> produk
         </p>
       </div>
@@ -305,7 +302,10 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
               >
                 Prev
               </button>
-              <span className="text-xs font-mono font-medium text-clay-600 px-3">
+              <span
+                translate="no"
+                className="notranslate text-xs font-mono font-medium text-clay-600 px-3"
+              >
                 {currentPage} / {totalPages}
               </span>
               <button
