@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 export default {
+  darkMode: "class", // <-- Tambahkan ini untuk mengaktifkan class strategy
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   theme: {
     extend: {
@@ -29,9 +30,7 @@ export default {
           50: "#FAF6EE",
           100: "#F3EBDA",
         },
-        // Aliases so shadcn-style utility classes (bg-background,
-        // text-muted-foreground, ring-ring, etc.) resolve to brand colors
-        // instead of silently rendering as unstyled.
+        // Aliases shadcn-style
         background: "#FAF6EE",
         foreground: "#2E2018",
         muted: "#F3EBDA",

@@ -171,4 +171,26 @@ body {
 .ecat-button:hover .ecat-icon { transform: translateX(3px) rotate(8deg); }
 
 
+/* Matikan animasi cross-fade default dari View Transition API */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
 
+/* Pastikan layer tema baru dirender di atas layer lama */
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+.dark::view-transition-old(root) {
+  z-index: 9999;
+}
+
+.dark::view-transition-new(root) {
+  z-index: 1;
+}

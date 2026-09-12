@@ -25,9 +25,26 @@ function getValidImageUrl(img: any): string {
 export const revalidate = 60;
 
 export default async function GalleryPage() {
-  const rawProducts = await getProducts();
+  let rawProducts: any[] = [];
 
+  // Proteksi error fetch agar server tidak crash saat query Supabase gagal
+  try {
+    const fetched = await getProducts().catch((err) => {
+      console.error("Error fetching products in GalleryPage:", err);
+      return [];
+    });
+    if (Array.isArray(fetched)) {
+      rawProducts = fetched;
+    }
+  } catch (error) {
+    console.error("Critical error in GalleryPage fetch:", error);
+    rawProducts = [];
+  }
+
+  // Formatting aman untuk produk & gambar
   const products = rawProducts.map((product) => {
+    if (!product) return null;
+
     let imagesArray: any[] = [];
 
     // Parse aman untuk penanganan array maupun string JSON
@@ -51,7 +68,7 @@ export default async function GalleryPage() {
       ...product,
       images: validImages,
     };
-  });
+  }).filter(Boolean); // Filter data null jika ada item produk yang corrupt
 
   return (
     <main className="min-h-screen bg-cream-50 pt-16 pb-24">

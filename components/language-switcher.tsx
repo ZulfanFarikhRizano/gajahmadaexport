@@ -148,10 +148,13 @@ export function LanguageSwitcher() {
     }, 150);
   };
 
+  const selectedLanguageLabel =
+    LANGUAGES.find((l) => l.code === currentLang)?.label || "Language";
+
   return (
     <>
       <style jsx global>{`
-        /* Sembunyikan elemen visual Google Translate tanpa merusak fungsinya */
+        /* Sembunyikan elemen visual Google Translate */
         .goog-te-banner-frame,
         .goog-te-banner,
         .goog-te-gadget-icon,
@@ -170,13 +173,11 @@ export function LanguageSwitcher() {
           pointer-events: none !important;
         }
 
-        /* Jaga posisi body tetap di atas */
         body {
           top: 0px !important;
           position: static !important;
         }
 
-        /* Hilangkan highlight kuning pada teks */
         .goog-text-highlight {
           background-color: transparent !important;
           box-shadow: none !important;
@@ -185,33 +186,56 @@ export function LanguageSwitcher() {
         #google_translate_element_hidden {
           display: none !important;
         }
+
+        @keyframes dropdownEnter {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(-6px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
+        .animate-dropdown-enter {
+          animation: dropdownEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          transform-origin: top left;
+        }
       `}</style>
 
       <div id="google_translate_element_hidden" className="hidden" />
 
-      {/* Button Trigger Header */}
+      {/* Button Trigger Header - Fixed Size & Unified Styling */}
       <button
         ref={buttonRef}
         type="button"
         disabled={isLoading}
         onClick={handleToggle}
-        className="flex items-center gap-2 rounded-full border border-clay-950/20 bg-white/90 px-4 py-2 text-xs font-medium text-clay-900 shadow-sm transition-all duration-200 hover:border-terracotta-600 hover:bg-white active:scale-95 disabled:opacity-80"
+        className="flex h-10 w-36 sm:w-44 items-center justify-between rounded-full border border-clay-950/15 bg-white/90 px-3.5 py-2 text-xs font-medium text-clay-900 shadow-sm backdrop-blur-md transition-all duration-200 hover:border-terracotta-600 hover:bg-white active:scale-95 disabled:opacity-80"
       >
-        <Globe size={15} className="text-clay-700 shrink-0" />
-        <span>{LANGUAGES.find((l) => l.code === currentLang)?.label || "Language"}</span>
+        <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+          <Globe size={15} className="text-clay-700 shrink-0" />
+          <span className="truncate">{selectedLanguageLabel}</span>
+        </div>
         <ChevronDown
           size={14}
-          className={`text-clay-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`text-clay-500 shrink-0 transition-transform duration-300 ${
+            isOpen ? "rotate-180" : ""
+          }`}
         />
       </button>
 
-      {/* Popover Menu Dropdown */}
+      {/* Popover Menu Dropdown dengan Animasi Smooth */}
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-[99998]" onClick={() => setIsOpen(false)} />
+          <div
+            className="fixed inset-0 z-[99998]"
+            onClick={() => setIsOpen(false)}
+          />
           <div
             style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
-            className="fixed w-52 rounded-2xl border border-clay-950/10 bg-white/95 p-2 shadow-2xl backdrop-blur-md z-[99999] max-h-64 overflow-y-auto transition-all duration-200"
+            className="animate-dropdown-enter fixed w-56 rounded-2xl border border-clay-950/10 bg-white/95 p-1.5 shadow-xl backdrop-blur-md z-[99999] max-h-72 overflow-y-auto"
           >
             {LANGUAGES.map((lang) => {
               const isSelected = currentLang === lang.code;
@@ -226,8 +250,10 @@ export function LanguageSwitcher() {
                       : "text-clay-800 hover:bg-cream-100/80 hover:text-clay-950"
                   }`}
                 >
-                  <span>{lang.label}</span>
-                  {isSelected && <Check size={14} className="text-terracotta-600" />}
+                  <span className="truncate pr-2">{lang.label}</span>
+                  {isSelected && (
+                    <Check size={14} className="text-terracotta-600 shrink-0" />
+                  )}
                 </button>
               );
             })}
@@ -235,7 +261,7 @@ export function LanguageSwitcher() {
         </>
       )}
 
-      {/* Floating Loading Screen dengan Logo Gajah Mada */}
+      {/* Floating Loading Screen dengan Logo */}
       {isLoading && (
         <div className="fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm">
           <div className="relative h-12 w-12 animate-spin">

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 import FloatingMenu from "./floating-menu";
 import { LanguageSwitcher } from "./language-switcher";
+import { ThemeToggle } from "./theme-toggle"; // <-- Import komponen ThemeToggle
 
 interface NavbarProps {
   siteName: string;
@@ -37,10 +38,10 @@ export function Navbar({ siteName, logoUrl }: NavbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-clay-950/10">
+    <header className="sticky top-0 z-40 bg-white dark:bg-clay-950 border-b border-clay-950/10 dark:border-white/10 transition-colors duration-200">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.1]"
+        className="pointer-events-none absolute inset-0 opacity-[0.1] dark:opacity-[0.05]"
         style={{
           backgroundImage: "url('/images/batik-pattern.png')",
           backgroundSize: "320px 320px",
@@ -49,12 +50,15 @@ export function Navbar({ siteName, logoUrl }: NavbarProps) {
       />
 
       <div className="relative mx-auto grid grid-cols-3 items-center max-w-7xl h-16 sm:h-20 px-3 sm:px-4 lg:px-8">
-        <div className="justify-self-start min-w-0 overflow-hidden">
+        {/* Sisi Kiri: Language Switcher + Theme Toggle */}
+        <div className="justify-self-start flex items-center gap-2 min-w-0">
           <LanguageSwitcher />
+          <ThemeToggle />
         </div>
 
         <div />
 
+        {/* Sisi Kanan: Floating Menu */}
         <div className="justify-self-end">
           <FloatingMenu
             items={[
