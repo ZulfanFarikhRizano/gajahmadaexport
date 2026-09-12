@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProductsByCategory, getSiteContent } from "@/lib/data-store";
-import { CATEGORIES } from "@/lib/types";
+import { CATEGORIES, Product } from "@/lib/types";
 import { ProductWhatsAppButton } from "@/components/whatsapp-button";
 import { SafeImage } from "@/components/safe-image";
 
@@ -12,18 +12,39 @@ export function generateStaticParams() {
   return CATEGORIES.map((c) => ({ category: c.slug }));
 }
 
-export default async function CategoryPage({
-  params,
-}: {
-  params: { category: string };
-}) {
-  const category = CATEGORIES.find((c) => c.slug === params.category);
+interface CategoryPageProps {
+  params: Promise<{ category: string }> | { category: string };
+}
+
+export default async function CategoryPage({ params }: CategoryPageProps) {
+  const resolvedParams = await params;
+  const categorySlug = resolvedParams?.category;
+
+  if (!categorySlug) notFound();
+
+  const category = CATEGORIES.find((c) => c.slug === categorySlug);
   if (!category) notFound();
 
-  const [products, siteContent] = await Promise.all([
-    getProductsByCategory(category.slug),
-    getSiteContent(),
-  ]);
+  let products: Product[] = [];
+  let siteContent = { whatsappNumber: "" };
+
+  try {
+    const [fetchedProducts, fetchedContent] = await Promise.all([
+      getProductsByCategory(category.slug).catch((err) => {
+        console.error("Error fetching category products:", err);
+        return [];
+      }),
+      getSiteContent().catch((err) => {
+        console.error("Error fetching site content:", err);
+        return {};
+      }),
+    ]);
+
+    if (Array.isArray(fetchedProducts)) products = fetchedProducts;
+    if (fetchedContent) siteContent = { ...siteContent, ...fetchedContent };
+  } catch (error) {
+    console.error("Critical error in CategoryPage fetch:", error);
+  }
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
@@ -40,36 +61,45 @@ export default async function CategoryPage({
         </p>
       ) : (
         <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
-            <Link
-              key={product.id}
-              href={`/product/${product.category}/${product.id}`}
-              className="block overflow-hidden rounded-2xl border border-clay-950/10 bg-white shadow-sm transition-shadow hover:shadow-md"
-            >
-              <div className="aspect-square overflow-hidden bg-cream-100">
-                <SafeImage
-                  src={product.images[0]}
-                  alt={product.name}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <div className="p-5">
-                <h2 className="font-display text-lg text-clay-950">{product.name}</h2>
-                <p className="mt-1 text-sm text-clay-600 line-clamp-2">
-                  {product.description}
-                </p>
-                <p className="mt-2 text-sm font-medium text-terracotta-600">
-                  {product.price}
-                </p>
-                <div className="mt-4">
-                  <ProductWhatsAppButton
-                    waNumber={siteContent.whatsappNumber}
-                    product={product}
+          {products.map((product) => {
+            if (!product || !product.id) return null;
+            const imageUrl = Array.isArray(product.images) && product.images.length > 0 
+              ? product.images[0] 
+              : "/placeholder.jpg";
+
+            return (
+              <Link
+                key={product.id}
+                href={`/product/${encodeURIComponent(product.category || category.slug)}/${product.id}`}
+                className="block overflow-hidden rounded-2xl border border-clay-950/10 bg-white shadow-sm transition-shadow hover:shadow-md"
+              >
+                <div className="aspect-square overflow-hidden bg-cream-100">
+                  <SafeImage
+                    src={imageUrl}
+                    alt={product.name || "Product"}
+                    className="h-full w-full object-cover"
                   />
                 </div>
-              </div>
-            </Link>
-          ))}
+                <div className="p-5">
+                  <h2 className="font-display text-lg text-clay-950">
+                    {product.name || "Unnamed Product"}
+                  </h2>
+                  <p className="mt-1 text-sm text-clay-600 line-clamp-2">
+                    {product.description || ""}
+                  </p>
+                  <p className="mt-2 text-sm font-medium text-terracotta-600">
+                    {product.price || "Contact us"}
+                  </p>
+                  <div className="mt-4">
+                    <ProductWhatsAppButton
+                      waNumber={siteContent.whatsappNumber}
+                      product={product}
+                    />
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </main>

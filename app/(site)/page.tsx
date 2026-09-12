@@ -1,5 +1,6 @@
 import { getProducts, getSiteContent } from "@/lib/data-store";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
+import { Product } from "@/lib/types";
 import { IntroVideoOverlay } from "@/components/intro-video-overlay";
 import { HomeGallerySpill } from "@/components/home-gallery-spill";
 import Features from "@/components/features";
@@ -9,7 +10,6 @@ import { PaymentInfo } from "@/components/payment-info";
 import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
 import { ECatalogButton } from "@/components/ecatalog-button";
 
-// URL Base Supabase Storage (Bucket: uploads)
 const SUPABASE_STORAGE_URL =
   "https://vofsmretmpxinnkfiqsk.supabase.co/storage/v1/object/public/uploads";
 
@@ -26,31 +26,50 @@ function getValidImageUrl(images: any): string {
     return PLACEHOLDER_IMAGE;
   }
 
-  // Jika di DB sudah berupa URL lengkap https://
   if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
     return rawUrl;
   }
 
-  // Jika di DB hanya berupa nama file (misal: "bc-001.jpg" atau "acc-001.png")
   const cleanFileName = rawUrl.startsWith("/") ? rawUrl.slice(1) : rawUrl;
   return `${SUPABASE_STORAGE_URL}/${cleanFileName}`;
 }
 
 export default async function HomePage() {
-  const [products, siteContent] = await Promise.all([
-    getProducts(),
-    getSiteContent(),
-  ]);
+  let products: Product[] = [];
+  let siteContent = {
+    heroHeadline: "",
+    heroSubheadline: "",
+    whatsappNumber: "",
+    catalogUrl: "#",
+  };
+
+  try {
+    const [fetchedProducts, fetchedContent] = await Promise.all([
+      getProducts().catch((err) => {
+        console.error("Error fetching products:", err);
+        return [];
+      }),
+      getSiteContent().catch((err) => {
+        console.error("Error fetching site content:", err);
+        return {};
+      }),
+    ]);
+
+    if (Array.isArray(fetchedProducts)) products = fetchedProducts;
+    if (fetchedContent) siteContent = { ...siteContent, ...fetchedContent };
+  } catch (error) {
+    console.error("Critical error in HomePage fetch:", error);
+  }
 
   const topProducts = products.slice(0, 5);
 
   const slides = topProducts.map((p) => ({
-    src: getValidImageUrl(p.images),
-    alt: p.name || "Product Image",
+    src: getValidImageUrl(p?.images),
+    alt: p?.name || "Product Image",
   }));
 
   const hrefs = topProducts.map(
-    (p) => `/product/${p.category}/${p.id}`
+    (p) => `/product/${encodeURIComponent(p?.category || "chair-indoor")}/${p?.id}`
   );
 
   const catalogPdfUrl = siteContent.catalogUrl || "#";
