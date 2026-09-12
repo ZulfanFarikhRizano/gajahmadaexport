@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { getProducts, getSiteContent } from "@/lib/data-store";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 import { IntroVideoOverlay } from "@/components/intro-video-overlay";
@@ -9,8 +8,8 @@ import { CTA } from "@/components/cta";
 import { PaymentInfo } from "@/components/payment-info";
 import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
 import { ECatalogButton } from "@/components/ecatalog-button";
-import { GalleryGrid } from "@/components/gallery-grid"; // Sesuaikan path jika dipanggil di sini
 
+// URL Base Supabase Storage (Bucket: uploads)
 const SUPABASE_STORAGE_URL =
   "https://vofsmretmpxinnkfiqsk.supabase.co/storage/v1/object/public/uploads";
 
@@ -27,10 +26,12 @@ function getValidImageUrl(images: any): string {
     return PLACEHOLDER_IMAGE;
   }
 
+  // Jika di DB sudah berupa URL lengkap https://
   if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
     return rawUrl;
   }
 
+  // Jika di DB hanya berupa nama file (misal: "bc-001.jpg" atau "acc-001.png")
   const cleanFileName = rawUrl.startsWith("/") ? rawUrl.slice(1) : rawUrl;
   return `${SUPABASE_STORAGE_URL}/${cleanFileName}`;
 }
@@ -68,12 +69,6 @@ export default async function HomePage() {
         subheadline={siteContent.heroSubheadline}
         waNumber={siteContent.whatsappNumber}
       />
-
-      {/* PASTI BUNGKUS DENGAN SUSPENSE AGAR CLIENT STATE / QUERY PARAMS LANGSUNG MEREFRESH DOM */}
-      <Suspense fallback={<div className="py-12 text-center text-sm text-clay-600">Memuat produk...</div>}>
-        <GalleryGrid products={products} />
-      </Suspense>
-
       <Features />
       <TestimonialsSection />
       <CTA />

@@ -12,16 +12,12 @@ export function generateStaticParams() {
   return CATEGORIES.map((c) => ({ category: c.slug }));
 }
 
-interface CategoryPageProps {
-  params: Promise<{ category: string }> | { category: string };
-}
-
-export default async function CategoryPage({ params }: CategoryPageProps) {
-  // Await params untuk kompatibilitas Next.js App Router terbaru
-  const resolvedParams = await params;
-  const categorySlug = resolvedParams.category;
-
-  const category = CATEGORIES.find((c) => c.slug === categorySlug);
+export default async function CategoryPage({
+  params,
+}: {
+  params: { category: string };
+}) {
+  const category = CATEGORIES.find((c) => c.slug === params.category);
   if (!category) notFound();
 
   const [products, siteContent] = await Promise.all([
@@ -44,45 +40,36 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         </p>
       ) : (
         <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => {
-            const firstImage =
-              Array.isArray(product.images) && product.images.length > 0
-                ? product.images[0]
-                : "/placeholder.jpg";
-
-            return (
-              <Link
-                key={product.id}
-                href={`/product/${product.category}/${product.id}`}
-                className="block overflow-hidden rounded-2xl border border-clay-950/10 bg-white shadow-sm transition-shadow hover:shadow-md"
-              >
-                <div className="aspect-square overflow-hidden bg-cream-100">
-                  <SafeImage
-                    src={firstImage}
-                    alt={product.name || "Product"}
-                    className="h-full w-full object-cover"
+          {products.map((product) => (
+            <Link
+              key={product.id}
+              href={`/product/${product.category}/${product.id}`}
+              className="block overflow-hidden rounded-2xl border border-clay-950/10 bg-white shadow-sm transition-shadow hover:shadow-md"
+            >
+              <div className="aspect-square overflow-hidden bg-cream-100">
+                <SafeImage
+                  src={product.images[0]}
+                  alt={product.name}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="p-5">
+                <h2 className="font-display text-lg text-clay-950">{product.name}</h2>
+                <p className="mt-1 text-sm text-clay-600 line-clamp-2">
+                  {product.description}
+                </p>
+                <p className="mt-2 text-sm font-medium text-terracotta-600">
+                  {product.price}
+                </p>
+                <div className="mt-4">
+                  <ProductWhatsAppButton
+                    waNumber={siteContent.whatsappNumber}
+                    product={product}
                   />
                 </div>
-                <div className="p-5">
-                  <h2 className="font-display text-lg text-clay-950">
-                    {product.name}
-                  </h2>
-                  <p className="mt-1 text-sm text-clay-600 line-clamp-2">
-                    {product.description}
-                  </p>
-                  <p className="mt-2 text-sm font-medium text-terracotta-600">
-                    {product.price}
-                  </p>
-                  <div className="mt-4">
-                    <ProductWhatsAppButton
-                      waNumber={siteContent.whatsappNumber}
-                      product={product}
-                    />
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
+              </div>
+            </Link>
+          ))}
         </div>
       )}
     </main>
