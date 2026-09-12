@@ -1,7 +1,6 @@
 import type { Config } from "tailwindcss";
 
 export default {
-  darkMode: "class",
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   theme: {
     extend: {
@@ -30,13 +29,21 @@ export default {
           50: "#FAF6EE",
           100: "#F3EBDA",
         },
-        // Variabel dinamis untuk Light/Dark Mode
-        background: {
-          DEFAULT: "#FAF6EE",
-        },
-        foreground: {
-          DEFAULT: "#2E2018",
-        },
+        // Aliases so shadcn-style utility classes (bg-background,
+        // text-muted-foreground, ring-ring, etc.) resolve to brand colors
+        // instead of silently rendering as unstyled.
+        background: "#FAF6EE",
+        foreground: "#2E2018",
+        muted: "#F3EBDA",
+        "muted-foreground": "#6B4A34",
+        ring: "#A85C3F",
+      },
+      fontFamily: {
+        display: ["Fraunces", "serif"],
+        body: ["Inter", "sans-serif"],
+      },
+      boxShadow: {
+        card: "0 20px 40px -12px rgba(46, 32, 24, 0.25)",
       },
     },
   },
