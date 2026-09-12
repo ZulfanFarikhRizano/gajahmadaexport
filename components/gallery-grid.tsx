@@ -145,6 +145,9 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
     return filteredProducts.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProducts, currentPage]);
 
+  // DEBUG SEMENTARA — hapus setelah bug ketemu
+  console.log("[GalleryGrid] render → currentPage:", currentPage, "totalPages:", totalPages);
+
   return (
     <div ref={gridTopRef} className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 scroll-mt-24">
       {/* Category Filter Buttons */}
