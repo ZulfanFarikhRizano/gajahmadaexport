@@ -8,6 +8,7 @@ import { CTA } from "@/components/cta";
 import { PaymentInfo } from "@/components/payment-info";
 import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
 import { ECatalogButton } from "@/components/ecatalog-button";
+import { SectionWrapper } from "@/components/section-wrapper";
 
 // URL Base Supabase Storage (Bucket: uploads)
 const SUPABASE_STORAGE_URL =
@@ -26,12 +27,10 @@ function getValidImageUrl(images: any): string {
     return PLACEHOLDER_IMAGE;
   }
 
-  // Jika di DB sudah berupa URL lengkap https://
   if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
     return rawUrl;
   }
 
-  // Jika di DB hanya berupa nama file (misal: "bc-001.jpg" atau "acc-001.png")
   const cleanFileName = rawUrl.startsWith("/") ? rawUrl.slice(1) : rawUrl;
   return `${SUPABASE_STORAGE_URL}/${cleanFileName}`;
 }
@@ -56,30 +55,45 @@ export default async function HomePage() {
   const catalogPdfUrl = siteContent.catalogUrl || "#";
 
   return (
-    <main>
+    <main className="overflow-hidden">
       <IntroVideoOverlay
         srcLandscape="/video/intro-desktop.mp4"
         srcPortrait="/video/intro-mobile.mp4"
       />
 
-      <HomeGallerySpill
-        slides={slides}
-        hrefs={hrefs}
-        headline={siteContent.heroHeadline}
-        subheadline={siteContent.heroSubheadline}
-        waNumber={siteContent.whatsappNumber}
-      />
-      <Features />
-      <TestimonialsSection />
-      <CTA />
+      <SectionWrapper delay={0.1}>
+        <HomeGallerySpill
+          slides={slides}
+          hrefs={hrefs}
+          headline={siteContent.heroHeadline}
+          subheadline={siteContent.heroSubheadline}
+          waNumber={siteContent.whatsappNumber}
+        />
+      </SectionWrapper>
 
-      <PaymentInfo />
+      <SectionWrapper delay={0.15}>
+        <Features />
+      </SectionWrapper>
 
-      <div className="flex justify-center bg-white py-12">
+      <SectionWrapper delay={0.15}>
+        <TestimonialsSection />
+      </SectionWrapper>
+
+      <SectionWrapper delay={0.1}>
+        <CTA />
+      </SectionWrapper>
+
+      <SectionWrapper delay={0.15}>
+        <PaymentInfo />
+      </SectionWrapper>
+
+      <SectionWrapper delay={0.1} className="flex justify-center bg-white py-12">
         <ECatalogButton href={catalogPdfUrl} />
-      </div>
+      </SectionWrapper>
 
-      <PurchaseInquiryForm />
+      <SectionWrapper delay={0.15}>
+        <PurchaseInquiryForm />
+      </SectionWrapper>
     </main>
   );
 }
