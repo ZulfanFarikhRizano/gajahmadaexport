@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 import { SafeImage } from "@/components/safe-image";
@@ -28,6 +27,7 @@ export interface CoverflowCarouselProps {
   falloff?: number;
   fade?: number;
   cardWidth?: string;
+  /** Rasio lebar:tinggi kartu. 1 = kotak (default). 0.75 = potret 3:4. */
   cardAspect?: number;
   gap?: number;
   loop?: boolean;
@@ -35,6 +35,10 @@ export interface CoverflowCarouselProps {
   showPagination?: boolean;
   showNavigation?: boolean;
   initialIndex?: number;
+  /**
+   * Dipanggil saat kartu yang SUDAH di tengah diklik/tap (bukan drag).
+   * Kartu di samping yang diklik akan digeser ke tengah dulu.
+   */
   onSlideActivate?: (index: number, slide: CoverflowSlide) => void;
   label?: string;
   className?: string;
@@ -84,7 +88,7 @@ export function CoverflowCarousel({
 
   const indexAt = React.useCallback(
     (pos: number) => ((Math.round(pos) % count) + count) % count,
-    [count]
+    [count],
   );
 
   const paint = React.useCallback(() => {
@@ -136,12 +140,12 @@ export function CoverflowCarousel({
       };
       rafRef.current = requestAnimationFrame(step);
     },
-    [indexAt, paint]
+    [indexAt, paint],
   );
 
   const clamp = React.useCallback(
     (pos: number) => (loop ? pos : Math.max(0, Math.min(count - 1, pos))),
-    [count, loop]
+    [count, loop],
   );
 
   const goTo = React.useCallback(
@@ -151,12 +155,12 @@ export function CoverflowCarousel({
         : index;
       settle(clamp(target));
     },
-    [clamp, count, loop, settle]
+    [clamp, count, loop, settle],
   );
 
   const nudge = React.useCallback(
     (by: number) => settle(clamp(Math.round(targetRef.current) + by)),
-    [clamp, settle]
+    [clamp, settle],
   );
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -167,9 +171,7 @@ export function CoverflowCarousel({
     event.currentTarget.setPointerCapture(event.pointerId);
     targetRef.current = posRef.current;
 
-    const pressedEl = (event.target as HTMLElement).closest<HTMLElement>(
-      "[data-cf-index]"
-    );
+    const pressedEl = (event.target as HTMLElement).closest<HTMLElement>("[data-cf-index]");
     const pressedIndex = pressedEl ? Number(pressedEl.dataset.cfIndex) : null;
 
     dragRef.current = {
@@ -245,17 +247,14 @@ export function CoverflowCarousel({
     () => () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     },
-    []
+    [],
   );
 
   const active = slides[selected];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-      className={cn("w-full relative", className)}
+    <div
+      className={cn("w-full", className)}
       style={{ ["--cf-card" as string]: cardWidth }}
       role="region"
       aria-roledescription="carousel"
@@ -290,108 +289,75 @@ export function CoverflowCarousel({
           <div
             className="relative select-none"
             style={{
-              height:
-                cardAspect === 1
-                  ? "var(--cf-card)"
-                  : `calc(var(--cf-card) / ${cardAspect})`,
+              height: cardAspect === 1 ? "var(--cf-card)" : `calc(var(--cf-card) / ${cardAspect})`,
               transformStyle: "preserve-3d",
             }}
           >
-            {slides.map((slide, index) => {
-              const isActive = index === selected;
-              return (
-                <motion.div
-                  key={index}
-                  ref={(node) => {
-                    cardRefs.current[index] = node;
-                  }}
-                  data-cf-index={index}
-                  role="group"
-                  aria-roledescription="slide"
-                  aria-label={`${index + 1} of ${count}`}
-                  animate={isActive ? { y: [0, -6, 0] } : { y: 0 }}
-                  transition={{
-                    duration: 3.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className={cn(
-                    "absolute left-1/2 top-0 aspect-square overflow-hidden rounded-2xl bg-muted shadow-2xl transition-all duration-300 will-change-transform group",
-                    isActive &&
-                      "cursor-pointer ring-2 ring-amber-600/40 shadow-amber-900/20",
-                    cardClassName
-                  )}
-                  style={{ width: "var(--cf-card)" }}
-                >
-                  <SafeImage
-                    src={slide.src}
-                    alt={slide.alt}
-                    className="h-full w-full select-none object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-30" />
-                </motion.div>
-              );
-            })}
+            {slides.map((slide, index) => (
+              <div
+                key={index}
+                ref={(node) => {
+                  cardRefs.current[index] = node;
+                }}
+                data-cf-index={index}
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`${index + 1} of ${count}`}
+                className={cn(
+                  "absolute left-1/2 top-0 aspect-square overflow-hidden rounded-2xl bg-muted shadow-xl will-change-transform",
+                  index === selected && "cursor-pointer",
+                  cardClassName,
+                )}
+                style={{ width: "var(--cf-card)" }}
+              >
+                <SafeImage
+                  src={slide.src}
+                  alt={slide.alt}
+                  className="h-full w-full select-none object-cover"
+                />
+              </div>
+            ))}
           </div>
         </div>
 
         {showNavigation && (
           <>
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+            <button
               type="button"
               aria-label="Previous slide"
               onClick={() => nudge(-1)}
-              className="absolute left-3 top-1/2 z-[200] -translate-y-1/2 rounded-full bg-background/80 p-3 text-foreground backdrop-blur-md shadow-lg transition hover:bg-background border border-amber-900/10"
+              className="absolute left-3 top-1/2 z-[200] -translate-y-1/2 rounded-full bg-background/70 p-2 text-foreground backdrop-blur transition hover:bg-background"
             >
               <ChevronLeft className="size-5" />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+            </button>
+            <button
               type="button"
               aria-label="Next slide"
               onClick={() => nudge(1)}
-              className="absolute right-3 top-1/2 z-[200] -translate-y-1/2 rounded-full bg-background/80 p-3 text-foreground backdrop-blur-md shadow-lg transition hover:bg-background border border-amber-900/10"
+              className="absolute right-3 top-1/2 z-[200] -translate-y-1/2 rounded-full bg-background/70 p-2 text-foreground backdrop-blur transition hover:bg-background"
             >
               <ChevronRight className="size-5" />
-            </motion.button>
+            </button>
           </>
         )}
       </div>
 
-      <AnimatePresence mode="wait">
-        {showCaption && active?.title && (
-          <motion.div
-            key={selected}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-            className="mt-2 flex flex-col items-center px-6"
-          >
-            <p className="text-[15px] font-semibold tracking-tight text-foreground">
-              {active.title}
-            </p>
-            {active.subtitle && (
-              <p className="mt-1 text-[13px] text-muted-foreground">
-                {active.subtitle}
-              </p>
-            )}
-            {active.meta && active.meta.length > 0 && (
-              <dl className="mt-10 w-full max-w-[230px] text-[12px]">
-                {active.meta.map((row) => (
-                  <div key={row.label} className="flex justify-between py-[5px]">
-                    <dt className="text-muted-foreground">{row.label}</dt>
-                    <dd className="font-medium text-foreground">{row.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {showCaption && active?.title && (
+        <div key={selected} className="mt-2 flex flex-col items-center px-6 duration-300 animate-in fade-in">
+          <p className="text-[15px] font-semibold tracking-tight text-foreground">{active.title}</p>
+          {active.subtitle && <p className="mt-1 text-[13px] text-muted-foreground">{active.subtitle}</p>}
+          {active.meta && active.meta.length > 0 && (
+            <dl className="mt-10 w-full max-w-[230px] text-[12px]">
+              {active.meta.map((row) => (
+                <div key={row.label} className="flex justify-between py-[5px]">
+                  <dt className="text-muted-foreground">{row.label}</dt>
+                  <dd className="font-medium text-foreground">{row.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </div>
+      )}
 
       {showPagination && (
         <div className="mt-6 flex items-center justify-center gap-2">
@@ -403,15 +369,13 @@ export function CoverflowCarousel({
               aria-current={index === selected}
               onClick={() => goTo(index)}
               className={cn(
-                "h-2 rounded-full bg-foreground transition-all duration-300",
-                index === selected
-                  ? "w-6 opacity-100 bg-amber-700"
-                  : "w-2 opacity-30"
+                "size-2 rounded-full bg-foreground transition-opacity",
+                index === selected ? "opacity-100" : "opacity-30",
               )}
             />
           ))}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
