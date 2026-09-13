@@ -213,15 +213,15 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
           </div>
         ) : (
           <div className="relative w-full min-h-[400px]">
-            {/* FLOATING BUTTONS */}
-            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-20 hidden md:flex items-center justify-between px-0.5 -mx-2 sm:-mx-4">
+            {/* FLOATING BUTTONS (Sudah bisa tampil di mobile) */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-20 flex items-center justify-between px-1 -mx-2 sm:-mx-4">
               <button
                 type="button"
                 onClick={() => handlePageChange(currentPage - 1, false)}
                 disabled={currentPage === 1 || totalPages <= 1}
                 aria-label="Previous Page"
                 className={`pointer-events-auto flex items-center justify-center 
-                  w-10 h-10 rounded-full 
+                  w-8 h-8 sm:w-10 sm:h-10 rounded-full 
                   bg-white/90 backdrop-blur-md border border-clay-200 
                   text-clay-900 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 ${
                     currentPage === 1 || totalPages <= 1
@@ -229,7 +229,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
                       : "opacity-100 scale-100"
                   }`}
               >
-                <ChevronLeft className="w-5 h-5 text-clay-900" />
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-clay-900" />
               </button>
 
               <button
@@ -238,7 +238,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
                 disabled={currentPage === totalPages || totalPages <= 1}
                 aria-label="Next Page"
                 className={`pointer-events-auto flex items-center justify-center 
-                  w-10 h-10 rounded-full 
+                  w-8 h-8 sm:w-10 sm:h-10 rounded-full 
                   bg-white/90 backdrop-blur-md border border-clay-200 
                   text-clay-900 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 ${
                     currentPage === totalPages || totalPages <= 1
@@ -246,7 +246,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
                       : "opacity-100 scale-100"
                   }`}
               >
-                <ChevronRight className="w-5 h-5 text-clay-900" />
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-clay-900" />
               </button>
             </div>
 
