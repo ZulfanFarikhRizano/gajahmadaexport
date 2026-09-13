@@ -61,7 +61,7 @@ export default async function HomePage() {
     console.error("Critical error in HomePage fetch:", error);
   }
 
-  const topProducts = products.slice(0, 5);
+  const topProducts = products.slice(0,20);
 
   const slides = topProducts.map((p) => ({
     src: getValidImageUrl(p?.images),

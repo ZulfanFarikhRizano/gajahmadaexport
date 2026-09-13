@@ -4,12 +4,26 @@ export const dynamic = "force-dynamic";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, Trash2, Pencil, Plus, Upload, CheckCircle2, AlertTriangle, FileText, BarChart2, Eye } from "lucide-react";
-import { CATEGORIES, type Product, type SiteContent } from "@/lib/types";
+import {
+  LogOut,
+  Trash2,
+  Pencil,
+  Plus,
+  Upload,
+  CheckCircle2,
+  AlertTriangle,
+  FileText,
+  BarChart2,
+  Eye,
+  MessageSquare,
+  X,
+  Sparkles,
+} from "lucide-react";
+import { CATEGORIES, type Product, type SiteContent, type Testimonial } from "@/lib/types";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 import { createClient } from "@supabase/supabase-js";
 
-type Tab = "content" | "products";
+type Tab = "content" | "testimonials" | "products";
 
 const emptyDraft = {
   name: "",
@@ -17,6 +31,13 @@ const emptyDraft = {
   description: "",
   price: "Hubungi kami",
   images: [] as string[],
+};
+
+const emptyTestimonialDraft: Testimonial = {
+  id: "",
+  testimonial: "",
+  by: "",
+  imgSrc: "",
 };
 
 function onImgError(e: React.SyntheticEvent<HTMLImageElement>) {
@@ -35,6 +56,11 @@ export default function AdminDashboardPage() {
   const [uploading, setUploading] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [notice, setNotice] = React.useState<{ type: "ok" | "error"; text: string } | null>(null);
+
+  // State Manajemen Testimoni
+  const [testimonialDraft, setTestimonialDraft] = React.useState<Testimonial>(emptyTestimonialDraft);
+  const [editingTestimonialId, setEditingTestimonialId] = React.useState<string | null>(null);
+  const [uploadingTestiImg, setUploadingTestiImg] = React.useState(false);
 
   const flash = (type: "ok" | "error", text: string) => {
     setNotice({ type, text });
@@ -76,27 +102,21 @@ export default function AdminDashboardPage() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    // Aman dari error prerender Vercel
     if (!supabaseUrl || !supabaseAnonKey) return;
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-    // Setup Realtime Subscription
     const channel = supabase
       .channel("realtime-admin-dashboard")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "products" },
-        () => {
-          loadAll();
-        }
+        () => loadAll()
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "site_content" },
-        () => {
-          loadAll();
-        }
+        () => loadAll()
       )
       .subscribe();
 
@@ -110,14 +130,15 @@ export default function AdminDashboardPage() {
     router.push("/admin/login");
   };
 
-  const saveContent = async () => {
-    if (!siteContent) return;
+  const saveContent = async (customContent?: SiteContent) => {
+    const payload = customContent || siteContent;
+    if (!payload) return;
     setSavingContent(true);
     try {
       const res = await fetch("/api/admin/site-content", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(siteContent),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -158,9 +179,7 @@ export default function AdminDashboardPage() {
 
       const uploadRes = await fetch(data.signedUrl, {
         method: "PUT",
-        headers: {
-          "Content-Type": fileType,
-        },
+        headers: { "Content-Type": fileType },
         body: file,
       });
 
@@ -181,7 +200,7 @@ export default function AdminDashboardPage() {
     const url = await uploadFile(file);
     if (url && siteContent) {
       setSiteContent({ ...siteContent, logoUrl: url });
-      flash("ok", 'Logo terunggah — klik "Simpan Perubahan" di bawah untuk menerapkannya.');
+      flash("ok", 'Logo terunggah — klik "Simpan Perubahan" di bawah.');
     }
   };
 
@@ -194,16 +213,72 @@ export default function AdminDashboardPage() {
     const url = await uploadFile(file);
     if (url && siteContent) {
       setSiteContent({ ...siteContent, catalogUrl: url });
-      flash(
-        "ok",
-        'File E-Catalog PDF berhasil terunggah — klik "Simpan Perubahan" di bawah untuk menerapkannya.'
-      );
+      flash("ok", 'File E-Catalog PDF berhasil terunggah — klik "Simpan Perubahan" di bawah.');
     }
   };
 
   const handleProductImageUpload = async (file: File) => {
     const url = await uploadFile(file);
     if (url) setDraft((d) => ({ ...d, images: [...d.images, url] }));
+  };
+
+  // Upload Gambar untuk Testimoni Card
+  const handleTestimonialImageUpload = async (file: File) => {
+    setUploadingTestiImg(true);
+    const url = await uploadFile(file);
+    if (url) {
+      setTestimonialDraft((prev) => ({ ...prev, imgSrc: url }));
+    }
+    setUploadingTestiImg(false);
+  };
+
+  // Manajemen Testimoni
+  const handleSaveTestimonial = async () => {
+    if (!siteContent) return;
+    if (!testimonialDraft.testimonial || !testimonialDraft.by) {
+      flash("error", "Isi teks testimoni dan nama/jabatan.");
+      return;
+    }
+
+    const currentList = siteContent.testimonials || [];
+    let updatedList: Testimonial[];
+
+    if (editingTestimonialId) {
+      updatedList = currentList.map((t) =>
+        t.id === editingTestimonialId ? testimonialDraft : t
+      );
+    } else {
+      const newTesti = {
+        ...testimonialDraft,
+        id: `testi-${Date.now()}`,
+        imgSrc: testimonialDraft.imgSrc || PLACEHOLDER_IMAGE,
+      };
+      updatedList = [...currentList, newTesti];
+    }
+
+    const newSiteContent = { ...siteContent, testimonials: updatedList };
+    setSiteContent(newSiteContent);
+    await saveContent(newSiteContent);
+    resetTestimonialDraft();
+  };
+
+  const handleEditTestimonial = (testi: Testimonial) => {
+    setEditingTestimonialId(testi.id);
+    setTestimonialDraft(testi);
+  };
+
+  const handleDeleteTestimonial = async (id: string) => {
+    if (!siteContent || !confirm("Hapus kartu testimoni ini?")) return;
+    const updatedList = (siteContent.testimonials || []).filter((t) => t.id !== id);
+    const newSiteContent = { ...siteContent, testimonials: updatedList };
+    setSiteContent(newSiteContent);
+    await saveContent(newSiteContent);
+    if (editingTestimonialId === id) resetTestimonialDraft();
+  };
+
+  const resetTestimonialDraft = () => {
+    setTestimonialDraft(emptyTestimonialDraft);
+    setEditingTestimonialId(null);
   };
 
   const resetDraft = () => {
@@ -232,12 +307,7 @@ export default function AdminDashboardPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(draft),
         });
-
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(`Gagal menyimpan produk: ${errText}`);
-        }
-
+        if (!res.ok) throw new Error(await res.text());
         const data = await res.json();
         setProducts((prev) => prev.map((p) => (p.id === editingId ? data.product : p)));
       } else {
@@ -246,12 +316,7 @@ export default function AdminDashboardPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(draft),
         });
-
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(`Gagal menambah produk: ${errText}`);
-        }
-
+        if (!res.ok) throw new Error(await res.text());
         const data = await res.json();
         setProducts((prev) => [...prev, data.product]);
       }
@@ -268,10 +333,7 @@ export default function AdminDashboardPage() {
     if (!confirm("Hapus produk ini?")) return;
     try {
       const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Gagal menghapus produk: ${errText}`);
-      }
+      if (!res.ok) throw new Error(await res.text());
       setProducts((prev) => prev.filter((p) => p.id !== id));
       if (editingId === id) resetDraft();
     } catch (err) {
@@ -286,6 +348,8 @@ export default function AdminDashboardPage() {
       </div>
     );
   }
+
+  const testimonialList = siteContent.testimonials || [];
 
   return (
     <main className="min-h-screen bg-cream-50">
@@ -304,9 +368,7 @@ export default function AdminDashboardPage() {
       {notice && (
         <div
           className={`fixed bottom-5 right-5 z-50 flex max-w-sm items-start gap-2 rounded-xl px-4 py-3 text-sm shadow-lg ${
-            notice.type === "ok"
-              ? "bg-emerald-600 text-white"
-              : "bg-red-600 text-white"
+            notice.type === "ok" ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
           }`}
         >
           {notice.type === "ok" ? (
@@ -318,20 +380,24 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      <div className="mx-auto max-w-4xl px-6 py-8">
+      <div className="mx-auto max-w-5xl px-6 py-8">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-2">
           <div className="flex gap-2">
-            {(["content", "products"] as const).map((t) => (
+            {[
+              { id: "content", label: "Logo & Teks" },
+              { id: "testimonials", label: `Testimoni Cards (${testimonialList.length})` },
+              { id: "products", label: `Produk (${products.length})` },
+            ].map((t) => (
               <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`rounded-full px-4 py-2 text-sm font-medium ${
-                  tab === t
-                    ? "bg-terracotta-600 text-white"
-                    : "bg-white text-clay-600 border border-clay-950/10"
+                key={t.id}
+                onClick={() => setTab(t.id as Tab)}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                  tab === t.id
+                    ? "bg-terracotta-600 text-white shadow"
+                    : "bg-white text-clay-600 border border-clay-950/10 hover:border-terracotta-600/30"
                 }`}
               >
-                {t === "content" ? "Logo & Teks Website" : "Produk"}
+                {t.label}
               </button>
             ))}
           </div>
@@ -345,6 +411,7 @@ export default function AdminDashboardPage() {
           </button>
         </div>
 
+        {/* TAB 1: LOGO & CONTENT */}
         {tab === "content" && (
           <div className="space-y-5 rounded-2xl bg-white p-6 shadow-sm">
             <div>
@@ -442,7 +509,7 @@ export default function AdminDashboardPage() {
             </div>
 
             <button
-              onClick={saveContent}
+              onClick={() => saveContent()}
               disabled={savingContent}
               className="rounded-full bg-terracotta-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-clay-800 disabled:opacity-60"
             >
@@ -451,9 +518,174 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
+        {/* TAB 2: MANAJEMEN TESTIMONI CARDS (GUI MANAGER) */}
+        {tab === "testimonials" && (
+          <div className="space-y-8">
+            {/* Form Input / Edit Testimoni Card */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm border border-clay-950/5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-display text-lg text-clay-950 flex items-center gap-2">
+                  <MessageSquare size={20} className="text-terracotta-600" />
+                  {editingTestimonialId ? "Edit Kartu Testimoni" : "Tambah Kartu Testimoni Baru"}
+                </h2>
+                {editingTestimonialId && (
+                  <button
+                    onClick={resetTestimonialDraft}
+                    className="flex items-center gap-1 text-xs text-clay-500 hover:text-clay-800"
+                  >
+                    <X size={14} /> Batal Edit
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Form Field */}
+                <div className="md:col-span-2 space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-clay-800">Teks Testimoni (Bahasa Inggris/Indonesia)</label>
+                    <textarea
+                      rows={3}
+                      placeholder="The rattan chair and table set for our cafe has been outdoors..."
+                      value={testimonialDraft.testimonial}
+                      onChange={(e) =>
+                        setTestimonialDraft((prev) => ({ ...prev, testimonial: e.target.value }))
+                      }
+                      className="mt-1 w-full rounded-lg border border-clay-950/20 px-3 py-2 text-sm outline-none focus:border-terracotta-600"
+                    />
+                  </div>
+
+                  <Field
+                    label="Nama & Jabatan / Klien"
+                    value={testimonialDraft.by}
+                    onChange={(v) => setTestimonialDraft((prev) => ({ ...prev, by: v }))}
+                  />
+
+                  <div>
+                    <label className="text-sm font-medium text-clay-800">Foto Avatar / Profil Klien</label>
+                    <div className="mt-2 flex items-center gap-3">
+                      <label className="flex cursor-pointer items-center gap-2 rounded-full border border-clay-950/20 px-4 py-2 text-xs font-medium text-clay-800 hover:border-terracotta-600">
+                        <Upload size={14} />
+                        {uploadingTestiImg ? "Mengunggah Gambar..." : "Unggah foto dari perangkat"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) =>
+                            e.target.files?.[0] && handleTestimonialImageUpload(e.target.files[0])
+                          }
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      onClick={handleSaveTestimonial}
+                      disabled={savingContent || uploadingTestiImg}
+                      className="rounded-full bg-terracotta-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-clay-800 disabled:opacity-60 flex items-center gap-2"
+                    >
+                      <Plus size={16} />
+                      {editingTestimonialId ? "Simpan Perubahan Kartu" : "Tambahkan ke Display Cards"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Live Card Preview (GUI) */}
+                <div className="flex flex-col justify-start">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-clay-500 mb-2 flex items-center gap-1">
+                    <Sparkles size={12} className="text-brass-500" /> Live Visual Preview
+                  </span>
+                  <div className="relative border-2 border-terracotta-700 bg-terracotta-600 text-cream-50 p-6 rounded-xl shadow-md min-h-[220px] flex flex-col justify-between">
+                    <div>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={testimonialDraft.imgSrc || PLACEHOLDER_IMAGE}
+                        alt="Preview"
+                        onError={onImgError}
+                        className="mb-3 h-12 w-10 rounded-md bg-muted object-cover object-top border border-white/20 shadow-sm"
+                      />
+                      <p className="text-xs sm:text-sm font-medium leading-snug line-clamp-4">
+                        &ldquo;{testimonialDraft.testimonial || "Tulis testimoni pelanggan di sini..."}&rdquo;
+                      </p>
+                    </div>
+                    <p className="mt-3 text-xs italic font-light text-cream-100/80 truncate">
+                      — {testimonialDraft.by || "Nama Pelanggan"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Grid GUI Daftar Semua Kartu Testimoni */}
+            <div className="rounded-2xl bg-white p-6 shadow-sm border border-clay-950/5">
+              <h2 className="mb-4 font-display text-lg text-clay-950">
+                Daftar Display Cards Aktif ({testimonialList.length})
+              </h2>
+
+              {testimonialList.length === 0 ? (
+                <p className="text-sm text-clay-500 italic">Belum ada kartu testimoni yang ditambahkan.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {testimonialList.map((item, idx) => (
+                    <div
+                      key={item.id || idx}
+                      className={`relative flex flex-col justify-between rounded-xl border p-4 transition-all ${
+                        editingTestimonialId === item.id
+                          ? "border-terracotta-600 bg-terracotta-50/20 ring-2 ring-terracotta-600/20"
+                          : "border-clay-950/10 bg-cream-50/50 hover:border-terracotta-600/40"
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.imgSrc || PLACEHOLDER_IMAGE}
+                            alt={item.by}
+                            onError={onImgError}
+                            className="h-12 w-10 rounded-md object-cover object-top border border-clay-950/10 shadow-sm"
+                          />
+                          <span className="text-[10px] font-mono text-clay-400 bg-white px-2 py-0.5 rounded border border-clay-200">
+                            #{idx + 1}
+                          </span>
+                        </div>
+                        <p className="text-xs text-clay-900 leading-relaxed font-medium line-clamp-3">
+                          &ldquo;{item.testimonial}&rdquo;
+                        </p>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-clay-950/10 flex items-center justify-between">
+                        <span className="text-xs font-medium text-clay-600 truncate max-w-[140px]">
+                          {item.by}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleEditTestimonial(item)}
+                            className="rounded-md p-1.5 text-clay-600 hover:bg-white hover:text-terracotta-600 border border-transparent hover:border-clay-200"
+                            title="Edit Kartu"
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTestimonial(item.id)}
+                            className="rounded-md p-1.5 text-clay-600 hover:bg-white hover:text-red-600 border border-transparent hover:border-clay-200"
+                            title="Hapus Kartu"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: PRODUK */}
         {tab === "products" && (
           <div className="space-y-8">
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
+            <div className="rounded-2xl bg-white p-6 shadow-sm border border-clay-950/5">
               <h2 className="mb-4 font-display text-lg text-clay-950">
                 {editingId ? "Edit Produk" : "Tambah Produk"}
               </h2>
@@ -497,7 +729,7 @@ export default function AdminDashboardPage() {
                 />
 
                 <div>
-                  <label className="text-sm font-medium text-clay-800">Gambar</label>
+                  <label className="text-sm font-medium text-clay-800">Gambar Produk</label>
                   <div className="mt-2 flex flex-wrap gap-3">
                     {draft.images.map((src, i) => (
                       <div key={`${src}-${i}`} className="relative">
@@ -562,7 +794,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
+            <div className="rounded-2xl bg-white p-6 shadow-sm border border-clay-950/5">
               <h2 className="mb-4 font-display text-lg text-clay-950">
                 Semua Produk ({products.length})
               </h2>
@@ -623,7 +855,7 @@ function Field({
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full rounded-lg border border-clay-950/20 px-3 py-2 outline-none focus:border-terracotta-600"
+        className="mt-1 w-full rounded-lg border border-clay-950/20 px-3 py-2 text-sm outline-none focus:border-terracotta-600"
       />
     </div>
   );

@@ -26,6 +26,14 @@ export interface Product {
   createdAt: string;
 }
 
+// Tambahkan interface Testimonial ini
+export interface Testimonial {
+  id: string;
+  testimonial: string;
+  by: string;
+  imgSrc: string;
+}
+
 export interface SiteContent {
   siteName: string;
   heroHeadline: string;
@@ -34,5 +42,6 @@ export interface SiteContent {
   contactAddress: string;
   aboutText: string;
   logoUrl: string;
-  catalogUrl?: string; 
+  catalogUrl?: string;
+  testimonials?: Testimonial[]; // Tambahkan field opsional ini
 }

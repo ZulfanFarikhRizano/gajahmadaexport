@@ -17,15 +17,11 @@ export function CtaAnimated({ waNumber }: { waNumber: string }) {
         className="relative mx-auto max-w-3xl px-6 text-center text-cream-50"
       >
         <p className="text-xs tracking-[0.3em] uppercase text-cream-100/80 mb-4">
-          Siap melengkapi ruang Anda
+          Ready to elevate your space
         </p>
-        <h2 className="font-display text-3xl md:text-5xl font-medium leading-tight mb-5">
-          Hadirkan kerajinan Gajah Mada ke ruang Anda.
+        <h2 className="font-display text-3xl md:text-5xl font-medium leading-tight mb-10">
+          Bring Gajah Mada craftsmanship into your space.
         </h2>
-        <p className="text-cream-100/85 mb-10 max-w-lg mx-auto">
-          Dari satu kursi gantung hingga pesanan satu kontainer — tim kami membalas
-          dalam satu hari kerja.
-        </p>
 
         <motion.a
           href={buildGeneralWhatsAppLink(waNumber)}

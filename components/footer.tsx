@@ -5,21 +5,19 @@ import { CATEGORIES } from "@/lib/types";
 export function Footer({ siteName, tagline }: { siteName: string; tagline: string }) {
   return (
     <footer className="relative w-full bg-white text-clay-800 pt-14 pb-28 sm:pb-16 border-t border-clay-200 overflow-hidden">
-      
       {/* Pattern Batik: Opacity 0.1 disesuaikan ke footer dengan skala 260px */}
-      <div 
-        aria-hidden="true" 
-        className="pointer-events-none absolute inset-0 opacity-[0.1]" 
-        style={{ 
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.1]"
+        style={{
           backgroundImage: "url('/images/batik-pattern.png')",
           backgroundSize: "260px 260px",
-          backgroundRepeat: "repeat"
-        }} 
+          backgroundRepeat: "repeat",
+        }}
       />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-12 items-start">
-          
           {/* Brand Profile & Contact */}
           <div className="lg:col-span-5 space-y-4">
             <div>
@@ -45,7 +43,6 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
 
             {/* Certifications, Payment & Social Media */}
             <div className="pt-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
-              
               <div>
                 <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-[#b3593b] block mb-2">
                   Certifications
@@ -123,13 +120,11 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                   </a>
                 </div>
               </div>
-
             </div>
           </div>
 
           {/* Navigation Links */}
           <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-6 pt-6 lg:pt-0 border-t lg:border-t-0 border-clay-200">
-            
             <div>
               <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-[#b3593b] block mb-3">
                 Collections
@@ -137,7 +132,10 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
               <ul className="space-y-2 text-xs font-medium text-clay-700">
                 {CATEGORIES.slice(0, 5).map((c) => (
                   <li key={c.slug}>
-                    <Link href={`/product/${c.slug}`} className="hover:text-[#b3593b] transition-colors">
+                    <Link
+                      href={`/gallery?category=${c.slug}`}
+                      className="hover:text-[#b3593b] transition-colors"
+                    >
                       {c.label}
                     </Link>
                   </li>
@@ -150,10 +148,26 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                 Company
               </span>
               <ul className="space-y-2 text-xs font-medium text-clay-700">
-                <li><Link href="/about" className="hover:text-[#b3593b] transition-colors">About Us</Link></li>
-                <li><Link href="/contact" className="hover:text-[#b3593b] transition-colors">Contact Us</Link></li>
-                <li><Link href="/gallery" className="hover:text-[#b3593b] transition-colors">Gallery</Link></li>
-                <li><Link href="/custom-order" className="hover:text-[#b3593b] transition-colors">Custom Order (B2B)</Link></li>
+                <li>
+                  <Link href="/about" className="hover:text-[#b3593b] transition-colors">
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact" className="hover:text-[#b3593b] transition-colors">
+                    Contact Us
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/gallery" className="hover:text-[#b3593b] transition-colors">
+                    Gallery
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/custom-order" className="hover:text-[#b3593b] transition-colors">
+                    Custom Order (B2B)
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -168,9 +182,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                 <li>Sustainable Rattan Sourcing</li>
               </ul>
             </div>
-
           </div>
-
         </div>
 
         {/* Bottom Copyright */}
@@ -180,7 +192,6 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
             <Globe size={12} /> Worldwide Wholesale & Export Supplier
           </p>
         </div>
-
       </div>
     </footer>
   );

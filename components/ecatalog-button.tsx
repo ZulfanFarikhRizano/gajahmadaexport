@@ -8,8 +8,8 @@ interface ECatalogButtonProps {
 }
 
 export function ECatalogButton({ href }: ECatalogButtonProps) {
-  const state1 = "Lihat E-Catalog";
-  const state2 = "Buka PDF";
+  const state1 = "Download E-Catalog";
+  const state2 = "Open PDF";
   
   // Jika href tidak ada atau berisi link Supabase, paksa gunakan URL /catalog.pdf
   let targetHref = href;
