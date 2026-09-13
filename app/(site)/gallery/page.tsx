@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { getProducts } from "@/lib/data-store";
 import { GalleryGrid } from "@/components/gallery-grid";
-import { Footer } from "@/components/footer";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 
 // URL Base Supabase Storage (Bucket: uploads)
@@ -15,7 +14,6 @@ function getValidImageUrl(img: any): string {
 
   const formattedImg = img.trim();
 
-  // Return directly if it is already a full URL (http/https)
   if (formattedImg.startsWith("http://") || formattedImg.startsWith("https://")) {
     return formattedImg;
   }
@@ -29,7 +27,6 @@ export const revalidate = 60;
 export default async function GalleryPage() {
   let rawProducts: any[] = [];
 
-  // Error protection for fetching data
   try {
     const fetched = await getProducts().catch((err) => {
       console.error("Error fetching products in GalleryPage:", err);
@@ -43,7 +40,6 @@ export default async function GalleryPage() {
     rawProducts = [];
   }
 
-  // Safe formatting for products & images
   const products = rawProducts
     .map((product) => {
       if (!product) return null;
@@ -101,11 +97,6 @@ export default async function GalleryPage() {
           <GalleryGrid products={products} />
         </Suspense>
       </main>
-
-      {/* FOOTER */}
-      <div className="relative z-10">
-        <Footer siteName="Gajah Mada Export" tagline="Handwoven rattan, made to travel the world" />
-      </div>
     </div>
   );
 }
