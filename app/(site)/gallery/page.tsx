@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import { getProducts } from "@/lib/data-store";
 import { GalleryGrid } from "@/components/gallery-grid";
+import { Footer } from "@/components/footer";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 
 // URL Base Supabase Storage (Bucket: uploads)
@@ -13,7 +15,7 @@ function getValidImageUrl(img: any): string {
 
   const formattedImg = img.trim();
 
-  // Jika sudah berupa URL utuh (http/https), langsung kembalikan tanpa maksa ekstensi .webp
+  // Return directly if it is already a full URL (http/https)
   if (formattedImg.startsWith("http://") || formattedImg.startsWith("https://")) {
     return formattedImg;
   }
@@ -27,7 +29,7 @@ export const revalidate = 60;
 export default async function GalleryPage() {
   let rawProducts: any[] = [];
 
-  // Proteksi error fetch agar server tidak crash saat query Supabase gagal
+  // Error protection for fetching data
   try {
     const fetched = await getProducts().catch((err) => {
       console.error("Error fetching products in GalleryPage:", err);
@@ -41,47 +43,69 @@ export default async function GalleryPage() {
     rawProducts = [];
   }
 
-  // Formatting aman untuk produk & gambar
-  const products = rawProducts.map((product) => {
-    if (!product) return null;
+  // Safe formatting for products & images
+  const products = rawProducts
+    .map((product) => {
+      if (!product) return null;
 
-    let imagesArray: any[] = [];
+      let imagesArray: any[] = [];
 
-    // Parse aman untuk penanganan array maupun string JSON
-    if (Array.isArray(product.images)) {
-      imagesArray = product.images;
-    } else if (typeof product.images === "string") {
-      try {
-        const parsed = JSON.parse(product.images);
-        imagesArray = Array.isArray(parsed) ? parsed : [product.images];
-      } catch {
-        imagesArray = [product.images];
+      if (Array.isArray(product.images)) {
+        imagesArray = product.images;
+      } else if (typeof product.images === "string") {
+        try {
+          const parsed = JSON.parse(product.images);
+          imagesArray = Array.isArray(parsed) ? parsed : [product.images];
+        } catch {
+          imagesArray = [product.images];
+        }
       }
-    }
 
-    const validImages =
-      imagesArray.length > 0
-        ? imagesArray.map((img) => getValidImageUrl(img))
-        : [PLACEHOLDER_IMAGE];
+      const validImages =
+        imagesArray.length > 0
+          ? imagesArray.map((img) => getValidImageUrl(img))
+          : [PLACEHOLDER_IMAGE];
 
-    return {
-      ...product,
-      images: validImages,
-    };
-  }).filter(Boolean); // Filter data null jika ada item produk yang corrupt
+      return {
+        ...product,
+        images: validImages,
+      };
+    })
+    .filter(Boolean);
 
   return (
-    <main className="min-h-screen bg-cream-50 pt-16 pb-24">
-      <div className="mx-auto max-w-3xl px-6 text-center pt-12 mb-8">
-        <h1 className="font-display text-3xl md:text-4xl font-medium text-clay-950">
-          Galeri Produk
-        </h1>
-        <p className="mt-2 text-clay-600">
-          Klik salah satu koleksi untuk melihat detail & memesan lewat WhatsApp.
-        </p>
-      </div>
+    <div className="relative min-h-screen bg-cream-50">
+      {/* GLOBAL BACKGROUND BATIK GAJAH MADA */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.07] z-0"
+        style={{
+          backgroundImage: "url('/images/batik-gajah.png')",
+          backgroundSize: "280px 280px",
+          backgroundRepeat: "repeat",
+        }}
+      />
 
-      <GalleryGrid products={products} />
-    </main>
+      {/* MAIN CONTENT AREA */}
+      <main className="relative z-10 pt-16 pb-12">
+        <div className="mx-auto max-w-3xl px-6 text-center pt-12 mb-8">
+          <h1 className="font-display text-3xl md:text-4xl font-medium text-clay-950">
+            Product Gallery
+          </h1>
+          <p className="mt-2 text-clay-600">
+            Click on any collection item to view details & order via WhatsApp.
+          </p>
+        </div>
+
+        <Suspense fallback={<div className="text-center py-10 text-xs text-clay-500">Loading gallery...</div>}>
+          <GalleryGrid products={products} />
+        </Suspense>
+      </main>
+
+      {/* FOOTER */}
+      <div className="relative z-10">
+        <Footer siteName="Gajah Mada Export" tagline="Handwoven rattan, made to travel the world" />
+      </div>
+    </div>
   );
 }

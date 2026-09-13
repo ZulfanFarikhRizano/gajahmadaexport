@@ -4,18 +4,7 @@ import { CATEGORIES } from "@/lib/types";
 
 export function Footer({ siteName, tagline }: { siteName: string; tagline: string }) {
   return (
-    <footer className="relative w-full bg-white text-clay-800 pt-14 pb-28 sm:pb-16 border-t border-clay-200 overflow-hidden">
-      {/* Pattern Batik: Opacity 0.1 disesuaikan ke footer dengan skala 260px */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.1]"
-        style={{
-          backgroundImage: "url('/images/batik-pattern.png')",
-          backgroundSize: "260px 260px",
-          backgroundRepeat: "repeat",
-        }}
-      />
-
+    <footer className="relative w-full bg-transparent text-clay-800 pt-14 pb-28 sm:pb-16 border-t border-clay-200/60 overflow-hidden">
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-12 items-start">
           {/* Brand Profile & Contact */}
@@ -48,7 +37,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                   Certifications
                 </span>
                 <div className="flex items-center gap-1.5">
-                  <div className="flex h-8 items-center justify-center rounded-md bg-white border border-clay-200/80 px-2.5 py-1 shadow-sm">
+                  <div className="flex h-8 items-center justify-center rounded-md bg-white/80 border border-clay-200/80 px-2.5 py-1 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/images/legal-wood.png"
@@ -57,7 +46,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                     />
                   </div>
 
-                  <div className="flex h-8 items-center justify-center rounded-md bg-white border border-clay-200/80 px-2.5 py-1 shadow-sm">
+                  <div className="flex h-8 items-center justify-center rounded-md bg-white/80 border border-clay-200/80 px-2.5 py-1 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/images/amfori-bsci.png"
@@ -73,7 +62,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                   Accepted Payments
                 </span>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <div className="flex h-8 items-center justify-center rounded-md bg-white border border-clay-200/80 px-2 py-1 shadow-sm">
+                  <div className="flex h-8 items-center justify-center rounded-md bg-white/80 border border-clay-200/80 px-2 py-1 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/images/paypal.png"
@@ -82,7 +71,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                     />
                   </div>
 
-                  <div className="flex h-8 items-center justify-center rounded-md bg-white border border-clay-200/80 px-2 py-1 shadow-sm">
+                  <div className="flex h-8 items-center justify-center rounded-md bg-white/80 border border-clay-200/80 px-2 py-1 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/images/mastercard.png"
@@ -91,7 +80,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                     />
                   </div>
 
-                  <div className="flex h-8 items-center justify-center rounded-md bg-white border border-clay-200/80 px-2 py-1 shadow-sm">
+                  <div className="flex h-8 items-center justify-center rounded-md bg-white/80 border border-clay-200/80 px-2 py-1 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src="/images/ocbc.png"
@@ -102,7 +91,6 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                 </div>
               </div>
 
-              {/* Section Social Media */}
               <div>
                 <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-[#b3593b] block mb-2">
                   Follow Us
@@ -113,7 +101,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Instagram Gajah Mada Export"
-                    className="inline-flex h-8 items-center gap-2 rounded-md bg-white border border-clay-200/80 px-2.5 py-1 text-xs font-medium text-clay-800 hover:text-[#b3593b] hover:border-[#b3593b] shadow-sm transition-colors"
+                    className="inline-flex h-8 items-center gap-2 rounded-md bg-white/80 border border-clay-200/80 px-2.5 py-1 text-xs font-medium text-clay-800 hover:text-[#b3593b] hover:border-[#b3593b] shadow-sm transition-colors"
                   >
                     <Instagram size={16} className="text-[#E4405F]" />
                     <span>Instagram</span>

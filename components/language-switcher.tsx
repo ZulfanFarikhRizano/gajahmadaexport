@@ -5,8 +5,8 @@ import Image from "next/image";
 import { Globe, Check, ChevronDown } from "lucide-react";
 
 const LANGUAGES = [
-  { code: "id", label: "Bahasa Indonesia" },
   { code: "en", label: "English" },
+  { code: "id", label: "Bahasa Indonesia" },
   { code: "zh-CN", label: "中文 (Chinese)" },
   { code: "ja", label: "日本語 (Japanese)" },
   { code: "ko", label: "한국어 (Korean)" },
@@ -18,7 +18,8 @@ const LANGUAGES = [
 ];
 
 export function LanguageSwitcher() {
-  const [currentLang, setCurrentLang] = useState("id");
+  // Default diubah ke "en"
+  const [currentLang, setCurrentLang] = useState("en");
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
@@ -31,10 +32,12 @@ export function LanguageSwitcher() {
     if (googtrans) {
       const val = googtrans.split("=")[1];
       const lang = val?.split("/").pop();
-      if (lang) setCurrentLang(lang);
+      if (lang && LANGUAGES.some((l) => l.code === lang)) {
+        setCurrentLang(lang);
+      }
     }
 
-    // 2. Observer untuk menyembunyikan elemen UI Google tanpa menghapus DOM-nya
+    // 2. Observer untuk menyembunyikan UI bawaan Google Translate
     const hideGoogleElements = () => {
       const selectors = [
         ".goog-te-banner-frame",
@@ -68,12 +71,12 @@ export function LanguageSwitcher() {
       subtree: true,
     });
 
-    // 3. Init Script Google Translate
+    // 3. Init Script Google Translate dengan Base Language English ('en')
     (window as any).googleTranslateElementInit = () => {
       new (window as any).google.translate.TranslateElement(
         {
-          pageLanguage: "id",
-          includedLanguages: "id,en,zh-CN,ja,ko,ar,nl,de,fr,es",
+          pageLanguage: "en",
+          includedLanguages: "en,id,zh-CN,ja,ko,ar,nl,de,fr,es",
           autoDisplay: false,
         },
         "google_translate_element_hidden"
@@ -113,7 +116,7 @@ export function LanguageSwitcher() {
       hostParts.length > 2 ? `.${hostParts.slice(-2).join(".")}` : "",
     ];
 
-    const pathsToClear = ["/", "/id", "/en"];
+    const pathsToClear = ["/", "/en", "/id"];
 
     domainsToClear.forEach((d) => {
       pathsToClear.forEach((p) => {
@@ -132,12 +135,16 @@ export function LanguageSwitcher() {
     setIsLoading(true);
     clearGoogleTranslateCookies();
 
-    if (langCode !== "id") {
+    // Karena kode dasar web sekarang Bahasa Inggris (en), 
+    // cookie harus diset /en/targetLang (misal: /en/id untuk Bahasa Indonesia)
+    if (langCode !== "en") {
       const domain = window.location.hostname;
-      const cookieValue = `/id/${langCode}`;
+      const cookieValue = `/en/${langCode}`;
 
       document.cookie = `googtrans=${cookieValue}; path=/;`;
-      document.cookie = `googtrans=${cookieValue}; path=/; domain=.${domain};`;
+      if (domain !== "localhost") {
+        document.cookie = `googtrans=${cookieValue}; path=/; domain=.${domain};`;
+      }
     }
 
     setCurrentLang(langCode);
@@ -149,7 +156,7 @@ export function LanguageSwitcher() {
   };
 
   const selectedLanguageLabel =
-    LANGUAGES.find((l) => l.code === currentLang)?.label || "Language";
+    LANGUAGES.find((l) => l.code === currentLang)?.label || "English";
 
   return (
     <>
@@ -206,7 +213,7 @@ export function LanguageSwitcher() {
 
       <div id="google_translate_element_hidden" className="hidden" />
 
-      {/* Button Trigger Header - Fixed Size & Unified Styling */}
+      {/* Button Trigger Header */}
       <button
         ref={buttonRef}
         type="button"
@@ -226,7 +233,7 @@ export function LanguageSwitcher() {
         />
       </button>
 
-      {/* Popover Menu Dropdown dengan Animasi Smooth */}
+      {/* Popover Menu Dropdown */}
       {isOpen && (
         <>
           <div
@@ -261,7 +268,7 @@ export function LanguageSwitcher() {
         </>
       )}
 
-      {/* Floating Loading Screen dengan Logo */}
+      {/* Floating Loading Screen */}
       {isLoading && (
         <div className="fixed inset-0 z-[999999] flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm">
           <div className="relative h-12 w-12 animate-spin">

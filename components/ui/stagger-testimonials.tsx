@@ -5,44 +5,45 @@ import { cn } from "@/lib/utils";
 
 const SQRT_5000 = Math.sqrt(5000);
 
+// Data Testimonial dengan Nama-nama Eropa & B2B International Clients
 const testimonials = [
   {
     tempId: 0,
     testimonial:
-      "The rattan chair and table set for our cafe has been outdoors for over a year. Outstanding craftsmanship and durability!",
-    by: "Dian Kusuma, Cafe Owner",
+      "The rattan chair and table set for our café in Lyon has been outdoors for over a year. Outstanding craftsmanship and durability!",
+    by: "Claire Dubois, Bistro Owner",
     imgSrc:
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
   },
   {
     tempId: 1,
     testimonial:
-      "Gajah Mada perfectly executed my custom rattan weave patterns for a client project. Precision and attention to detail are top-notch.",
-    by: "Michael Tanuwijaya, Interior Designer",
+      "Gajah Mada perfectly executed my custom rattan weave patterns for a client project in Milan. Precision and attention to detail are top-notch.",
+    by: "Julian Vance, Interior Designer",
     imgSrc:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
   },
   {
     tempId: 2,
     testimonial:
-      "Shipped all the way to Bali with zero damage. My villa guests constantly ask where we got these beautiful rattan pieces.",
-    by: "Ratna Wijayanti, Villa Owner",
+      "Shipped all the way to Santorini with zero damage. My villa guests constantly ask where we got these beautiful rattan pieces.",
+    by: "Sophie Laurent, Resort Manager",
     imgSrc:
       "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
   },
   {
     tempId: 3,
     testimonial:
-      "The dining table became the centerpiece of our latest residential design. The natural finish matches our reference flawlessly.",
-    by: "Farah Nabila, Architect",
+      "The dining table became the centerpiece of our latest residential project in Munich. The natural finish matches our reference flawlessly.",
+    by: "Emma Lindqvist, Architect",
     imgSrc:
       "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
   },
   {
     tempId: 4,
     testimonial:
-      "Remarkable export quality! The furniture arrived securely packaged and exceeded our expectations for our boutique hotel.",
-    by: "David Miller, Hotel Manager",
+      "Remarkable export quality! The furniture arrived securely packaged and exceeded our expectations for our boutique hotel chain.",
+    by: "Lukas Weber, Procurement Lead",
     imgSrc:
       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
   },
@@ -67,10 +68,10 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
     <div
       onClick={() => handleMove(position)}
       className={cn(
-        "absolute left-1/2 top-1/2 cursor-pointer border-2 p-8 transition-all duration-500 ease-in-out select-none",
+        "absolute left-1/2 top-1/2 cursor-pointer border-2 p-6 sm:p-7 transition-all duration-500 ease-in-out select-none flex flex-col justify-between overflow-hidden",
         isCenter
-          ? "z-10 bg-terracotta-600 text-cream-50 border-terracotta-700"
-          : "z-0 bg-white text-clay-950 border-clay-200 hover:border-brass-400"
+          ? "z-10 bg-[#b3593b] text-cream-50 border-terracotta-700 shadow-xl"
+          : "z-0 bg-white text-clay-950 border-clay-200 hover:border-brass-400 opacity-90"
       )}
       style={{
         width: cardSize,
@@ -78,17 +79,29 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         clipPath: `polygon(50px 0%, calc(100% - 50px) 0%, 100% 50px, 100% 100%, calc(100% - 50px) 100%, 50px 100%, 0 100%, 0 0)`,
         transform: `
           translate(-50%, -50%) 
-          translateX(${(cardSize / 1.5) * position}px)
-          translateY(${isCenter ? -65 : position % 2 ? 15 : -15}px)
+          translateX(${(cardSize / 1.45) * position}px)
+          translateY(${isCenter ? -30 : position % 2 ? 15 : -15}px)
           rotate(${isCenter ? 0 : position % 2 ? 2.5 : -2.5}deg)
         `,
         boxShadow: isCenter
-          ? "0px 8px 0px 4px rgba(0,0,0,0.15)"
+          ? "0px 12px 24px -4px rgba(0,0,0,0.25)"
           : "0px 0px 0px 0px transparent",
       }}
     >
+      {/* Background Batik Gajah Mada tipis di dalam card */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.06] z-0"
+        style={{
+          backgroundImage: "url('/images/batik-gajah.png')",
+          backgroundSize: "180px 180px",
+          backgroundRepeat: "repeat",
+        }}
+      />
+
+      {/* Ribbon Corner Accent */}
       <span
-        className="absolute block origin-top-right rotate-45 bg-clay-200"
+        className="absolute block origin-top-right rotate-45 bg-clay-200/50 z-10"
         style={{
           right: -2,
           top: 48,
@@ -96,30 +109,36 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
           height: 2,
         }}
       />
-      <img
-        src={testimonial.imgSrc}
-        alt={testimonial.by}
-        className="mb-4 h-14 w-12 rounded-md bg-muted object-cover object-top"
-        style={{
-          boxShadow: "3px 3px 0px rgba(0,0,0,0.2)",
-        }}
-      />
-      <h3
-        className={cn(
-          "text-base sm:text-lg font-medium leading-snug",
-          isCenter ? "text-cream-50" : "text-clay-900"
-        )}
-      >
-        &ldquo;{testimonial.testimonial}&rdquo;
-      </h3>
-      <p
-        className={cn(
-          "absolute bottom-8 left-8 right-8 mt-2 text-sm italic font-light",
-          isCenter ? "text-cream-100/80" : "text-clay-600"
-        )}
-      >
-        — {testimonial.by}
-      </p>
+
+      {/* Top Content: Avatar & Testimonial Quote */}
+      <div className="relative z-10 flex flex-col items-start gap-3">
+        <img
+          src={testimonial.imgSrc}
+          alt={testimonial.by}
+          className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl bg-muted object-cover object-top border-2 border-white/40 shadow-sm"
+        />
+
+        <h3
+          className={cn(
+            "text-xs sm:text-sm font-medium leading-relaxed italic line-clamp-5",
+            isCenter ? "text-cream-50" : "text-clay-800"
+          )}
+        >
+          &ldquo;{testimonial.testimonial}&rdquo;
+        </h3>
+      </div>
+
+      {/* Bottom Content: Author & Role (No Absolute Position = High Stability) */}
+      <div className="relative z-10 pt-3 border-t border-white/20 mt-2">
+        <p
+          className={cn(
+            "text-xs sm:text-sm font-semibold tracking-wide",
+            isCenter ? "text-cream-100" : "text-clay-950"
+          )}
+        >
+          — {testimonial.by}
+        </p>
+      </div>
     </div>
   );
 };
@@ -128,7 +147,6 @@ export const StaggerTestimonials: React.FC = () => {
   const [cardSize, setCardSize] = useState(365);
   const [testimonialsList, setTestimonialsList] = useState(testimonials);
 
-  // Ref & State untuk menangani Swipe / Drag
   const startXRef = useRef<number | null>(null);
   const isDraggingRef = useRef<boolean>(false);
 
@@ -151,7 +169,6 @@ export const StaggerTestimonials: React.FC = () => {
     setTestimonialsList(newList);
   };
 
-  // Touch handlers (HP)
   const handleTouchStart = (e: React.TouchEvent) => {
     startXRef.current = e.touches[0].clientX;
   };
@@ -161,18 +178,16 @@ export const StaggerTestimonials: React.FC = () => {
     const endX = e.changedTouches[0].clientX;
     const diffX = startXRef.current - endX;
 
-    // Threshold swipe min 50px
     if (Math.abs(diffX) > 50) {
       if (diffX > 0) {
-        handleMove(1); // Swipe kiri -> kartu kanan masuk
+        handleMove(1);
       } else {
-        handleMove(-1); // Swipe kanan -> kartu kiri masuk
+        handleMove(-1);
       }
     }
     startXRef.current = null;
   };
 
-  // Mouse handlers (Desktop Drag)
   const handleMouseDown = (e: React.MouseEvent) => {
     startXRef.current = e.clientX;
     isDraggingRef.current = true;
@@ -196,7 +211,7 @@ export const StaggerTestimonials: React.FC = () => {
   useEffect(() => {
     const updateSize = () => {
       const { matches } = window.matchMedia("(min-width: 640px)");
-      setCardSize(matches ? 365 : 290);
+      setCardSize(matches ? 365 : 300);
     };
 
     updateSize();
@@ -206,8 +221,8 @@ export const StaggerTestimonials: React.FC = () => {
 
   return (
     <div
-      className="relative w-full overflow-hidden bg-cream-100/50 py-12 touch-pan-y select-none"
-      style={{ height: 600 }}
+      className="relative w-full overflow-hidden py-8 touch-pan-y select-none"
+      style={{ height: 540 }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onMouseDown={handleMouseDown}
@@ -216,7 +231,7 @@ export const StaggerTestimonials: React.FC = () => {
       {testimonialsList.map((testimonial, index) => {
         const position =
           testimonialsList.length % 2
-            ? index - (testimonialsList.length + 1) / 2
+            ? index - (testimonialsList.length - 1) / 2
             : index - testimonialsList.length / 2;
         return (
           <TestimonialCard
@@ -231,3 +246,36 @@ export const StaggerTestimonials: React.FC = () => {
     </div>
   );
 };
+
+export function TestimonialsSection() {
+  return (
+    <section className="relative bg-cream-50 py-16 overflow-hidden border-t border-b border-clay-200/60">
+      {/* Background Batik Gajah Mada */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.07] z-0"
+        style={{
+          backgroundImage: "url('/images/batik-gajah.png')",
+          backgroundSize: "280px 280px",
+          backgroundRepeat: "repeat",
+        }}
+      />
+
+      <div className="container relative z-10 mx-auto px-4 mb-2">
+        <p className="text-center text-xs tracking-[0.3em] uppercase text-[#b3593b] font-bold mb-2">
+          Testimonials
+        </p>
+        <h2 className="text-center font-display text-3xl md:text-4xl font-medium text-clay-950 tracking-tight">
+          Trusted by Global Clients
+        </h2>
+        <p className="mx-auto mt-2 max-w-md text-center text-xs sm:text-sm text-clay-600">
+          Stories from international designers and hospitality partners who brought home Gajah Mada&apos;s handcrafted rattan.
+        </p>
+      </div>
+
+      <div className="relative z-10">
+        <StaggerTestimonials />
+      </div>
+    </section>
+  );
+}
