@@ -4,7 +4,7 @@ import { Product } from "@/lib/types";
 import { IntroVideoOverlay } from "@/components/intro-video-overlay";
 import { HomeGallerySpill } from "@/components/home-gallery-spill";
 import Features from "@/components/features";
-import { TestimonialsSection } from "@/components/testimonials-section";
+import { TestimonialsSection } from "@/components/ui/stagger-testimonials";
 import { CTA } from "@/components/cta";
 import { PaymentInfo } from "@/components/payment-info";
 import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
@@ -36,11 +36,13 @@ function getValidImageUrl(images: any): string {
 
 export default async function HomePage() {
   let products: Product[] = [];
-  let siteContent = {
+  let siteContent: Record<string, any> = {
     heroHeadline: "",
     heroSubheadline: "",
     whatsappNumber: "",
     catalogUrl: "#",
+    featuredImages: [],
+    testimonials: [],
   };
 
   try {
@@ -61,16 +63,29 @@ export default async function HomePage() {
     console.error("Critical error in HomePage fetch:", error);
   }
 
-  const topProducts = products.slice(0,20);
+  // LOGIK SLIDES GALERI HERO:
+  // 1. Jika Admin sudah upload/set `featuredImages` di Supabase siteContent, pakai foto-foto itu.
+  // 2. Jika `featuredImages` kosong, baru fallback pakai top 20 foto dari daftar produk.
+  let slides: { src: string; alt: string }[] = [];
+  let hrefs: string[] = [];
 
-  const slides = topProducts.map((p) => ({
-    src: getValidImageUrl(p?.images),
-    alt: p?.name || "Product Image",
-  }));
-
-  const hrefs = topProducts.map(
-    (p) => `/product/${encodeURIComponent(p?.category || "chair-indoor")}/${p?.id}`
-  );
+  if (Array.isArray(siteContent.featuredImages) && siteContent.featuredImages.length > 0) {
+    slides = siteContent.featuredImages.map((imgUrl: string, idx: number) => ({
+      src: getValidImageUrl(imgUrl),
+      alt: `Featured Showcase ${idx + 1}`,
+    }));
+    // Jika dari featuredImages admin, arahkan link klik ke halaman katalog/bebas
+    hrefs = siteContent.featuredImages.map(() => "/#catalog");
+  } else {
+    const topProducts = products.slice(0, 20);
+    slides = topProducts.map((p) => ({
+      src: getValidImageUrl(p?.images),
+      alt: p?.name || "Product Image",
+    }));
+    hrefs = topProducts.map(
+      (p) => `/product/${encodeURIComponent(p?.category || "chair-indoor")}/${p?.id}`
+    );
+  }
 
   const catalogPdfUrl = siteContent.catalogUrl || "#";
 
@@ -88,8 +103,12 @@ export default async function HomePage() {
         subheadline={siteContent.heroSubheadline}
         waNumber={siteContent.whatsappNumber}
       />
+      
       <Features />
-      <TestimonialsSection />
+
+      {/* Passing data testimoni dari Supabase siteContent (Otomatis Fallback ke Hardcode jika kosong) */}
+      <TestimonialsSection items={siteContent.testimonials} />
+
       <CTA />
 
       <PaymentInfo />

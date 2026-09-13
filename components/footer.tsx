@@ -4,25 +4,26 @@ import { CATEGORIES } from "@/lib/types";
 
 export function Footer({ siteName, tagline }: { siteName: string; tagline: string }) {
   return (
-    <footer className="relative w-full bg-cream-50 text-clay-800 pt-14 pb-28 sm:pb-16 border-t border-clay-200/60 overflow-hidden">
-      {/* BACKGROUND BATIK GAJAH MADA (WATERMARK COVER - NO REPEAT) */}
+    <footer className="relative w-full bg-cream-50 text-clay-800 pt-10 pb-24 sm:pt-14 sm:pb-16 border-t border-clay-200/60 overflow-hidden">
+      {/* BACKGROUND BATIK GAJAH MADA (WATERMARK PROPORSI 3:2 - NO REPEAT) */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.06] z-0"
+        className="pointer-events-none absolute inset-0 opacity-[0.05] sm:opacity-[0.06] z-0"
         style={{
           backgroundImage: "url('/images/batik-gajah.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center 20%",
           backgroundRepeat: "no-repeat",
+          backgroundPosition: "center center",
+          // Mobile: 90% lebar layar, PC: Max 600px agar tidak raksasa
+          backgroundSize: "min(90%, 600px) auto",
         }}
       />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-12 items-start">
+        <div className="grid gap-8 lg:gap-10 lg:grid-cols-12 items-start">
           {/* Brand Profile & Contact */}
           <div className="lg:col-span-5 space-y-4">
             <div>
-              <p className="font-serif text-2xl font-bold text-clay-950 tracking-tight">{siteName}</p>
+              <p className="font-serif text-xl sm:text-2xl font-bold text-clay-950 tracking-tight">{siteName}</p>
               <p className="mt-1 text-xs text-clay-600 leading-relaxed max-w-md">{tagline}</p>
             </div>
 
@@ -43,7 +44,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
             </div>
 
             {/* Certifications, Payment & Social Media */}
-            <div className="pt-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="pt-3 grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-clay-200/60 sm:border-t-0 pt-4 sm:pt-0">
               <div>
                 <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-[#b3593b] block mb-2">
                   Certifications
@@ -130,7 +131,6 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                 Collections
               </span>
               <ul className="space-y-2 text-xs font-medium text-clay-700">
-                {/* SEMUA KATEGORI DITAMPILKAN LENGKAP */}
                 {CATEGORIES.map((c) => (
                   <li key={c.slug}>
                     <Link
@@ -187,7 +187,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
         </div>
 
         {/* Bottom Copyright */}
-        <div className="mt-12 pt-6 border-t border-clay-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] font-medium text-clay-500">
+        <div className="mt-10 sm:mt-12 pt-6 border-t border-clay-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] font-medium text-clay-500">
           <p>© {new Date().getFullYear()} {siteName}. All rights reserved.</p>
           <p className="flex items-center gap-1 text-clay-400">
             <Globe size={12} /> Worldwide Wholesale & Export Supplier

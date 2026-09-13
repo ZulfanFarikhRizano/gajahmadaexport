@@ -5,10 +5,16 @@ import { cn } from "@/lib/utils";
 
 const SQRT_5000 = Math.sqrt(5000);
 
-// Data Testimonial dengan Nama-nama Eropa & B2B International Clients
-const testimonials = [
+export interface TestimonialItem {
+  id?: string;
+  testimonial: string;
+  by: string;
+  imgSrc: string;
+}
+
+// Data Testimonial Hardcode Default (Fallback)
+const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
   {
-    tempId: 0,
     testimonial:
       "The rattan chair and table set for our café in Lyon has been outdoors for over a year. Outstanding craftsmanship and durability!",
     by: "Claire Dubois, Bistro Owner",
@@ -16,7 +22,6 @@ const testimonials = [
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
   },
   {
-    tempId: 1,
     testimonial:
       "Gajah Mada perfectly executed my custom rattan weave patterns for a client project in Milan. Precision and attention to detail are top-notch.",
     by: "Julian Vance, Interior Designer",
@@ -24,7 +29,6 @@ const testimonials = [
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
   },
   {
-    tempId: 2,
     testimonial:
       "Shipped all the way to Santorini with zero damage. My villa guests constantly ask where we got these beautiful rattan pieces.",
     by: "Sophie Laurent, Resort Manager",
@@ -32,7 +36,6 @@ const testimonials = [
       "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
   },
   {
-    tempId: 3,
     testimonial:
       "The dining table became the centerpiece of our latest residential project in Munich. The natural finish matches our reference flawlessly.",
     by: "Emma Lindqvist, Architect",
@@ -40,7 +43,6 @@ const testimonials = [
       "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
   },
   {
-    tempId: 4,
     testimonial:
       "Remarkable export quality! The furniture arrived securely packaged and exceeded our expectations for our boutique hotel chain.",
     by: "Lukas Weber, Procurement Lead",
@@ -51,7 +53,7 @@ const testimonials = [
 
 interface TestimonialCardProps {
   position: number;
-  testimonial: (typeof testimonials)[0];
+  testimonial: TestimonialItem;
   handleMove: (steps: number) => void;
   cardSize: number;
 }
@@ -88,7 +90,6 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
           : "0px 0px 0px 0px transparent",
       }}
     >
-      {/* Background Batik Gajah Mada tipis di dalam card */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-[0.06] z-0"
@@ -99,7 +100,6 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         }}
       />
 
-      {/* Ribbon Corner Accent */}
       <span
         className="absolute block origin-top-right rotate-45 bg-clay-200/50 z-10"
         style={{
@@ -110,10 +110,9 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         }}
       />
 
-      {/* Top Content: Avatar & Testimonial Quote */}
       <div className="relative z-10 flex flex-col items-start gap-3">
         <img
-          src={testimonial.imgSrc}
+          src={testimonial.imgSrc || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
           alt={testimonial.by}
           className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl bg-muted object-cover object-top border-2 border-white/40 shadow-sm"
         />
@@ -128,7 +127,6 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         </h3>
       </div>
 
-      {/* Bottom Content: Author & Role (No Absolute Position = High Stability) */}
       <div className="relative z-10 pt-3 border-t border-white/20 mt-2">
         <p
           className={cn(
@@ -143,9 +141,31 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
   );
 };
 
-export const StaggerTestimonials: React.FC = () => {
+export interface StaggerTestimonialsProps {
+  items?: TestimonialItem[];
+}
+
+export const StaggerTestimonials: React.FC<StaggerTestimonialsProps> = ({ items }) => {
   const [cardSize, setCardSize] = useState(365);
-  const [testimonialsList, setTestimonialsList] = useState(testimonials);
+  
+  // Fungsi Helper untuk menyiapkan format array state
+  const prepareData = (sourceArray: TestimonialItem[]) => {
+    return sourceArray.map((item, idx) => ({
+      ...item,
+      tempId: idx,
+      imgSrc: item.imgSrc || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    }));
+  };
+
+  // Gunakan data items jika ada & tidak kosong, jika kosong otomatis pakai hardcode
+  const initialData = prepareData(items && items.length > 0 ? items : DEFAULT_TESTIMONIALS);
+  const [testimonialsList, setTestimonialsList] = useState(initialData);
+
+  // Sync state jika data props berubah dari server/Supabase
+  useEffect(() => {
+    const activeItems = items && items.length > 0 ? items : DEFAULT_TESTIMONIALS;
+    setTestimonialsList(prepareData(activeItems));
+  }, [items]);
 
   const startXRef = useRef<number | null>(null);
   const isDraggingRef = useRef<boolean>(false);
@@ -247,10 +267,9 @@ export const StaggerTestimonials: React.FC = () => {
   );
 };
 
-export function TestimonialsSection() {
+export function TestimonialsSection({ items }: { items?: TestimonialItem[] }) {
   return (
     <section className="relative bg-cream-50 py-16 overflow-hidden border-t border-b border-clay-200/60">
-      {/* Background Batik Gajah Mada */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-[0.07] z-0"
@@ -274,7 +293,7 @@ export function TestimonialsSection() {
       </div>
 
       <div className="relative z-10">
-        <StaggerTestimonials />
+        <StaggerTestimonials items={items} />
       </div>
     </section>
   );

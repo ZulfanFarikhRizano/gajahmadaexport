@@ -159,173 +159,188 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
   }, [filteredProducts, currentPage]);
 
   return (
-    <div ref={gridTopRef} className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 scroll-mt-24">
-      {/* Category Filter Buttons */}
-      <div className="flex flex-wrap justify-center gap-2 mb-4">
-        <button
-          type="button"
-          onClick={() => handleCategoryChange("all")}
-          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 border ${
-            selectedCategory === "all"
-              ? "bg-[#2d211a] text-white border-[#2d211a] shadow-sm scale-[1.02]"
-              : "bg-white/80 backdrop-blur-sm text-clay-700 border-clay-300 hover:bg-clay-100 shadow-sm"
-          }`}
-        >
-          All Categories
-        </button>
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat.slug}
-            type="button"
-            onClick={() => handleCategoryChange(cat.slug)}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 border ${
-              selectedCategory === cat.slug
-                ? "bg-[#b3593b] text-white border-[#b3593b] shadow-sm scale-[1.02]"
-                : "bg-white/80 backdrop-blur-sm text-clay-700 border-clay-300 hover:bg-clay-100 shadow-sm"
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
+    <div ref={gridTopRef} className="relative w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 scroll-mt-24 overflow-hidden">
+      {/* BACKGROUND BATIK WATERMARK 3:2 (TERKUNCI PROPORSI & RESPONSIVE) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.04] sm:opacity-[0.05] z-0"
+        style={{
+          backgroundImage: "url('/images/batik-gajah.png')",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center 20%",
+          backgroundSize: "min(95%, 700px) auto",
+        }}
+      />
 
-      {/* Counter Info */}
-      <div className="w-full text-center my-3 py-1">
-        <p translate="no" className="notranslate text-xs text-clay-600 font-medium tracking-wide">
-          Showing <span className="font-semibold text-clay-900">{filteredProducts.length}</span> products
-        </p>
-      </div>
-
-      {/* Grid Content Area */}
-      {filteredProducts.length === 0 ? (
-        <div className="rounded-2xl bg-white/90 backdrop-blur-sm p-12 text-center border border-clay-200 shadow-sm my-6">
-          <p className="text-clay-600 font-medium">
-            No products available for this category.
-          </p>
+      {/* Content wrapper dengan z-10 agar di atas background */}
+      <div className="relative z-10">
+        {/* Category Filter Buttons */}
+        <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 mb-4">
           <button
             type="button"
             onClick={() => handleCategoryChange("all")}
-            className="mt-3 text-xs font-semibold text-[#b3593b] hover:underline"
-          >
-            View all products
-          </button>
-        </div>
-      ) : (
-        <div className="relative w-full min-h-[450px]">
-          {/* FLOATING BUTTONS */}
-          <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-20 flex items-center justify-between px-0.5 -mx-2 sm:-mx-4">
-            <button
-              type="button"
-              onClick={() => handlePageChange(currentPage - 1, false)}
-              disabled={currentPage === 1 || totalPages <= 1}
-              aria-label="Previous Page"
-              className={`pointer-events-auto flex items-center justify-center 
-                w-8 h-8 sm:w-11 sm:h-11 rounded-full 
-                bg-white/40 sm:bg-white/90 backdrop-blur-md border border-white/50 sm:border-clay-200 
-                text-clay-900 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 ${
-                  currentPage === 1 || totalPages <= 1
-                    ? "opacity-0 pointer-events-none scale-75"
-                    : "opacity-100 scale-100"
-                }`}
-            >
-              <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6 text-clay-900" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handlePageChange(currentPage + 1, false)}
-              disabled={currentPage === totalPages || totalPages <= 1}
-              aria-label="Next Page"
-              className={`pointer-events-auto flex items-center justify-center 
-                w-8 h-8 sm:w-11 sm:h-11 rounded-full 
-                bg-white/40 sm:bg-white/90 backdrop-blur-md border border-white/50 sm:border-clay-200 
-                text-clay-900 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 ${
-                  currentPage === totalPages || totalPages <= 1
-                    ? "opacity-0 pointer-events-none scale-75"
-                    : "opacity-100 scale-100"
-                }`}
-            >
-              <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 text-clay-900" />
-            </button>
-          </div>
-
-          {/* Product Grid with Transition */}
-          <div
-            className={`grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 w-full transition-all duration-300 ease-in-out transform ${
-              isTransitioning
-                ? "opacity-0 translate-y-3 scale-[0.99]"
-                : "opacity-100 translate-y-0 scale-100"
+            className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 border ${
+              selectedCategory === "all"
+                ? "bg-[#2d211a] text-white border-[#2d211a] shadow-sm scale-[1.02]"
+                : "bg-white/80 backdrop-blur-sm text-clay-700 border-clay-300 hover:bg-clay-100 shadow-sm"
             }`}
           >
-            {paginatedProducts.map((product, idx) => {
-              if (!product || !product.id) return null;
+            All Categories
+          </button>
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.slug}
+              type="button"
+              onClick={() => handleCategoryChange(cat.slug)}
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 border ${
+                selectedCategory === cat.slug
+                  ? "bg-[#b3593b] text-white border-[#b3593b] shadow-sm scale-[1.02]"
+                  : "bg-white/80 backdrop-blur-sm text-clay-700 border-clay-300 hover:bg-clay-100 shadow-sm"
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
 
-              const imageUrl = getSafeImageUrl(product.images);
-              const categoryParam = getProductCategorySlug(product);
-              const productName = product.name || "Unnamed Product";
-              const isPriority = idx < 4;
+        {/* Counter Info */}
+        <div className="w-full text-center my-3 py-1">
+          <p translate="no" className="notranslate text-xs text-clay-600 font-medium tracking-wide">
+            Showing <span className="font-semibold text-clay-900">{filteredProducts.length}</span> products
+          </p>
+        </div>
 
-              return (
-                <Link
-                  key={product.id || `prod-${idx}`}
-                  href={`/product/${encodeURIComponent(categoryParam)}/${product.id}`}
-                  className="group overflow-hidden rounded-2xl bg-white/90 backdrop-blur-xs shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md border border-clay-200 flex flex-col w-full"
-                >
-                  <div className="relative aspect-square w-full overflow-hidden bg-clay-100">
-                    <Image
-                      src={imageUrl}
-                      alt={productName}
-                      fill
-                      priority={isPriority}
-                      loading={isPriority ? "eager" : "lazy"}
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                  </div>
-                  <div className="p-3 sm:p-4 flex flex-col flex-1 justify-between bg-white/95">
-                    <div>
-                      <h3 className="font-medium text-xs sm:text-sm text-clay-950 line-clamp-2 group-hover:text-[#b3593b] transition-colors leading-snug">
-                        {productName}
-                      </h3>
-                      <p className="mt-1 text-[11px] sm:text-xs text-clay-500 font-mono">
-                        {product.price || "Contact us"}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+        {/* Grid Content Area */}
+        {filteredProducts.length === 0 ? (
+          <div className="rounded-2xl bg-white/90 backdrop-blur-sm p-8 sm:p-12 text-center border border-clay-200 shadow-sm my-6">
+            <p className="text-clay-600 font-medium text-sm sm:text-base">
+              No products available for this category.
+            </p>
+            <button
+              type="button"
+              onClick={() => handleCategoryChange("all")}
+              className="mt-3 text-xs sm:text-sm font-semibold text-[#b3593b] hover:underline"
+            >
+              View all products
+            </button>
           </div>
-
-          {/* Bottom Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-8 flex items-center justify-center gap-2 pb-6">
+        ) : (
+          <div className="relative w-full min-h-[400px]">
+            {/* FLOATING BUTTONS (Sembunyi di HP kecil/layar sempit agar tidak menutupi gambar produk) */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-20 hidden md:flex items-center justify-between px-0.5 -mx-2 sm:-mx-4">
               <button
                 type="button"
-                onClick={() => handlePageChange(currentPage - 1, true)}
-                disabled={currentPage === 1}
-                className="rounded-xl border border-clay-300 bg-white/90 px-4 py-2 text-xs font-semibold text-clay-700 shadow-sm hover:bg-clay-50 disabled:opacity-40 transition-colors"
+                onClick={() => handlePageChange(currentPage - 1, false)}
+                disabled={currentPage === 1 || totalPages <= 1}
+                aria-label="Previous Page"
+                className={`pointer-events-auto flex items-center justify-center 
+                  w-10 h-10 rounded-full 
+                  bg-white/90 backdrop-blur-md border border-clay-200 
+                  text-clay-900 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 ${
+                    currentPage === 1 || totalPages <= 1
+                      ? "opacity-0 pointer-events-none scale-75"
+                      : "opacity-100 scale-100"
+                  }`}
               >
-                Prev
+                <ChevronLeft className="w-5 h-5 text-clay-900" />
               </button>
-              <span
-                translate="no"
-                className="notranslate text-xs font-mono font-medium text-clay-600 px-3"
-              >
-                {currentPage} / {totalPages}
-              </span>
+
               <button
                 type="button"
-                onClick={() => handlePageChange(currentPage + 1, true)}
-                disabled={currentPage === totalPages}
-                className="rounded-xl border border-clay-300 bg-white/90 px-4 py-2 text-xs font-semibold text-clay-700 shadow-sm hover:bg-clay-50 disabled:opacity-40 transition-colors"
+                onClick={() => handlePageChange(currentPage + 1, false)}
+                disabled={currentPage === totalPages || totalPages <= 1}
+                aria-label="Next Page"
+                className={`pointer-events-auto flex items-center justify-center 
+                  w-10 h-10 rounded-full 
+                  bg-white/90 backdrop-blur-md border border-clay-200 
+                  text-clay-900 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all duration-200 ${
+                    currentPage === totalPages || totalPages <= 1
+                      ? "opacity-0 pointer-events-none scale-75"
+                      : "opacity-100 scale-100"
+                  }`}
               >
-                Next
+                <ChevronRight className="w-5 h-5 text-clay-900" />
               </button>
             </div>
-          )}
-        </div>
-      )}
+
+            {/* Product Grid with Transition */}
+            <div
+              className={`grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 w-full transition-all duration-300 ease-in-out transform ${
+                isTransitioning
+                  ? "opacity-0 translate-y-3 scale-[0.99]"
+                  : "opacity-100 translate-y-0 scale-100"
+              }`}
+            >
+              {paginatedProducts.map((product, idx) => {
+                if (!product || !product.id) return null;
+
+                const imageUrl = getSafeImageUrl(product.images);
+                const categoryParam = getProductCategorySlug(product);
+                const productName = product.name || "Unnamed Product";
+                const isPriority = idx < 4;
+
+                return (
+                  <Link
+                    key={product.id || `prod-${idx}`}
+                    href={`/product/${encodeURIComponent(categoryParam)}/${product.id}`}
+                    className="group overflow-hidden rounded-xl sm:rounded-2xl bg-white/90 backdrop-blur-xs shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md border border-clay-200 flex flex-col w-full"
+                  >
+                    <div className="relative aspect-square w-full overflow-hidden bg-clay-100">
+                      <Image
+                        src={imageUrl}
+                        alt={productName}
+                        fill
+                        priority={isPriority}
+                        loading={isPriority ? "eager" : "lazy"}
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </div>
+                    <div className="p-2.5 sm:p-4 flex flex-col flex-1 justify-between bg-white/95">
+                      <div>
+                        <h3 className="font-medium text-xs sm:text-sm text-clay-950 line-clamp-2 group-hover:text-[#b3593b] transition-colors leading-snug">
+                          {productName}
+                        </h3>
+                        <p className="mt-1 text-[10px] sm:text-xs text-clay-500 font-mono">
+                          {product.price || "Contact us"}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Bottom Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-2 pb-6">
+                <button
+                  type="button"
+                  onClick={() => handlePageChange(currentPage - 1, true)}
+                  disabled={currentPage === 1}
+                  className="rounded-xl border border-clay-300 bg-white/90 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold text-clay-700 shadow-sm hover:bg-clay-50 disabled:opacity-40 transition-colors"
+                >
+                  Prev
+                </button>
+                <span
+                  translate="no"
+                  className="notranslate text-xs font-mono font-medium text-clay-600 px-2 sm:px-3"
+                >
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handlePageChange(currentPage + 1, true)}
+                  disabled={currentPage === totalPages}
+                  className="rounded-xl border border-clay-300 bg-white/90 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold text-clay-700 shadow-sm hover:bg-clay-50 disabled:opacity-40 transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
