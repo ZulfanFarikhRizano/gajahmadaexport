@@ -12,7 +12,6 @@ export interface TestimonialItem {
   imgSrc: string;
 }
 
-// Data Testimonial Hardcode Default (Fallback)
 const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
   {
     testimonial:
@@ -95,8 +94,9 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         className="pointer-events-none absolute inset-0 opacity-[0.06] z-0"
         style={{
           backgroundImage: "url('/images/batik-gajah.png')",
-          backgroundSize: "180px 120px", // Rasio 3:2 untuk kartu
-          backgroundRepeat: "repeat",
+          backgroundSize: "210px 140px", // Rasio 3:2 pas
+          backgroundRepeat: "space", // Browser membagikan space agar tidak terpotong kasar
+          backgroundPosition: "center",
         }}
       />
 
@@ -267,13 +267,19 @@ export const StaggerTestimonials: React.FC<StaggerTestimonialsProps> = ({ items 
 export function TestimonialsSection({ items }: { items?: TestimonialItem[] }) {
   return (
     <section className="relative bg-cream-50 py-16 overflow-hidden border-t border-b border-clay-200/60">
+      {/* Background Batik berulang dengan efek Soft Masking di tepinya */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.07] z-0"
+        className="pointer-events-none absolute inset-0 opacity-[0.06] z-0"
         style={{
           backgroundImage: "url('/images/batik-gajah.png')",
-          backgroundSize: "300px 200px", // Rasio 3:2 untuk section
+          backgroundSize: "270px 180px", // Tetap rasio 3:2 (270 / 1.5 = 180)
           backgroundRepeat: "repeat",
+          backgroundPosition: "center",
+          WebkitMaskImage:
+            "radial-gradient(circle, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)",
+          maskImage:
+            "radial-gradient(circle, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)",
         }}
       />
 
