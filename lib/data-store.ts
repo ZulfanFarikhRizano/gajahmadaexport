@@ -46,34 +46,63 @@ async function fetchWithTimeout<T>(
   }
 }
 
+// Helper untuk fetch semua data secara bertahap (batch), supaya
+// per-request tetap ringan (menghindari gateway timeout) tapi
+// total data yang diambil tetap lengkap, tidak terpotong.
+async function fetchAllInBatches(
+  buildQuery: (from: number, to: number, signal: AbortSignal) => Promise<{ data: any[] | null; error: any }>,
+  batchSize = 200
+): Promise<any[]> {
+  let allData: any[] = [];
+  let from = 0;
+
+  while (true) {
+    const to = from + batchSize - 1;
+
+    const data = await fetchWithTimeout<any[]>((signal) =>
+      buildQuery(from, to, signal)
+    );
+
+    if (!data || data.length === 0) break;
+
+    allData = allData.concat(data);
+
+    if (data.length < batchSize) break; // sudah habis, tidak perlu batch berikutnya
+
+    from += batchSize;
+  }
+
+  return allData;
+}
+
 export async function getProducts(): Promise<Product[]> {
-  const data = await fetchWithTimeout<any[]>((signal) =>
+  const data = await fetchAllInBatches((from, to, signal) =>
     db()
       .from("products")
       .select("*")
       .order("created_at", { ascending: false })
-      .range(0, 199)
+      .range(from, to)
       .abortSignal(signal)
   );
 
-  return (data || []).map(mapProduct);
+  return data.map(mapProduct);
 }
 
 export async function getProductsByCategory(category: string): Promise<Product[]> {
   const cleanCategory = (category || "").toString().trim();
 
-  const data = await fetchWithTimeout<any[]>((signal) =>
+  const data = await fetchAllInBatches((from, to, signal) =>
     db()
       .from("products")
       .select("*")
       // Pakai ilike agar pencocokan category di DB case-insensitive
-      .ilike("category", `%${cleanCategory}%`) 
+      .ilike("category", `%${cleanCategory}%`)
       .order("created_at", { ascending: false })
-      .range(0, 199)
+      .range(from, to)
       .abortSignal(signal)
   );
 
-  return (data || []).map(mapProduct);
+  return data.map(mapProduct);
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
