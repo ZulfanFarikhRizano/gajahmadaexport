@@ -4,7 +4,7 @@ import { CATEGORIES } from "@/lib/types";
 
 export function Footer({ siteName, tagline }: { siteName: string; tagline: string }) {
   return (
-    <footer className="relative w-full bg-cream-50 text-clay-800 pt-10 pb-24 sm:pt-14 sm:pb-16 border-t border-clay-200/60 overflow-hidden">
+    <footer className="relative w-full text-clay-800 pt-10 pb-24 sm:pt-14 sm:pb-16 border-t border-clay-200/60 overflow-hidden">
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:gap-10 lg:grid-cols-12 items-start">
           {/* Brand Profile & Contact */}

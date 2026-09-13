@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { getProducts } from "@/lib/data-store";
 import { GalleryGrid } from "@/components/gallery-grid";
-import { BatikWatermark } from "@/components/BatikWatermark";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 
 // URL Base Supabase Storage (Bucket: uploads)
@@ -71,9 +70,7 @@ export default async function GalleryPage() {
     .filter(Boolean);
 
   return (
-    <div className="relative min-h-screen bg-cream-50">
-      <BatikWatermark />
-
+    <div className="relative min-h-screen">
       {/* MAIN CONTENT AREA */}
       <main className="relative z-10 pt-16 pb-12">
         <div className="mx-auto max-w-3xl px-6 text-center pt-12 mb-8">
@@ -89,7 +86,6 @@ export default async function GalleryPage() {
           <GalleryGrid products={products} />
         </Suspense>
       </main>
-
     </div>
   );
 }
