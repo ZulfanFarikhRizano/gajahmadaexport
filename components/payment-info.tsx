@@ -13,10 +13,6 @@ export function PaymentInfo() {
             E-Catalog Available for Download
           </span>
         </div>
-        <p className="text-sm text-clay-600">
-          Explore our complete collection of handcrafted furniture and high-quality rattan products. 
-          Download our digital catalog to view full specifications, design variations, and ordering details.
-        </p>
       </div>
     </section>
   );

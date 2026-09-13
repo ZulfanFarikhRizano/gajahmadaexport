@@ -18,6 +18,7 @@ import {
   MessageSquare,
   X,
   Sparkles,
+  LayoutGrid,
 } from "lucide-react";
 import { CATEGORIES, type Product, type SiteContent, type Testimonial } from "@/lib/types";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
@@ -48,7 +49,7 @@ function onImgError(e: React.SyntheticEvent<HTMLImageElement>) {
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [tab, setTab] = React.useState<Tab>("content");
-  const [siteContent, setSiteContent] = React.useState<SiteContent | null>(null);
+  const [siteContent, setSiteContent] = React.useState<(SiteContent & { featuredImages?: string[] }) | null>(null);
   const [products, setProducts] = React.useState<Product[]>([]);
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [draft, setDraft] = React.useState(emptyDraft);
@@ -130,7 +131,7 @@ export default function AdminDashboardPage() {
     router.push("/admin/login");
   };
 
-  const saveContent = async (customContent?: SiteContent) => {
+  const saveContent = async (customContent?: SiteContent & { featuredImages?: string[] }) => {
     const payload = customContent || siteContent;
     if (!payload) return;
     setSavingContent(true);
@@ -217,22 +218,43 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Upload Gambar untuk Display Carousel Landing Page
+  const handleFeaturedImageUpload = async (file: File) => {
+    const url = await uploadFile(file);
+    if (url && siteContent) {
+      const currentFeatured = siteContent.featuredImages || [];
+      const updated = { ...siteContent, featuredImages: [...currentFeatured, url] };
+      setSiteContent(updated);
+      flash("ok", 'Gambar Display Carousel ditambahkan — klik "Simpan Perubahan"');
+    }
+  };
+
+  const removeFeaturedImage = (index: number) => {
+    if (!siteContent) return;
+    const currentFeatured = siteContent.featuredImages || [];
+    const updated = {
+      ...siteContent,
+      featuredImages: currentFeatured.filter((_, i) => i !== index),
+    };
+    setSiteContent(updated);
+  };
+
   const handleProductImageUpload = async (file: File) => {
     const url = await uploadFile(file);
     if (url) setDraft((d) => ({ ...d, images: [...d.images, url] }));
   };
 
-  // Upload Gambar untuk Testimoni Card
+  // FIX: Upload Gambar Testimoni Langsung Update State
   const handleTestimonialImageUpload = async (file: File) => {
     setUploadingTestiImg(true);
     const url = await uploadFile(file);
     if (url) {
       setTestimonialDraft((prev) => ({ ...prev, imgSrc: url }));
+      flash("ok", "Foto testimoni berhasil diunggah.");
     }
     setUploadingTestiImg(false);
   };
 
-  // Manajemen Testimoni
   const handleSaveTestimonial = async () => {
     if (!siteContent) return;
     if (!testimonialDraft.testimonial || !testimonialDraft.by) {
@@ -350,6 +372,7 @@ export default function AdminDashboardPage() {
   }
 
   const testimonialList = siteContent.testimonials || [];
+  const featuredImages = siteContent.featuredImages || [];
 
   return (
     <main className="min-h-screen bg-cream-50">
@@ -384,7 +407,7 @@ export default function AdminDashboardPage() {
         <div className="mb-8 flex flex-wrap items-center justify-between gap-2">
           <div className="flex gap-2">
             {[
-              { id: "content", label: "Logo & Teks" },
+              { id: "content", label: "Logo, Teks & Display Carousel" },
               { id: "testimonials", label: `Testimoni Cards (${testimonialList.length})` },
               { id: "products", label: `Produk (${products.length})` },
             ].map((t) => (
@@ -411,109 +434,203 @@ export default function AdminDashboardPage() {
           </button>
         </div>
 
-        {/* TAB 1: LOGO & CONTENT */}
+        {/* TAB 1: LOGO, TEKS & DISPLAY CAROUSEL */}
         {tab === "content" && (
-          <div className="space-y-5 rounded-2xl bg-white p-6 shadow-sm">
-            <div>
-              <label className="text-sm font-medium text-clay-800">Logo</label>
-              <div className="mt-2 flex items-center gap-4">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={siteContent.logoUrl || PLACEHOLDER_IMAGE}
-                  alt="Logo"
-                  onError={onImgError}
-                  className="h-14 w-14 rounded-lg object-contain border border-clay-950/10"
+          <div className="space-y-6">
+            <div className="space-y-5 rounded-2xl bg-white p-6 shadow-sm border border-clay-950/5">
+              <h2 className="font-display text-md font-semibold text-clay-950">Identitas & File Website</h2>
+              <div>
+                <label className="text-sm font-medium text-clay-800">Logo Website</label>
+                <div className="mt-2 flex items-center gap-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={siteContent.logoUrl || PLACEHOLDER_IMAGE}
+                    alt="Logo"
+                    onError={onImgError}
+                    className="h-14 w-14 rounded-lg object-contain border border-clay-950/10"
+                  />
+                  <label className="flex cursor-pointer items-center gap-2 rounded-full border border-clay-950/20 px-4 py-2 text-sm text-clay-800 hover:border-terracotta-600">
+                    <Upload size={16} />
+                    {uploading ? "Mengunggah..." : "Ganti logo"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleLogoUpload(e.target.files[0])}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="border-t border-clay-950/10 pt-4">
+                <label className="text-sm font-medium text-clay-800">File E-Catalog (PDF)</label>
+                <div className="mt-2 flex flex-wrap items-center gap-4">
+                  {siteContent.catalogUrl ? (
+                    <div className="flex items-center gap-3 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 text-sm">
+                      <div className="flex items-center gap-1.5 text-emerald-700">
+                        <FileText size={16} />
+                        <span>File PDF aktif</span>
+                      </div>
+                      <a
+                        href={siteContent.catalogUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-blue-600 underline hover:text-blue-800"
+                      >
+                        <Eye size={12} />
+                        Lihat PDF
+                      </a>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-clay-500 italic">Belum ada file E-Catalog PDF yang diunggah</span>
+                  )}
+
+                  <label className="flex cursor-pointer items-center gap-2 rounded-full border border-clay-950/20 px-4 py-2 text-sm text-clay-800 hover:border-terracotta-600">
+                    <Upload size={16} />
+                    {uploading ? "Mengunggah..." : siteContent.catalogUrl ? "Ganti File PDF" : "Unggah File PDF"}
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleCatalogPdfUpload(e.target.files[0])}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <Field
+                label="Nama Website"
+                value={siteContent.siteName}
+                onChange={(v) => setSiteContent({ ...siteContent, siteName: v })}
+              />
+              <Field
+                label="Judul Hero"
+                value={siteContent.heroHeadline}
+                onChange={(v) => setSiteContent({ ...siteContent, heroHeadline: v })}
+              />
+              <Field
+                label="Sub-judul Hero"
+                value={siteContent.heroSubheadline}
+                onChange={(v) => setSiteContent({ ...siteContent, heroSubheadline: v })}
+              />
+              <Field
+                label="Nomor WhatsApp (format: 628xxxxxxxxxx)"
+                value={siteContent.whatsappNumber}
+                onChange={(v) => setSiteContent({ ...siteContent, whatsappNumber: v })}
+              />
+              <Field
+                label="Alamat"
+                value={siteContent.contactAddress}
+                onChange={(v) => setSiteContent({ ...siteContent, contactAddress: v })}
+              />
+              <div>
+                <label className="text-sm font-medium text-clay-800">Teks About Us</label>
+                <textarea
+                  rows={4}
+                  value={siteContent.aboutText}
+                  onChange={(e) => setSiteContent({ ...siteContent, aboutText: e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-clay-950/20 px-3 py-2 outline-none focus:border-terracotta-600"
                 />
-                <label className="flex cursor-pointer items-center gap-2 rounded-full border border-clay-950/20 px-4 py-2 text-sm text-clay-800 hover:border-terracotta-600">
-                  <Upload size={16} />
-                  {uploading ? "Mengunggah..." : "Ganti logo"}
+              </div>
+            </div>
+
+            {/* GUI MANAJEMEN DISPLAY GAMBAR CAROUSEL (LANDING PAGE) */}
+            <div className="space-y-4 rounded-2xl bg-white p-6 shadow-sm border border-clay-950/5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="font-display text-md font-semibold text-clay-950 flex items-center gap-2">
+                    <LayoutGrid size={18} className="text-terracotta-600" />
+                    Manajemen Display Gambar Carousel (Landing Page)
+                  </h2>
+                  <p className="text-xs text-clay-500 mt-1">
+                    Atur gambar-gambar produk unggulan yang muncul pada slider melengkung di bagian beranda.
+                  </p>
+                </div>
+              </div>
+
+              {/* Grid GUI Display Gambar */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 pt-2">
+                {featuredImages.map((imgUrl, idx) => (
+                  <div key={`${imgUrl}-${idx}`} className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-clay-200 bg-clay-50 shadow-xs">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imgUrl || PLACEHOLDER_IMAGE}
+                      alt={`Featured ${idx}`}
+                      onError={onImgError}
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => removeFeaturedImage(idx)}
+                        className="rounded-full bg-red-600 p-2 text-white hover:scale-105 transition-transform"
+                        title="Hapus dari display"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                    <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded font-mono">
+                      #{idx + 1}
+                    </span>
+                  </div>
+                ))}
+
+                {/* Tombol Tambah Gambar Carousel Baru */}
+                <label className="flex aspect-[3/4] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-clay-950/20 bg-cream-50/50 p-2 text-clay-600 hover:border-terracotta-600 hover:bg-white transition-all">
+                  <Upload size={20} className="mb-1 text-terracotta-600" />
+                  <span className="text-[11px] font-medium text-center">
+                    {uploading ? "Mengunggah..." : "Tambah Display"}
+                  </span>
                   <input
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => e.target.files?.[0] && handleLogoUpload(e.target.files[0])}
+                    disabled={uploading}
+                    onChange={(e) =>
+                      e.target.files?.[0] && handleFeaturedImageUpload(e.target.files[0])
+                    }
                   />
                 </label>
               </div>
-            </div>
 
-            <div className="border-t border-clay-950/10 pt-4">
-              <label className="text-sm font-medium text-clay-800">File E-Catalog (PDF)</label>
-              <div className="mt-2 flex flex-wrap items-center gap-4">
-                {siteContent.catalogUrl ? (
-                  <div className="flex items-center gap-3 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 text-sm">
-                    <div className="flex items-center gap-1.5 text-emerald-700">
-                      <FileText size={16} />
-                      <span>File PDF aktif</span>
-                    </div>
-                    <a
-                      href={siteContent.catalogUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-blue-600 underline hover:text-blue-800"
+              {/* Opsi Pilih Cepat dari Produk yang Ada */}
+              <div className="pt-4 border-t border-clay-100">
+                <label className="text-xs font-semibold text-clay-700 uppercase tracking-wider block mb-2">
+                  Atau Pilih Cepat Gambar dari Produk Terdaftar:
+                </label>
+                <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-2 bg-cream-50/50 rounded-xl border border-clay-200">
+                  {products.flatMap((p) => p.images || []).map((imgUrl, i) => (
+                    <button
+                      key={`prod-img-${i}`}
+                      type="button"
+                      onClick={() => {
+                        if (featuredImages.includes(imgUrl)) return;
+                        setSiteContent({
+                          ...siteContent,
+                          featuredImages: [...featuredImages, imgUrl],
+                        });
+                        flash("ok", "Gambar produk ditambahkan ke Carousel!");
+                      }}
+                      className={`relative h-12 w-12 rounded-lg overflow-hidden border transition-all ${
+                        featuredImages.includes(imgUrl)
+                          ? "border-terracotta-600 ring-2 ring-terracotta-600/30 opacity-40"
+                          : "border-clay-300 hover:scale-105"
+                      }`}
                     >
-                      <Eye size={12} />
-                      Lihat PDF
-                    </a>
-                  </div>
-                ) : (
-                  <span className="text-sm text-clay-500 italic">Belum ada file E-Catalog PDF yang diunggah</span>
-                )}
-
-                <label className="flex cursor-pointer items-center gap-2 rounded-full border border-clay-950/20 px-4 py-2 text-sm text-clay-800 hover:border-terracotta-600">
-                  <Upload size={16} />
-                  {uploading ? "Mengunggah..." : siteContent.catalogUrl ? "Ganti File PDF" : "Unggah File PDF"}
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    className="hidden"
-                    onChange={(e) => e.target.files?.[0] && handleCatalogPdfUpload(e.target.files[0])}
-                  />
-                </label>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={imgUrl} alt="" className="h-full w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-
-            <Field
-              label="Nama Website"
-              value={siteContent.siteName}
-              onChange={(v) => setSiteContent({ ...siteContent, siteName: v })}
-            />
-            <Field
-              label="Judul Hero"
-              value={siteContent.heroHeadline}
-              onChange={(v) => setSiteContent({ ...siteContent, heroHeadline: v })}
-            />
-            <Field
-              label="Sub-judul Hero"
-              value={siteContent.heroSubheadline}
-              onChange={(v) => setSiteContent({ ...siteContent, heroSubheadline: v })}
-            />
-            <Field
-              label="Nomor WhatsApp (format: 628xxxxxxxxxx)"
-              value={siteContent.whatsappNumber}
-              onChange={(v) => setSiteContent({ ...siteContent, whatsappNumber: v })}
-            />
-            <Field
-              label="Alamat"
-              value={siteContent.contactAddress}
-              onChange={(v) => setSiteContent({ ...siteContent, contactAddress: v })}
-            />
-            <div>
-              <label className="text-sm font-medium text-clay-800">Teks About Us</label>
-              <textarea
-                rows={4}
-                value={siteContent.aboutText}
-                onChange={(e) => setSiteContent({ ...siteContent, aboutText: e.target.value })}
-                className="mt-1 w-full rounded-lg border border-clay-950/20 px-3 py-2 outline-none focus:border-terracotta-600"
-              />
             </div>
 
             <button
               onClick={() => saveContent()}
               disabled={savingContent}
-              className="rounded-full bg-terracotta-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-clay-800 disabled:opacity-60"
+              className="rounded-full bg-terracotta-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-clay-800 disabled:opacity-60 shadow"
             >
-              {savingContent ? "Menyimpan..." : "Simpan Perubahan"}
+              {savingContent ? "Menyimpan..." : "Simpan Semua Perubahan"}
             </button>
           </div>
         )}
@@ -521,7 +638,6 @@ export default function AdminDashboardPage() {
         {/* TAB 2: MANAJEMEN TESTIMONI CARDS (GUI MANAGER) */}
         {tab === "testimonials" && (
           <div className="space-y-8">
-            {/* Form Input / Edit Testimoni Card */}
             <div className="rounded-2xl bg-white p-6 shadow-sm border border-clay-950/5">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-display text-lg text-clay-950 flex items-center gap-2">
@@ -539,10 +655,9 @@ export default function AdminDashboardPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Form Field */}
                 <div className="md:col-span-2 space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-clay-800">Teks Testimoni (Bahasa Inggris/Indonesia)</label>
+                    <label className="text-sm font-medium text-clay-800">Teks Testimoni</label>
                     <textarea
                       rows={3}
                       placeholder="The rattan chair and table set for our cafe has been outdoors..."
@@ -590,7 +705,6 @@ export default function AdminDashboardPage() {
                   </div>
                 </div>
 
-                {/* Live Card Preview (GUI) */}
                 <div className="flex flex-col justify-start">
                   <span className="text-xs font-semibold uppercase tracking-wider text-clay-500 mb-2 flex items-center gap-1">
                     <Sparkles size={12} className="text-brass-500" /> Live Visual Preview
@@ -616,7 +730,6 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* Grid GUI Daftar Semua Kartu Testimoni */}
             <div className="rounded-2xl bg-white p-6 shadow-sm border border-clay-950/5">
               <h2 className="mb-4 font-display text-lg text-clay-950">
                 Daftar Display Cards Aktif ({testimonialList.length})

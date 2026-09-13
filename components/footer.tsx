@@ -5,14 +5,15 @@ import { CATEGORIES } from "@/lib/types";
 export function Footer({ siteName, tagline }: { siteName: string; tagline: string }) {
   return (
     <footer className="relative w-full bg-cream-50 text-clay-800 pt-14 pb-28 sm:pb-16 border-t border-clay-200/60 overflow-hidden">
-      {/* BACKGROUND BATIK GAJAH MADA UNTUK FOOTER */}
+      {/* BACKGROUND BATIK GAJAH MADA (WATERMARK COVER - NO REPEAT) */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.08] z-0"
+        className="pointer-events-none absolute inset-0 opacity-[0.06] z-0"
         style={{
           backgroundImage: "url('/images/batik-gajah.png')",
-          backgroundSize: "280px 280px",
-          backgroundRepeat: "repeat",
+          backgroundSize: "cover",
+          backgroundPosition: "center 20%",
+          backgroundRepeat: "no-repeat",
         }}
       />
 
@@ -129,7 +130,8 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                 Collections
               </span>
               <ul className="space-y-2 text-xs font-medium text-clay-700">
-                {CATEGORIES.slice(0, 5).map((c) => (
+                {/* SEMUA KATEGORI DITAMPILKAN LENGKAP */}
+                {CATEGORIES.map((c) => (
                   <li key={c.slug}>
                     <Link
                       href={`/gallery?category=${c.slug}`}

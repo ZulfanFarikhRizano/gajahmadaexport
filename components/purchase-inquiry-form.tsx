@@ -25,18 +25,21 @@ export function PurchaseInquiryForm() {
     const emailTarget = "inquiry@gajahmadaexport.com";
     const emailSubject = encodeURIComponent(subject || "Purchase Inquiry");
     
-    // Format isi email dengan informasi Name, WhatsApp, dan Message
     const emailBody = encodeURIComponent(
       `Name: ${name}\nWhatsApp: ${whatsapp}\n\nMessage:\n${message}`
     );
 
-    // Buka email client bawaan pengguna
     window.location.href = `mailto:${emailTarget}?subject=${emailSubject}&body=${emailBody}`;
   };
 
   return (
-    <section id="order" className="bg-cream-100 py-16 px-6">
-      <div className="mx-auto max-w-xl rounded-2xl bg-white p-6 md:p-8 shadow-sm">
+    // DIUBAH: Menggunakan bg-cover bg-no-repeat bg-center
+    <section id="order" className="relative bg-cream-100 bg-[url('/batik-gajah.png')] bg-cover bg-no-repeat bg-center py-16 px-6">
+      
+      {/* Overlay tipis agar teks & form tetap terbaca jelas */}
+      <div className="absolute inset-0 bg-cream-100/75 pointer-events-none" />
+
+      <div className="relative z-10 mx-auto max-w-xl rounded-2xl bg-white p-6 md:p-8 shadow-sm">
         <h2 className="font-display text-2xl font-medium text-clay-950 mb-6">
           Send us a message
         </h2>
