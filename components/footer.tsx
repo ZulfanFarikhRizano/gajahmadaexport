@@ -20,7 +20,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                 <span>Cirebon, West Java, Indonesia (Origin)</span>
               </div>
               <div>
-                
+                <a
                   href="mailto:Inquiry@gajahmadaexport.com"
                   className="inline-flex items-center gap-2 text-xs font-medium text-clay-800 hover:text-[#b3593b] transition-colors"
                 >
@@ -96,7 +96,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                   Follow Us
                 </span>
                 <div className="flex items-center gap-2">
-                  
+                  <a
                     href="https://www.instagram.com/gajahmadaexport?stkn=MTFsZzR3dGdiNjJ3"
                     target="_blank"
                     rel="noopener noreferrer"

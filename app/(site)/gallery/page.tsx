@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { getProducts } from "@/lib/data-store";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { Footer } from "@/components/footer";
-import { BatikWatermark } from "@/components/batik-watermark";
+import { BatikWatermark } from "@/components/BatikWatermark";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 
 // URL Base Supabase Storage (Bucket: uploads)
