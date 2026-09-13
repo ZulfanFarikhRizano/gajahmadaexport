@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getTrafficSummary } from "@/lib/analytics-store";
 import { TrafficCharts } from "@/components/admin/traffic-charts";
+export const dynamic = "force-dynamic";
 
 export default async function AnalyticsPage() {
   const summary = await getTrafficSummary(30);
