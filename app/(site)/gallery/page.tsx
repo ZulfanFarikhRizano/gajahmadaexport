@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { getProducts } from "@/lib/data-store";
 import { GalleryGrid } from "@/components/gallery-grid";
-import { Footer } from "@/components/footer";
 import { BatikWatermark } from "@/components/BatikWatermark";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 
@@ -91,7 +90,6 @@ export default async function GalleryPage() {
         </Suspense>
       </main>
 
-      <Footer siteName="Gajah Mada Export" tagline="Worldwide Wholesale & Export Supplier of Handmade Rattan Furniture" />
     </div>
   );
 }
