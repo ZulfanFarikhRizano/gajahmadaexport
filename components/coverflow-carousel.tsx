@@ -6,10 +6,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SafeImage } from "@/components/safe-image";
 
-const useIsoLayoutEffect =
-  typeof window !== "undefined" ? React.useLayoutEffect : React.useEffect;
-
 const CLICK_THRESHOLD_PX = 6;
+// Hanya render 7 slide di DOM (3 kiri, 1 tengah, 3 kanan) agar GPU tidak kehabisan memori 3D
+const VISIBLE_RADIUS = 3; 
 
 export interface CoverflowSlide {
   src: string;
@@ -27,7 +26,6 @@ export interface CoverflowCarouselProps {
   falloff?: number;
   fade?: number;
   cardWidth?: string;
-  /** Rasio lebar:tinggi kartu. 1 = kotak (default). 0.75 = potret 3:4. */
   cardAspect?: number;
   gap?: number;
   loop?: boolean;
@@ -35,10 +33,6 @@ export interface CoverflowCarouselProps {
   showPagination?: boolean;
   showNavigation?: boolean;
   initialIndex?: number;
-  /**
-   * Dipanggil saat kartu yang SUDAH di tengah diklik/tap (bukan drag).
-   * Kartu di samping yang diklik akan digeser ke tengah dulu.
-   */
   onSlideActivate?: (index: number, slide: CoverflowSlide) => void;
   label?: string;
   className?: string;
@@ -69,11 +63,12 @@ export function CoverflowCarousel({
   const startIndex = Math.min(Math.max(initialIndex, 0), Math.max(count - 1, 0));
 
   const frameRef = React.useRef<HTMLDivElement>(null);
-  const cardRefs = React.useRef<(HTMLDivElement | null)[]>([]);
+  const cardRefs = React.useRef<{ [key: number]: HTMLDivElement | null }>({});
   const posRef = React.useRef(startIndex);
   const targetRef = React.useRef(startIndex);
   const widthRef = React.useRef(0);
   const rafRef = React.useRef<number | null>(null);
+
   const dragRef = React.useRef<{
     id: number;
     x: number;
@@ -85,6 +80,7 @@ export function CoverflowCarousel({
   } | null>(null);
 
   const [selected, setSelected] = React.useState(startIndex);
+  const [isDragging, setIsDragging] = React.useState(false);
 
   const indexAt = React.useCallback(
     (pos: number) => ((Math.round(pos) % count) + count) % count,
@@ -97,7 +93,9 @@ export function CoverflowCarousel({
     const pitch = width * (1 + gap);
     const pos = posRef.current;
 
-    cardRefs.current.forEach((card, index) => {
+    Object.keys(cardRefs.current).forEach((key) => {
+      const index = Number(key);
+      const card = cardRefs.current[index];
       if (!card) return;
 
       let offset = index - pos;
@@ -107,6 +105,8 @@ export function CoverflowCarousel({
       }
 
       const distance = Math.abs(offset);
+
+      // EFEK 3D UTUH 100%
       const ramp = Math.pow(distance, falloff);
       const tilt = Math.min(rotate * ramp, 82) * Math.sign(offset);
 
@@ -174,6 +174,7 @@ export function CoverflowCarousel({
     const pressedEl = (event.target as HTMLElement).closest<HTMLElement>("[data-cf-index]");
     const pressedIndex = pressedEl ? Number(pressedEl.dataset.cfIndex) : null;
 
+    setIsDragging(true);
     dragRef.current = {
       id: event.pointerId,
       x: event.clientX,
@@ -204,11 +205,19 @@ export function CoverflowCarousel({
 
     const index = indexAt(posRef.current);
     if (index !== selected) setSelected(index);
-    paint();
+
+    // Throttle rendering via requestAnimationFrame
+    if (rafRef.current === null) {
+      rafRef.current = requestAnimationFrame(() => {
+        paint();
+        rafRef.current = null;
+      });
+    }
   };
 
   const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current;
+    setIsDragging(false);
     if (!drag || drag.id !== event.pointerId) return;
     dragRef.current = null;
 
@@ -226,14 +235,18 @@ export function CoverflowCarousel({
     settle(clamp(Math.round(posRef.current + carried)));
   };
 
-  useIsoLayoutEffect(() => {
+  React.useLayoutEffect(() => {
     const frame = frameRef.current;
     if (!frame) return;
 
     const measure = () => {
-      const card = cardRefs.current[0];
-      if (!card) return;
-      widthRef.current = card.offsetWidth;
+      const firstCardKey = Object.keys(cardRefs.current)[0];
+      const card = firstCardKey !== undefined ? cardRefs.current[Number(firstCardKey)] : null;
+      if (card) {
+        widthRef.current = card.offsetWidth;
+      } else {
+        widthRef.current = Math.min(window.innerWidth * 0.26, 300);
+      }
       paint();
     };
 
@@ -243,12 +256,24 @@ export function CoverflowCarousel({
     return () => observer.disconnect();
   }, [paint]);
 
-  React.useEffect(
-    () => () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    },
-    [],
-  );
+  React.useEffect(() => {
+    paint();
+  }, [selected, paint]);
+
+  // VIRTUALIZATION: Hanya render item terdekat di radius pandang
+  const visibleIndices = React.useMemo(() => {
+    const indices: number[] = [];
+    for (let i = -VISIBLE_RADIUS; i <= VISIBLE_RADIUS; i++) {
+      let idx = selected + i;
+      if (loop) {
+        idx = ((idx % count) + count) % count;
+      }
+      if (idx >= 0 && idx < count && !indices.includes(idx)) {
+        indices.push(idx);
+      }
+    }
+    return indices;
+  }, [selected, count, loop]);
 
   const active = slides[selected];
 
@@ -293,30 +318,40 @@ export function CoverflowCarousel({
               transformStyle: "preserve-3d",
             }}
           >
-            {slides.map((slide, index) => (
-              <div
-                key={index}
-                ref={(node) => {
-                  cardRefs.current[index] = node;
-                }}
-                data-cf-index={index}
-                role="group"
-                aria-roledescription="slide"
-                aria-label={`${index + 1} of ${count}`}
-                className={cn(
-                  "absolute left-1/2 top-0 aspect-square overflow-hidden rounded-2xl bg-muted shadow-xl will-change-transform",
-                  index === selected && "cursor-pointer",
-                  cardClassName,
-                )}
-                style={{ width: "var(--cf-card)" }}
-              >
-                <SafeImage
-                  src={slide.src}
-                  alt={slide.alt}
-                  className="h-full w-full select-none object-cover"
-                />
-              </div>
-            ))}
+            {visibleIndices.map((index) => {
+              const slide = slides[index];
+              const isCenter = index === selected;
+
+              return (
+                <div
+                  key={index}
+                  ref={(node) => {
+                    if (node) cardRefs.current[index] = node;
+                    else delete cardRefs.current[index];
+                  }}
+                  data-cf-index={index}
+                  role="group"
+                  aria-roledescription="slide"
+                  aria-label={`${index + 1} of ${count}`}
+                  className={cn(
+                    "absolute left-1/2 top-0 aspect-square overflow-hidden rounded-2xl bg-muted shadow-xl",
+                    isDragging && "will-change-transform",
+                    isCenter && "cursor-pointer",
+                    cardClassName,
+                  )}
+                  style={{ width: "var(--cf-card)" }}
+                >
+                  <SafeImage
+                    src={slide.src}
+                    alt={slide.alt}
+                    loading={isCenter ? "eager" : "lazy"}
+                    fetchPriority={isCenter ? "high" : "low"}
+                    sizes="(max-width: 640px) 180px, 280px"
+                    className="h-full w-full select-none object-cover"
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -346,34 +381,6 @@ export function CoverflowCarousel({
         <div key={selected} className="mt-2 flex flex-col items-center px-6 duration-300 animate-in fade-in">
           <p className="text-[15px] font-semibold tracking-tight text-foreground">{active.title}</p>
           {active.subtitle && <p className="mt-1 text-[13px] text-muted-foreground">{active.subtitle}</p>}
-          {active.meta && active.meta.length > 0 && (
-            <dl className="mt-10 w-full max-w-[230px] text-[12px]">
-              {active.meta.map((row) => (
-                <div key={row.label} className="flex justify-between py-[5px]">
-                  <dt className="text-muted-foreground">{row.label}</dt>
-                  <dd className="font-medium text-foreground">{row.value}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
-        </div>
-      )}
-
-      {showPagination && (
-        <div className="mt-6 flex items-center justify-center gap-2">
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              type="button"
-              aria-label={`Go to slide ${index + 1}`}
-              aria-current={index === selected}
-              onClick={() => goTo(index)}
-              className={cn(
-                "size-2 rounded-full bg-foreground transition-opacity",
-                index === selected ? "opacity-100" : "opacity-30",
-              )}
-            />
-          ))}
         </div>
       )}
     </div>

@@ -14,9 +14,18 @@ interface SafeImageProps {
   className?: string;
   fill?: boolean;
   sizes?: string;
+  loading?: "eager" | "lazy";
+  fetchPriority?: "high" | "low" | "auto";
 }
 
-export function SafeImage({ src, alt, className = "", fill }: SafeImageProps) {
+export function SafeImage({
+  src,
+  alt,
+  className = "",
+  fill,
+  loading,
+  fetchPriority,
+}: SafeImageProps) {
   const [imgSrc, setImgSrc] = useState<string>(PLACEHOLDER_IMAGE);
   const [baseFileName, setBaseFileName] = useState<string>("");
   const [currentExtIndex, setCurrentExtIndex] = useState<number>(-1);
@@ -78,6 +87,9 @@ export function SafeImage({ src, alt, className = "", fill }: SafeImageProps) {
       alt={alt}
       className={`${fillClass} ${className}`.trim()}
       onError={handleError}
+      loading={loading}
+      // @ts-ignore untuk mendukung fetchpriority native HTMLImgElement
+      fetchpriority={fetchPriority}
     />
   );
 }
