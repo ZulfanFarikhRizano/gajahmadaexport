@@ -26,6 +26,24 @@ import { createClient } from "@supabase/supabase-js";
 
 type Tab = "content" | "testimonials" | "products";
 
+// Data Testimoni Default (Agar testimoni lama tidak terbaca 0 saat pertama kali)
+const DEFAULT_TESTIMONIALS: Testimonial[] = [
+  {
+    id: "testi-1",
+    testimonial:
+      "Gajah Mada perfectly executed my custom rattan weave patterns for a client project. Precision and attention to detail are top-notch!",
+    by: "Michael Tanuwijaya, Interior Designer",
+    imgSrc: "/images/avatars/michael.jpg",
+  },
+  {
+    id: "testi-2",
+    testimonial:
+      "The rattan chairs and tables we purchased have survived over a year of heavy daily commercial use. Exceptional quality!",
+    by: "Ratna Wijayanti, Cafe Owner",
+    imgSrc: "/images/avatars/ratna.jpg",
+  },
+];
+
 const emptyDraft = {
   name: "",
   category: CATEGORIES[0].slug,
@@ -87,7 +105,18 @@ export default function AdminDashboardPage() {
 
       const { siteContent } = await contentRes.json();
       const { products } = await productsRes.json();
-      setSiteContent(siteContent);
+
+      // Memastikan Testimonial tidak undefined/kosong di awal
+      const loadedTestimonials =
+        siteContent && Array.isArray(siteContent.testimonials) && siteContent.testimonials.length > 0
+          ? siteContent.testimonials
+          : DEFAULT_TESTIMONIALS;
+
+      setSiteContent({
+        ...siteContent,
+        testimonials: loadedTestimonials,
+      });
+
       setProducts(products);
     } catch (err) {
       flash(
@@ -244,7 +273,7 @@ export default function AdminDashboardPage() {
     if (url) setDraft((d) => ({ ...d, images: [...d.images, url] }));
   };
 
-  // FIX: Upload Gambar Testimoni Langsung Update State
+  // Upload Gambar Testimoni Langsung Update State
   const handleTestimonialImageUpload = async (file: File) => {
     setUploadingTestiImg(true);
     const url = await uploadFile(file);
@@ -255,8 +284,11 @@ export default function AdminDashboardPage() {
     setUploadingTestiImg(false);
   };
 
-  const handleSaveTestimonial = async () => {
+  // PERBAIKAN UTAMA: Penambahan Card Tanpa Reset State ke 0
+  const handleSaveTestimonial = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!siteContent) return;
+
     if (!testimonialDraft.testimonial || !testimonialDraft.by) {
       flash("error", "Isi teks testimoni dan nama/jabatan.");
       return;
@@ -270,7 +302,7 @@ export default function AdminDashboardPage() {
         t.id === editingTestimonialId ? testimonialDraft : t
       );
     } else {
-      const newTesti = {
+      const newTesti: Testimonial = {
         ...testimonialDraft,
         id: `testi-${Date.now()}`,
         imgSrc: testimonialDraft.imgSrc || PLACEHOLDER_IMAGE,
@@ -534,7 +566,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* GUI MANAJEMEN DISPLAY GAMBAR CAROUSEL (LANDING PAGE) */}
+            {/* GUI MANAJEMEN DISPLAY GAMBAR CAROUSEL */}
             <div className="space-y-4 rounded-2xl bg-white p-6 shadow-sm border border-clay-950/5">
               <div className="flex items-center justify-between">
                 <div>
@@ -548,7 +580,6 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* Grid GUI Display Gambar */}
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 pt-2">
                 {featuredImages.map((imgUrl, idx) => (
                   <div key={`${imgUrl}-${idx}`} className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-clay-200 bg-clay-50 shadow-xs">
@@ -575,7 +606,6 @@ export default function AdminDashboardPage() {
                   </div>
                 ))}
 
-                {/* Tombol Tambah Gambar Carousel Baru */}
                 <label className="flex aspect-[3/4] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-clay-950/20 bg-cream-50/50 p-2 text-clay-600 hover:border-terracotta-600 hover:bg-white transition-all">
                   <Upload size={20} className="mb-1 text-terracotta-600" />
                   <span className="text-[11px] font-medium text-center">
@@ -592,37 +622,6 @@ export default function AdminDashboardPage() {
                   />
                 </label>
               </div>
-
-              {/* Opsi Pilih Cepat dari Produk yang Ada */}
-              <div className="pt-4 border-t border-clay-100">
-                <label className="text-xs font-semibold text-clay-700 uppercase tracking-wider block mb-2">
-                  Atau Pilih Cepat Gambar dari Produk Terdaftar:
-                </label>
-                <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-2 bg-cream-50/50 rounded-xl border border-clay-200">
-                  {products.flatMap((p) => p.images || []).map((imgUrl, i) => (
-                    <button
-                      key={`prod-img-${i}`}
-                      type="button"
-                      onClick={() => {
-                        if (featuredImages.includes(imgUrl)) return;
-                        setSiteContent({
-                          ...siteContent,
-                          featuredImages: [...featuredImages, imgUrl],
-                        });
-                        flash("ok", "Gambar produk ditambahkan ke Carousel!");
-                      }}
-                      className={`relative h-12 w-12 rounded-lg overflow-hidden border transition-all ${
-                        featuredImages.includes(imgUrl)
-                          ? "border-terracotta-600 ring-2 ring-terracotta-600/30 opacity-40"
-                          : "border-clay-300 hover:scale-105"
-                      }`}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={imgUrl} alt="" className="h-full w-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
 
             <button
@@ -635,7 +634,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
-        {/* TAB 2: MANAJEMEN TESTIMONI CARDS (GUI MANAGER) */}
+        {/* TAB 2: MANAJEMEN TESTIMONI CARDS */}
         {tab === "testimonials" && (
           <div className="space-y-8">
             <div className="rounded-2xl bg-white p-6 shadow-sm border border-clay-950/5">
@@ -660,7 +659,7 @@ export default function AdminDashboardPage() {
                     <label className="text-sm font-medium text-clay-800">Teks Testimoni</label>
                     <textarea
                       rows={3}
-                      placeholder="The rattan chair and table set for our cafe has been outdoors..."
+                      placeholder="Tulis testimoni pelanggan di sini..."
                       value={testimonialDraft.testimonial}
                       onChange={(e) =>
                         setTestimonialDraft((prev) => ({ ...prev, testimonial: e.target.value }))
@@ -695,7 +694,8 @@ export default function AdminDashboardPage() {
 
                   <div className="pt-2">
                     <button
-                      onClick={handleSaveTestimonial}
+                      type="button"
+                      onClick={(e) => handleSaveTestimonial(e)}
                       disabled={savingContent || uploadingTestiImg}
                       className="rounded-full bg-terracotta-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-clay-800 disabled:opacity-60 flex items-center gap-2"
                     >

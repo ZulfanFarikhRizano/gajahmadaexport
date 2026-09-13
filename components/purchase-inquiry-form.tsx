@@ -33,13 +33,27 @@ export function PurchaseInquiryForm() {
   };
 
   return (
-    // DIUBAH: Menggunakan bg-cover bg-no-repeat bg-center
-    <section id="order" className="relative bg-cream-100 bg-[url('/batik-gajah.png')] bg-cover bg-no-repeat bg-center py-16 px-6">
-      
-      {/* Overlay tipis agar teks & form tetap terbaca jelas */}
-      <div className="absolute inset-0 bg-cream-100/75 pointer-events-none" />
+    <section 
+      id="order" 
+      className="relative bg-cream-100 py-16 px-6 overflow-hidden"
+    >
+      {/* 1. BACKGROUND BATIK GAJAH (Pastikan path file sesuai) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-0 opacity-25"
+        style={{
+          backgroundImage: "url('/batik-gajah.png')", // Jika di folder public/images, ganti ke '/images/batik-gajah.png'
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      />
 
-      <div className="relative z-10 mx-auto max-w-xl rounded-2xl bg-white p-6 md:p-8 shadow-sm">
+      {/* 2. OVERLAY TRANSPARAN TIPIS (Agar form kontras) */}
+      <div className="absolute inset-0 bg-cream-100/30 pointer-events-none z-0" />
+
+      {/* 3. CONTENT FORM */}
+      <div className="relative z-10 mx-auto max-w-xl rounded-2xl bg-white p-6 md:p-8 shadow-md border border-clay-100">
         <h2 className="font-display text-2xl font-medium text-clay-950 mb-6">
           Send us a message
         </h2>
