@@ -160,20 +160,6 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
 
   return (
     <div ref={gridTopRef} className="relative w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 scroll-mt-24">
-      {/* BACKGROUND BATIK WATERMARK - PRESISI & FIXED SEHINGGA MENYAMBUNG LANSUNG KE FOOTER */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.06] sm:opacity-[0.07] z-0"
-        style={{
-          backgroundImage: "url('/images/batik-gajah.png')",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center center",
-          backgroundAttachment: "fixed",
-          backgroundSize: "min(90vw, 700px) auto",
-        }}
-      />
-
-      {/* Content wrapper dengan z-10 agar di atas background */}
       <div className="relative z-10">
         {/* Category Filter Buttons */}
         <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 mb-4">

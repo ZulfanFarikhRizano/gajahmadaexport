@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { getProducts } from "@/lib/data-store";
 import { GalleryGrid } from "@/components/gallery-grid";
+import { Footer } from "@/components/footer";
+import { BatikWatermark } from "@/components/batik-watermark";
 import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 
 // URL Base Supabase Storage (Bucket: uploads)
@@ -71,16 +73,7 @@ export default async function GalleryPage() {
 
   return (
     <div className="relative min-h-screen bg-cream-50">
-      {/* GLOBAL BACKGROUND BATIK GAJAH MADA */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.07] z-0"
-        style={{
-          backgroundImage: "url('/images/batik-gajah.png')",
-          backgroundSize: "280px 280px",
-          backgroundRepeat: "repeat",
-        }}
-      />
+      <BatikWatermark />
 
       {/* MAIN CONTENT AREA */}
       <main className="relative z-10 pt-16 pb-12">
@@ -97,6 +90,8 @@ export default async function GalleryPage() {
           <GalleryGrid products={products} />
         </Suspense>
       </main>
+
+      <Footer siteName="Gajah Mada Export" tagline="Worldwide Wholesale & Export Supplier of Handmade Rattan Furniture" />
     </div>
   );
 }

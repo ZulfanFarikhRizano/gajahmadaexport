@@ -1,25 +1,10 @@
-"use client";
-
 import Link from "next/link";
 import { Mail, MapPin, Globe, Instagram } from "lucide-react";
 import { CATEGORIES } from "@/lib/types";
 
 export function Footer({ siteName, tagline }: { siteName: string; tagline: string }) {
   return (
-    <footer className="relative w-full bg-cream-50 text-clay-800 pt-12 pb-12 sm:pt-16 sm:pb-16 border-t border-clay-200/60 overflow-hidden">
-      {/* BACKGROUND BATIK WATERMARK - PRESISI & SELARAS DENGAN GALLERY GRID */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.06] sm:opacity-[0.07] z-0"
-        style={{
-          backgroundImage: "url('/images/batik-gajah.png')",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center center",
-          backgroundAttachment: "fixed",
-          backgroundSize: "min(90vw, 700px) auto",
-        }}
-      />
-
+    <footer className="relative w-full bg-cream-50 text-clay-800 pt-10 pb-24 sm:pt-14 sm:pb-16 border-t border-clay-200/60 overflow-hidden">
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:gap-10 lg:grid-cols-12 items-start">
           {/* Brand Profile & Contact */}
@@ -35,7 +20,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                 <span>Cirebon, West Java, Indonesia (Origin)</span>
               </div>
               <div>
-                <a
+                
                   href="mailto:Inquiry@gajahmadaexport.com"
                   className="inline-flex items-center gap-2 text-xs font-medium text-clay-800 hover:text-[#b3593b] transition-colors"
                 >
@@ -111,7 +96,7 @@ export function Footer({ siteName, tagline }: { siteName: string; tagline: strin
                   Follow Us
                 </span>
                 <div className="flex items-center gap-2">
-                  <a
+                  
                     href="https://www.instagram.com/gajahmadaexport?stkn=MTFsZzR3dGdiNjJ3"
                     target="_blank"
                     rel="noopener noreferrer"
