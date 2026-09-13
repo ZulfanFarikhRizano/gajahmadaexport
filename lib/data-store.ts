@@ -5,7 +5,8 @@ import type { Product, SiteContent } from "./types";
 const db = () => supabaseAdmin() as any;
 
 function mapProduct(data: any): Product {
-  const cleanId = (data.id || "").toString().trim().toLowerCase();
+  // JANGAN di-toLowerCase() agar prefix CO- / LI- / ACC- di ID asli tidak rusak!
+  const cleanId = (data.id || "").toString().trim();
 
   return {
     id: cleanId,
@@ -46,8 +47,6 @@ async function fetchWithTimeout<T>(
 }
 
 export async function getProducts(): Promise<Product[]> {
-  // Ambil max 200 produk terbaru agar tidak timeout. 
-  // Jika butuh seleksi ringkas, hindari select * jika data tekstual sangat besar.
   const data = await fetchWithTimeout<any[]>((signal) =>
     db()
       .from("products")
@@ -61,11 +60,14 @@ export async function getProducts(): Promise<Product[]> {
 }
 
 export async function getProductsByCategory(category: string): Promise<Product[]> {
+  const cleanCategory = (category || "").toString().trim();
+
   const data = await fetchWithTimeout<any[]>((signal) =>
     db()
       .from("products")
       .select("*")
-      .eq("category", category)
+      // Pakai ilike agar pencocokan category di DB case-insensitive
+      .ilike("category", `%${cleanCategory}%`) 
       .order("created_at", { ascending: false })
       .range(0, 199)
       .abortSignal(signal)
@@ -75,13 +77,13 @@ export async function getProductsByCategory(category: string): Promise<Product[]
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-  const cleanId = (id || "").toString().trim().toLowerCase();
+  const rawId = (id || "").toString().trim();
 
   const data = await fetchWithTimeout<any>((signal) =>
     db()
       .from("products")
       .select("*")
-      .eq("id", cleanId)
+      .ilike("id", rawId) // Menggunakan ilike agar tidak gagal gara-gara beda huruf besar/kecil
       .maybeSingle()
       .abortSignal(signal)
   );
@@ -115,12 +117,12 @@ export async function updateProduct(
   id: string,
   patch: Partial<Omit<Product, "id" | "createdAt">>
 ): Promise<Product | null> {
-  const cleanId = (id || "").toString().trim().toLowerCase();
+  const rawId = (id || "").toString().trim();
 
   const { data, error } = await db()
     .from("products")
     .update(patch)
-    .eq("id", cleanId)
+    .ilike("id", rawId)
     .select()
     .maybeSingle();
 
@@ -129,12 +131,12 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {
-  const cleanId = (id || "").toString().trim().toLowerCase();
+  const rawId = (id || "").toString().trim();
 
   const { error, count } = await db()
     .from("products")
     .delete({ count: "exact" })
-    .eq("id", cleanId);
+    .ilike("id", rawId);
 
   if (error) throw new Error(error.message);
   return (count ?? 0) > 0;

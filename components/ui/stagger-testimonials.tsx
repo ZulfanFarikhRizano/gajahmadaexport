@@ -95,7 +95,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         className="pointer-events-none absolute inset-0 opacity-[0.06] z-0"
         style={{
           backgroundImage: "url('/images/batik-gajah.png')",
-          backgroundSize: "180px 180px",
+          backgroundSize: "180px 120px", // Rasio 3:2 untuk kartu
           backgroundRepeat: "repeat",
         }}
       />
@@ -148,7 +148,6 @@ export interface StaggerTestimonialsProps {
 export const StaggerTestimonials: React.FC<StaggerTestimonialsProps> = ({ items }) => {
   const [cardSize, setCardSize] = useState(365);
   
-  // Fungsi Helper untuk menyiapkan format array state
   const prepareData = (sourceArray: TestimonialItem[]) => {
     return sourceArray.map((item, idx) => ({
       ...item,
@@ -157,11 +156,9 @@ export const StaggerTestimonials: React.FC<StaggerTestimonialsProps> = ({ items 
     }));
   };
 
-  // Gunakan data items jika ada & tidak kosong, jika kosong otomatis pakai hardcode
   const initialData = prepareData(items && items.length > 0 ? items : DEFAULT_TESTIMONIALS);
   const [testimonialsList, setTestimonialsList] = useState(initialData);
 
-  // Sync state jika data props berubah dari server/Supabase
   useEffect(() => {
     const activeItems = items && items.length > 0 ? items : DEFAULT_TESTIMONIALS;
     setTestimonialsList(prepareData(activeItems));
@@ -275,7 +272,7 @@ export function TestimonialsSection({ items }: { items?: TestimonialItem[] }) {
         className="pointer-events-none absolute inset-0 opacity-[0.07] z-0"
         style={{
           backgroundImage: "url('/images/batik-gajah.png')",
-          backgroundSize: "280px 280px",
+          backgroundSize: "300px 200px", // Rasio 3:2 untuk section
           backgroundRepeat: "repeat",
         }}
       />
