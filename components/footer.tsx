@@ -1,25 +1,23 @@
+"use client";
+
 import Link from "next/link";
 import { Mail, MapPin, Globe, Instagram } from "lucide-react";
 import { CATEGORIES } from "@/lib/types";
 
 export function Footer({ siteName, tagline }: { siteName: string; tagline: string }) {
   return (
-    <footer className="relative w-full bg-cream-50 text-clay-800 pt-10 pb-24 sm:pt-14 sm:pb-16 border-t border-clay-200/60 overflow-hidden">
-      {/* BACKGROUND BATIK WATERMARK (SEAMLESS & SOFT OVERLAY) */}
+    <footer className="relative w-full bg-cream-50 text-clay-800 pt-12 pb-12 sm:pt-16 sm:pb-16 border-t border-clay-200/60 overflow-hidden">
+      {/* BACKGROUND BATIK WATERMARK - PRESISI & SELARAS DENGAN GALLERY GRID */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.035] sm:opacity-[0.045] z-0"
+        className="pointer-events-none absolute inset-0 opacity-[0.06] sm:opacity-[0.07] z-0"
         style={{
           backgroundImage: "url('/images/batik-gajah.png')",
-          backgroundRepeat: "repeat",
-          backgroundPosition: "center top",
-          backgroundSize: "320px auto",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center center",
+          backgroundAttachment: "fixed",
+          backgroundSize: "min(90vw, 700px) auto",
         }}
-      />
-      {/* Soft Top & Bottom Gradient Overlay agar batik memudar halus di batas atas/bawah */}
-      <div 
-        aria-hidden="true" 
-        className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-b from-cream-50 via-transparent to-cream-50 opacity-90" 
       />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
