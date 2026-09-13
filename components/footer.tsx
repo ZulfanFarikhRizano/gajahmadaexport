@@ -5,16 +5,15 @@ import { CATEGORIES } from "@/lib/types";
 export function Footer({ siteName, tagline }: { siteName: string; tagline: string }) {
   return (
     <footer className="relative w-full bg-cream-50 text-clay-800 pt-10 pb-24 sm:pt-14 sm:pb-16 border-t border-clay-200/60 overflow-hidden">
-      {/* BACKGROUND BATIK GAJAH MADA (WATERMARK PROPORSI 3:2 - NO REPEAT) */}
+      {/* BACKGROUND BATIK GAJAH MADA (SOFT FADE OUT MASKING AGAR TIDAK TERPOTONG GARIS TAJAM) */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.05] sm:opacity-[0.06] z-0"
+        className="pointer-events-none absolute inset-0 opacity-[0.05] sm:opacity-[0.06] z-0 [mask-image:linear-gradient(to_bottom,transparent_0%,black_15%,black_85%,transparent_100%)]"
         style={{
           backgroundImage: "url('/images/batik-gajah.png')",
           backgroundRepeat: "no-repeat",
-          backgroundPosition: "center center",
-          // Mobile: 90% lebar layar, PC: Max 600px agar tidak raksasa
-          backgroundSize: "min(90%, 600px) auto",
+          backgroundPosition: "center 55%",
+          backgroundSize: "min(90%, 550px) auto",
         }}
       />
 

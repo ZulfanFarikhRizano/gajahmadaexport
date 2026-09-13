@@ -160,15 +160,15 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
 
   return (
     <div ref={gridTopRef} className="relative w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 scroll-mt-24 overflow-hidden">
-      {/* BACKGROUND BATIK WATERMARK 3:2 (TERKUNCI PROPORSI & RESPONSIVE) */}
+      {/* BACKGROUND BATIK WATERMARK 3:2 (SOFT FADE OUT MASKING) */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.04] sm:opacity-[0.05] z-0"
+        className="pointer-events-none absolute inset-0 opacity-[0.04] sm:opacity-[0.05] z-0 [mask-image:linear-gradient(to_bottom,transparent_0%,black_20%,black_80%,transparent_100%)]"
         style={{
           backgroundImage: "url('/images/batik-gajah.png')",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center 20%",
-          backgroundSize: "min(95%, 700px) auto",
+          backgroundSize: "min(95%, 550px) auto",
         }}
       />
 
@@ -226,7 +226,7 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
           </div>
         ) : (
           <div className="relative w-full min-h-[400px]">
-            {/* FLOATING BUTTONS (Sembunyi di HP kecil/layar sempit agar tidak menutupi gambar produk) */}
+            {/* FLOATING BUTTONS */}
             <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-20 hidden md:flex items-center justify-between px-0.5 -mx-2 sm:-mx-4">
               <button
                 type="button"
