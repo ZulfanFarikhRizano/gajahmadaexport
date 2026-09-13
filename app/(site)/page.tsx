@@ -9,6 +9,7 @@ import { CTA } from "@/components/cta";
 import { PaymentInfo } from "@/components/payment-info";
 import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
 import { ECatalogButton } from "@/components/ecatalog-button";
+import { BatikWatermark } from "@/components/BatikWatermark";
 
 const SUPABASE_STORAGE_URL =
   "https://vofsmretmpxinnkfiqsk.supabase.co/storage/v1/object/public/uploads";
