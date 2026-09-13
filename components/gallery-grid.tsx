@@ -159,17 +159,22 @@ export function GalleryGrid({ products = [] }: GalleryGridProps) {
   }, [filteredProducts, currentPage]);
 
   return (
-    <div ref={gridTopRef} className="relative w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 scroll-mt-24 overflow-hidden">
-      {/* BACKGROUND BATIK WATERMARK 3:2 (SOFT FADE OUT MASKING) */}
+    <div ref={gridTopRef} className="relative w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 scroll-mt-24">
+      {/* BACKGROUND BATIK WATERMARK (REPEAT & ULTRA-SOFT OVERLAY) */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.04] sm:opacity-[0.05] z-0 [mask-image:linear-gradient(to_bottom,transparent_0%,black_20%,black_80%,transparent_100%)]"
+        className="pointer-events-none absolute inset-0 opacity-[0.03] sm:opacity-[0.04] z-0"
         style={{
           backgroundImage: "url('/images/batik-gajah.png')",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center 20%",
-          backgroundSize: "min(95%, 550px) auto",
+          backgroundRepeat: "repeat",
+          backgroundPosition: "center top",
+          backgroundSize: "360px auto",
         }}
+      />
+      {/* Soft Gradient Overlay di Atas dan Bawah Grid */}
+      <div 
+        aria-hidden="true" 
+        className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-b from-transparent via-white/40 to-transparent" 
       />
 
       {/* Content wrapper dengan z-10 agar di atas background */}
