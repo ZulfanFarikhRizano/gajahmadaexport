@@ -11,6 +11,12 @@ import { PurchaseInquiryForm } from "@/components/purchase-inquiry-form";
 import { ECatalogButton } from "@/components/ecatalog-button";
 import { BatikWatermark } from "@/components/BatikWatermark";
 
+
+// app/page.tsx
+
+export const revalidate = 60; // Cache halaman selama 60 detik
+export const maxDuration = 15; // Set timeout limit Vercel
+
 const SUPABASE_STORAGE_URL =
   "https://vofsmretmpxinnkfiqsk.supabase.co/storage/v1/object/public/uploads";
 

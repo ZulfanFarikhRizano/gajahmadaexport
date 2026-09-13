@@ -1,13 +1,10 @@
 import "server-only";
-import { unstable_noStore as noStore } from "next/cache";
 import { supabaseAdmin } from "./supabase/admin";
 import type { Product, SiteContent } from "./types";
 
 const db = () => supabaseAdmin() as any;
 
-// Helper untuk Mapping & Pembersihan Kode Unik (ID)
 function mapProduct(data: any): Product {
-  // Membersihkan kode unik dari whitespace agar konsisten
   const cleanId = (data.id || "").toString().trim().toLowerCase();
 
   return {
@@ -21,42 +18,74 @@ function mapProduct(data: any): Product {
   };
 }
 
-export async function getProducts(): Promise<Product[]> {
-  noStore();
-  const { data, error } = await db()
-    .from("products")
-    .select("*")
-    .range(0, 9999) // Mencegah pembatasan default 100 row Supabase
-    .order("created_at", { ascending: false });
+// Helper untuk fetch aman dengan batas timeout
+async function fetchWithTimeout<T>(
+  queryFn: (signal: AbortSignal) => Promise<{ data: T | null; error: any }>,
+  timeoutMs = 6000
+): Promise<T | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-  if (error) throw new Error(error.message);
+  try {
+    const { data, error } = await queryFn(controller.signal);
+    clearTimeout(timer);
+    if (error) {
+      console.error("Supabase Query Error:", error.message);
+      return null;
+    }
+    return data;
+  } catch (err: any) {
+    clearTimeout(timer);
+    if (err.name === "AbortError") {
+      console.error(`Database query timeout (${timeoutMs}ms)`);
+    } else {
+      console.error("Unexpected Database Fetch Error:", err);
+    }
+    return null;
+  }
+}
+
+export async function getProducts(): Promise<Product[]> {
+  // Ambil max 200 produk terbaru agar tidak timeout. 
+  // Jika butuh seleksi ringkas, hindari select * jika data tekstual sangat besar.
+  const data = await fetchWithTimeout<any[]>((signal) =>
+    db()
+      .from("products")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .range(0, 199)
+      .abortSignal(signal)
+  );
+
   return (data || []).map(mapProduct);
 }
 
 export async function getProductsByCategory(category: string): Promise<Product[]> {
-  noStore();
-  const { data, error } = await db()
-    .from("products")
-    .select("*")
-    .eq("category", category)
-    .range(0, 9999)
-    .order("created_at", { ascending: false });
+  const data = await fetchWithTimeout<any[]>((signal) =>
+    db()
+      .from("products")
+      .select("*")
+      .eq("category", category)
+      .order("created_at", { ascending: false })
+      .range(0, 199)
+      .abortSignal(signal)
+  );
 
-  if (error) throw new Error(error.message);
   return (data || []).map(mapProduct);
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-  noStore();
   const cleanId = (id || "").toString().trim().toLowerCase();
 
-  const { data, error } = await db()
-    .from("products")
-    .select("*")
-    .eq("id", cleanId)
-    .maybeSingle();
+  const data = await fetchWithTimeout<any>((signal) =>
+    db()
+      .from("products")
+      .select("*")
+      .eq("id", cleanId)
+      .maybeSingle()
+      .abortSignal(signal)
+  );
 
-  if (error) throw new Error(error.message);
   return data ? mapProduct(data) : null;
 }
 
@@ -112,24 +141,24 @@ export async function deleteProduct(id: string): Promise<boolean> {
 }
 
 export async function getSiteContent(): Promise<SiteContent> {
-  noStore();
-  const { data, error } = await db()
-    .from("site_content")
-    .select("*")
-    .eq("id", 1)
-    .single();
-
-  if (error) throw new Error(error.message);
+  const data = await fetchWithTimeout<any>((signal) =>
+    db()
+      .from("site_content")
+      .select("*")
+      .eq("id", 1)
+      .maybeSingle()
+      .abortSignal(signal)
+  );
 
   return {
-    siteName: data.site_name,
-    logoUrl: data.logo_url,
-    catalogUrl: data.catalog_url ?? "",
-    heroHeadline: data.hero_headline,
-    heroSubheadline: data.hero_subheadline,
-    whatsappNumber: data.whatsapp_number,
-    aboutText: data.about_text,
-    contactAddress: data.contact_address,
+    siteName: data?.site_name ?? "",
+    logoUrl: data?.logo_url ?? "",
+    catalogUrl: data?.catalog_url ?? "",
+    heroHeadline: data?.hero_headline ?? "",
+    heroSubheadline: data?.hero_subheadline ?? "",
+    whatsappNumber: data?.whatsapp_number ?? "",
+    aboutText: data?.about_text ?? "",
+    contactAddress: data?.contact_address ?? "",
   };
 }
 
