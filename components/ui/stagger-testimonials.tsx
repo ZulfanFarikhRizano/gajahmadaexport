@@ -9,44 +9,38 @@ export interface TestimonialItem {
   id?: string;
   testimonial: string;
   by: string;
-  imgSrc: string;
+  imgSrc?: string;
 }
+
+// Siluet Avatar Default (SVG)
+const DEFAULT_SILHOUETTE_AVATAR =
+  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%239ca3af'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-.85-5.05-2.2.04-1.67 3.37-2.58 5.05-2.58 1.67 0 5.01.91 5.05 2.58C15.8 19.15 14.03 20 12 20z'/></svg>";
 
 const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
   {
     testimonial:
       "The rattan chair and table set for our café in Lyon has been outdoors for over a year. Outstanding craftsmanship and durability!",
     by: "Claire Dubois, Bistro Owner",
-    imgSrc:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
   },
   {
     testimonial:
       "Gajah Mada perfectly executed my custom rattan weave patterns for a client project in Milan. Precision and attention to detail are top-notch.",
     by: "Julian Vance, Interior Designer",
-    imgSrc:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
   },
   {
     testimonial:
       "Shipped all the way to Santorini with zero damage. My villa guests constantly ask where we got these beautiful rattan pieces.",
     by: "Sophie Laurent, Resort Manager",
-    imgSrc:
-      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
   },
   {
     testimonial:
       "The dining table became the centerpiece of our latest residential project in Munich. The natural finish matches our reference flawlessly.",
     by: "Emma Lindqvist, Architect",
-    imgSrc:
-      "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
   },
   {
     testimonial:
       "Remarkable export quality! The furniture arrived securely packaged and exceeded our expectations for our boutique hotel chain.",
     by: "Lukas Weber, Procurement Lead",
-    imgSrc:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
   },
 ];
 
@@ -94,8 +88,8 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         className="pointer-events-none absolute inset-0 opacity-[0.06] z-0"
         style={{
           backgroundImage: "url('/images/batik-gajah.png')",
-          backgroundSize: "210px 140px", // Rasio 3:2 pas
-          backgroundRepeat: "space", // Browser membagikan space agar tidak terpotong kasar
+          backgroundSize: "210px 140px",
+          backgroundRepeat: "space",
           backgroundPosition: "center",
         }}
       />
@@ -111,11 +105,14 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
       />
 
       <div className="relative z-10 flex flex-col items-start gap-3">
-        <img
-          src={testimonial.imgSrc || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"}
-          alt={testimonial.by}
-          className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl bg-muted object-cover object-top border-2 border-white/40 shadow-sm"
-        />
+        {/* Avatar Siluet Default */}
+        <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl bg-clay-100/80 flex items-center justify-center border-2 border-white/40 shadow-sm overflow-hidden p-1">
+          <img
+            src={testimonial.imgSrc || DEFAULT_SILHOUETTE_AVATAR}
+            alt={testimonial.by}
+            className="w-full h-full object-cover"
+          />
+        </div>
 
         <h3
           className={cn(
@@ -147,12 +144,12 @@ export interface StaggerTestimonialsProps {
 
 export const StaggerTestimonials: React.FC<StaggerTestimonialsProps> = ({ items }) => {
   const [cardSize, setCardSize] = useState(365);
-  
+
   const prepareData = (sourceArray: TestimonialItem[]) => {
     return sourceArray.map((item, idx) => ({
       ...item,
       tempId: idx,
-      imgSrc: item.imgSrc || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      imgSrc: item.imgSrc || DEFAULT_SILHOUETTE_AVATAR,
     }));
   };
 
@@ -267,13 +264,12 @@ export const StaggerTestimonials: React.FC<StaggerTestimonialsProps> = ({ items 
 export function TestimonialsSection({ items }: { items?: TestimonialItem[] }) {
   return (
     <section className="relative bg-cream-50 py-16 overflow-hidden border-t border-b border-clay-200/60">
-      {/* Background Batik berulang dengan efek Soft Masking di tepinya */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-[0.06] z-0"
         style={{
           backgroundImage: "url('/images/batik-gajah.png')",
-          backgroundSize: "270px 180px", // Tetap rasio 3:2 (270 / 1.5 = 180)
+          backgroundSize: "270px 180px",
           backgroundRepeat: "repeat",
           backgroundPosition: "center",
           WebkitMaskImage:
