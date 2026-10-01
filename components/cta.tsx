@@ -5,3 +5,8 @@ export async function CTA() {
   const siteContent = await getSiteContent();
   return <CtaAnimated waNumber={siteContent.whatsappNumber} />;
 }
+
+
+
+
+
