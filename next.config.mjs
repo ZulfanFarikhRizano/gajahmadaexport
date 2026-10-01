@@ -9,6 +9,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    unoptimized: true, // ⚡ Menghindari error limit 5,000 Image Transformations Vercel ⚡
     remotePatterns: [
       {
         protocol: "https",
