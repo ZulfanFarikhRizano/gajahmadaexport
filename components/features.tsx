@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "motion/react";
+import { Volume2, VolumeX } from "lucide-react"; // Pastikan lucide-react terinstall, atau sesuaikan ikonnya
 
 const processSteps = [
   {
@@ -32,23 +33,28 @@ const processSteps = [
 
 export default function Features() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const isVideoInView = useInView(videoRef, { amount: 0.3 });
   
-  // Menggunakan hooks useInView untuk mendeteksi apakah elemen video terlihat di layar
-  const isVideoInView = useInView(videoRef, { amount: 0.3 }); // Aktif jika minimal 30% video terlihat
+  // State untuk mengontrol suara
+  const [isMuted, setIsMuted] = useState(true);
 
   useEffect(() => {
     if (videoRef.current) {
       if (isVideoInView) {
-        // Putar video saat masuk ke viewport
-        videoRef.current.play().catch(() => {
-          // Autoplay fallback handling jika diblokir browser
-        });
+        videoRef.current.play().catch(() => {});
       } else {
-        // Pause video saat keluar dari viewport (menghemat daya & bandwidth)
         videoRef.current.pause();
       }
     }
   }, [isVideoInView]);
+
+  // Handler untuk toggle suara
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
 
   return (
     <section id="process" className="relative py-24 bg-clay-950 text-cream-50">
@@ -60,22 +66,39 @@ export default function Features() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.6 }}
-          className="relative w-full mb-16 overflow-hidden rounded-2xl border border-brass-400/20 bg-clay-900/50 shadow-2xl"
+          className="relative w-full mb-16 overflow-hidden rounded-2xl border border-brass-400/20 bg-black shadow-2xl group"
         >
           <video
             ref={videoRef}
             loop
-            muted
+            muted={isMuted}
             playsInline
             preload="metadata"
-            className="w-full h-[320px] md:h-[480px] object-cover"
+            className="w-full h-auto object-contain max-h-[80vh] block"
           >
             <source src="/video/video-gajahmada-2.mp4" type="video/mp4" />
             Browser Anda tidak mendukung pemutaran video HTML5.
           </video>
 
-          {/* Subtly darkened overlay */}
-          <div className="absolute inset-0 bg-clay-950/20 pointer-events-none" />
+          {/* Tombol Control Suara (Mute / Unmute) */}
+          <button
+            onClick={toggleMute}
+            type="button"
+            className="absolute bottom-4 right-4 z-20 flex items-center gap-2 px-3 py-2 rounded-full bg-clay-950/80 backdrop-blur-md border border-brass-400/40 text-cream-50 hover:bg-brass-400 hover:text-clay-950 transition-all duration-300 text-xs"
+            aria-label={isMuted ? "Aktifkan Suara" : "Matikan Suara"}
+          >
+            {isMuted ? (
+              <>
+                <VolumeX className="w-4 h-4 text-brass-400 group-hover:text-clay-950" />
+                <span>Unmute</span>
+              </>
+            ) : (
+              <>
+                <Volume2 className="w-4 h-4 text-brass-400 group-hover:text-clay-950" />
+                <span>Mute</span>
+              </>
+            )}
+          </button>
         </motion.div>
 
         {/* Section Header */}
